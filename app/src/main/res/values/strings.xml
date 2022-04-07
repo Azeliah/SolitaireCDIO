@@ -1,4 +1,4 @@
 <resources>
     <string name="app_name">Solitaire CDIO</string>
-    <string name="capture_image">Capture image</string>
+    <string name="open_camera">Open Camera</string>
 </resources>
