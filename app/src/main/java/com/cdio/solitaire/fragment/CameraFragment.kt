@@ -1,15 +1,22 @@
 package com.cdio.solitaire.fragment
 
+import android.content.Context
 import android.content.res.Configuration
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
 import android.os.Bundle
 import android.util.Log
 import android.view.*
+import android.widget.TextView
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.cdio.solitaire.databinding.FragmentCameraBinding
+import com.cdio.solitaire.R
 import java.nio.ByteBuffer
 import java.util.ArrayDeque
 import java.util.concurrent.ExecutorService
@@ -19,7 +26,7 @@ import kotlin.collections.ArrayList
 /** Helper type alias used for analysis use case callbacks */
 typealias LumaListener = (luma: Double) -> Unit
 
-class CameraFragment : Fragment() {
+class CameraFragment : Fragment(), SensorEventListener {
 
     private var _fragmentCameraBinding: FragmentCameraBinding? = null
 
@@ -35,9 +42,17 @@ class CameraFragment : Fragment() {
     /** Blocking camera operations are performed using this executor */
     private lateinit var cameraExecutor: ExecutorService
 
+    // For showing rotation on camera fragment
+    private lateinit var rotationTextView: TextView
+    private lateinit var sensorManager: SensorManager
+    private lateinit var sensor: Sensor
+
     override fun onDestroyView() {
         _fragmentCameraBinding = null
         super.onDestroyView()
+
+        // Stop listening to rotation changes
+        sensorManager.unregisterListener(this)
 
         // Shut down our background executor
         cameraExecutor.shutdown()
@@ -60,6 +75,14 @@ class CameraFragment : Fragment() {
 
         broadcastManager = LocalBroadcastManager.getInstance(view.context)
 
+        rotationTextView = view.findViewById(R.id.rotation_indicator)
+
+        sensorManager = requireActivity().getSystemService(Context.SENSOR_SERVICE) as SensorManager
+
+        sensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)
+
+        sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_UI)
+
         // Wait for the views to be properly laid out
         fragmentCameraBinding.viewFinder.post {
 
@@ -81,6 +104,24 @@ class CameraFragment : Fragment() {
 
         // Rebind the camera with the updated display metrics
         bindCameraUseCases()
+    }
+
+    override fun onSensorChanged(event: SensorEvent?) {
+        event?.let {
+            val xAxis = it.values[0]
+            val yAxis = it.values[1]
+            val zAxis = it.values[2]
+
+            rotationTextView.post {
+                rotationTextView.text =
+                    getString(R.string.rotation_indicator_text, xAxis, yAxis, zAxis)
+            }
+        }
+    }
+
+    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
+        Log.i(TAG, "Accuracy changed to $accuracy")
+        // TODO: Should we do something here?
     }
 
     /** Initialize CameraX, and prepare to bind the camera use cases  */
