@@ -27,7 +27,6 @@ class CameraFragment : Fragment() {
 
     private lateinit var broadcastManager: LocalBroadcastManager
 
-    private var displayId: Int = -1
     private var preview: Preview? = null
     private var imageAnalyzer: ImageAnalysis? = null
     private var camera: Camera? = null
@@ -63,9 +62,6 @@ class CameraFragment : Fragment() {
 
         // Wait for the views to be properly laid out
         fragmentCameraBinding.viewFinder.post {
-
-            // Keep track of the display in which this view is attached
-            displayId = fragmentCameraBinding.viewFinder.display.displayId
 
             // Set up the camera and its use cases
             setUpCamera()
