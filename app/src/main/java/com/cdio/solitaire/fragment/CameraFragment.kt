@@ -4,6 +4,7 @@ import android.content.res.Configuration
 import android.os.Bundle
 import android.util.Log
 import android.view.*
+import android.widget.Button
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
@@ -15,6 +16,7 @@ import java.util.ArrayDeque
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import kotlin.collections.ArrayList
+import com.cdio.solitaire.R
 
 /** Helper type alias used for analysis use case callbacks */
 typealias LumaListener = (luma: Double) -> Unit
@@ -32,6 +34,7 @@ class CameraFragment : Fragment() {
     private var imageAnalyzer: ImageAnalysis? = null
     private var camera: Camera? = null
     private var cameraProvider: ProcessCameraProvider? = null
+    private var backButton: Button? = null
 
     /** Blocking camera operations are performed using this executor */
     private lateinit var cameraExecutor: ExecutorService
@@ -60,6 +63,8 @@ class CameraFragment : Fragment() {
         cameraExecutor = Executors.newSingleThreadExecutor()
 
         broadcastManager = LocalBroadcastManager.getInstance(view.context)
+
+        view.findViewById<Button?>(R.id.back_button).setOnClickListener(){getFragmentManager()?.popBackStack()}
 
         // Wait for the views to be properly laid out
         fragmentCameraBinding.viewFinder.post {
