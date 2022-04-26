@@ -15,7 +15,7 @@ import com.cdio.solitaire.R
 
 class MovesFragment : Fragment() {
 
-    private var linLayout : LinearLayout? = null
+    private var moveText: TextView? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -28,11 +28,7 @@ class MovesFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        linLayout = view.findViewById(R.id.lin_layout)
-
-        addPossibleMove("8S -> F1")
-        addPossibleMove("1C -> F2")
-        addPossibleMove("5H -> F3")
+        moveText = view.findViewById(R.id.move_text)
 
         view.findViewById<Button>(R.id.open_camera_button).setOnClickListener { (navigateToCamera(view)) }
     }
@@ -41,15 +37,7 @@ class MovesFragment : Fragment() {
         Navigation.findNavController(view).navigate(R.id.action_moves_to_camera)
     }
 
-    private fun addPossibleMove(str : String){
-        val newText = TextView(view?.context)
-
-        newText.text = str
-        newText.textSize = 20f
-
-        //FIXME: Find out why this line makes the app crash
-        //newText.layoutParams.width = ViewGroup.LayoutParams.WRAP_CONTENT
-
-        linLayout?.addView(newText)
+    private fun changeNextMove(str : String){
+        moveText?.text = str
     }
 }
