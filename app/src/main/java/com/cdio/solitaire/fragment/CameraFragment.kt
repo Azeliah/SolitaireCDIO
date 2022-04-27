@@ -10,6 +10,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.*
 import android.widget.TextView
+import android.widget.Button
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
@@ -38,6 +39,7 @@ class CameraFragment : Fragment(), SensorEventListener {
     private var imageAnalyzer: ImageAnalysis? = null
     private var camera: Camera? = null
     private var cameraProvider: ProcessCameraProvider? = null
+    private var backButton: Button? = null
 
     /** Blocking camera operations are performed using this executor */
     private lateinit var cameraExecutor: ExecutorService
@@ -82,6 +84,7 @@ class CameraFragment : Fragment(), SensorEventListener {
         sensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)
 
         sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_UI)
+        view.findViewById<Button?>(R.id.back_button).setOnClickListener(){ fragmentManager?.popBackStack()}
 
         // Wait for the views to be properly laid out
         fragmentCameraBinding.viewFinder.post {
