@@ -114,10 +114,7 @@ class CameraFragment : Fragment(), SensorEventListener {
             val yAxis = it.values[1]
             val zAxis = it.values[2]
 
-            rotationTextView.post {
-                rotationTextView.text =
-                    getString(R.string.rotation_indicator_text, xAxis, yAxis, zAxis)
-            }
+            rotationTextView.text = getString(R.string.rotation_indicator_text, xAxis, yAxis, zAxis)
         }
     }
 
