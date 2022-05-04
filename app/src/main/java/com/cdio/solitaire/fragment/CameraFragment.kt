@@ -39,7 +39,6 @@ class CameraFragment : Fragment(), SensorEventListener {
     private var imageAnalyzer: ImageAnalysis? = null
     private var camera: Camera? = null
     private var cameraProvider: ProcessCameraProvider? = null
-    private var backButton: Button? = null
 
     /** Blocking camera operations are performed using this executor */
     private lateinit var cameraExecutor: ExecutorService
@@ -84,7 +83,7 @@ class CameraFragment : Fragment(), SensorEventListener {
         sensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)
 
         sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_UI)
-        view.findViewById<Button?>(R.id.back_button).setOnClickListener(){ fragmentManager?.popBackStack()}
+        view.findViewById<Button?>(R.id.back_button).setOnClickListener(){requireActivity().onBackPressed()}
 
         // Wait for the views to be properly laid out
         fragmentCameraBinding.viewFinder.post {
