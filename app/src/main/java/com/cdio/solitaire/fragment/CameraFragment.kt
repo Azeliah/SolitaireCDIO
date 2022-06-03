@@ -1,5 +1,6 @@
 package com.cdio.solitaire.fragment
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.Configuration
 import android.hardware.Sensor
@@ -16,6 +17,7 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import com.cdio.solitaire.imageanalysis.CardExtraction
 import com.cdio.solitaire.databinding.FragmentCameraBinding
 import com.cdio.solitaire.R
 import java.nio.ByteBuffer
@@ -83,7 +85,8 @@ class CameraFragment : Fragment(), SensorEventListener {
         sensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)
 
         sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_UI)
-        view.findViewById<Button?>(R.id.back_button).setOnClickListener(){requireActivity().onBackPressed()}
+        view.findViewById<Button?>(R.id.back_button)
+            .setOnClickListener() { requireActivity().onBackPressed() }
 
         // Wait for the views to be properly laid out
         fragmentCameraBinding.viewFinder.post {
@@ -218,6 +221,7 @@ class CameraFragment : Fragment(), SensorEventListener {
             return data // Return the byte array
         }
 
+
         /**
          * Analyzes an image to produce a result.
          *
@@ -234,12 +238,14 @@ class CameraFragment : Fragment(), SensorEventListener {
          * may not be received or the camera may stall, depending on back pressure setting.
          *
          */
+        @SuppressLint("UnsafeOptInUsageError")
         override fun analyze(image: ImageProxy) {
             // If there are no listeners attached, we don't need to perform analysis
             if (listeners.isEmpty()) {
                 image.close()
                 return
             }
+
 
             // Keep track of frames analyzed
             val currentTime = System.currentTimeMillis()
@@ -254,27 +260,20 @@ class CameraFragment : Fragment(), SensorEventListener {
 
             // Analysis could take an arbitrarily long amount of time
             // Since we are running in a different thread, it won't stall other use cases
-
             lastAnalyzedTimestamp = frameTimestamps.first
 
-            // Since format in ImageAnalysis is YUV, image.planes[0] contains the luminance plane
-            val buffer = image.planes[0].buffer
+            CardExtraction.extractCard(
+                image,
+                "C:\\Users\\andre\\Downloads\\TestCards",
+                "C:\\Users\\andre\\Downloads\\TestCards"
+            )
 
-            // Extract image data from callback object
-            val data = buffer.toByteArray()
 
-            // Convert the data into an array of pixel values ranging 0-255
-            val pixels = data.map { it.toInt() and 0xFF }
-
-            // Compute average luminance for the image
-            val luma = pixels.average()
-
-            // Call all listeners with new value
-            listeners.forEach { it(luma) }
 
             image.close()
         }
     }
+
 
     companion object {
         private const val TAG = "CameraFragment"
