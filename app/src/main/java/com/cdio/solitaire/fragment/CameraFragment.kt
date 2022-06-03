@@ -53,7 +53,7 @@ class CameraFragment : Fragment(), SensorEventListener {
         _fragmentCameraBinding = null
         super.onDestroyView()
 
-        activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
 
         // Stop listening to rotation changes
         sensorManager.unregisterListener(this)
@@ -74,8 +74,6 @@ class CameraFragment : Fragment(), SensorEventListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
-
         // Initialize our background executor
         cameraExecutor = Executors.newSingleThreadExecutor()
 
@@ -90,12 +88,10 @@ class CameraFragment : Fragment(), SensorEventListener {
         sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_UI)
         view.findViewById<Button?>(R.id.back_button).setOnClickListener(){requireActivity().onBackPressed()}
 
-        // Wait for the views to be properly laid out
-        fragmentCameraBinding.viewFinder.post {
+        // Set up the camera and its use cases
+        setUpCamera()
 
-            // Set up the camera and its use cases
-            setUpCamera()
-        }
+        activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
     }
 
     /**
