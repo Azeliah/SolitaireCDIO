@@ -304,14 +304,11 @@ class CameraFragment : Fragment(), SensorEventListener {
 
         @SuppressLint("RestrictedApi")
         fun saveToStorage(bitmapImage: Bitmap): String? {
-            val cw = ContextWrapper(thisContext)
-            // path to /data/data/yourapp/app_data/imageDir
             val directory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
             val mypath = File(directory, "imageCrop.jpeg")
             var fos: FileOutputStream? = null
             try {
                 fos = FileOutputStream(mypath)
-                // Use the compress method on the BitMap object to write image to the OutputStream
                 bitmapImage.compress(Bitmap.CompressFormat.JPEG, 100, fos)
                 fos.getFD().sync()
                 fos.flush()
@@ -327,19 +324,15 @@ class CameraFragment : Fragment(), SensorEventListener {
             return directory.getAbsolutePath()
         }
 
-        // toBitmap extension method: https://stackoverflow.com/questions/56772967/converting-imageproxy-to-bitmap
+        // toBitmap extension method. Source: https://stackoverflow.com/questions/56772967/converting-imageproxy-to-bitmap
         fun Image.toBitmap(): Bitmap {
             val yBuffer = planes[0].buffer
             val vuBuffer = planes[2].buffer
-
             val ySize = yBuffer.remaining()
             val vuSize = vuBuffer.remaining()
-
             val nv21 = ByteArray(ySize + vuSize)
-
             yBuffer.get(nv21, 0, ySize)
             vuBuffer.get(nv21, ySize, vuSize)
-
             val yuvImage = YuvImage(nv21, ImageFormat.NV21, this.width, this.height, null)
             val out = ByteArrayOutputStream()
             yuvImage.compressToJpeg(Rect(0, 0, yuvImage.width, yuvImage.height), 50, out)
@@ -347,7 +340,6 @@ class CameraFragment : Fragment(), SensorEventListener {
             return BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
         }
     }
-
 
     companion object {
         private const val TAG = "CameraFragment"
