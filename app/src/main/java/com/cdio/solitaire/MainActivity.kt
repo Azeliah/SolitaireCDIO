@@ -26,6 +26,8 @@ class MainActivity : AppCompatActivity() {
                 this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS
             )
         }
+
+
     }
 
     private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
