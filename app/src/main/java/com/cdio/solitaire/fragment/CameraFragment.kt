@@ -2,34 +2,49 @@ package com.cdio.solitaire.fragment
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.ContextWrapper
 import android.content.res.Configuration
+import android.graphics.*
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import android.media.Image
 import android.os.Bundle
+import android.os.Environment
 import android.util.Log
-import android.view.*
-import android.widget.TextView
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import android.widget.Button
+import android.widget.TextView
 import androidx.camera.core.*
+import androidx.camera.core.Camera
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import com.cdio.solitaire.imageanalysis.CardExtraction
-import com.cdio.solitaire.databinding.FragmentCameraBinding
 import com.cdio.solitaire.R
+import com.cdio.solitaire.databinding.FragmentCameraBinding
+import com.cdio.solitaire.imageanalysis.CardExtraction
+import org.opencv.android.Utils
+import org.opencv.core.Mat
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
 import java.nio.ByteBuffer
-import java.util.ArrayDeque
+import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
-import kotlin.collections.ArrayList
+
 
 /** Helper type alias used for analysis use case callbacks */
 typealias LumaListener = (luma: Double) -> Unit
 
 class CameraFragment : Fragment(), SensorEventListener {
+
+    private lateinit var thisContext: Context
 
     private var _fragmentCameraBinding: FragmentCameraBinding? = null
 
@@ -67,6 +82,7 @@ class CameraFragment : Fragment(), SensorEventListener {
         savedInstanceState: Bundle?
     ): View {
         _fragmentCameraBinding = FragmentCameraBinding.inflate(inflater, container, false)
+        thisContext = container?.context!!
         return fragmentCameraBinding.root
     }
 
@@ -167,12 +183,12 @@ class CameraFragment : Fragment(), SensorEventListener {
             // The analyzer can then be assigned to the instance
             .also {
                 // TODO: Replace this analyzer with one that uses our Solitaire ML model
-                it.setAnalyzer(cameraExecutor, LuminosityAnalyzer { luma ->
+                it.setAnalyzer(cameraExecutor, LuminosityAnalyzer({ luma ->
                     // Values returned from our analyzer are passed to the attached listener
                     // We log image analysis results here - you should do something useful
                     // instead!
                     Log.d(TAG, "Average luminosity: $luma")
-                })
+                },thisContext))
             }
 
         // Must unbind the use-cases before rebinding them
@@ -198,7 +214,8 @@ class CameraFragment : Fragment(), SensorEventListener {
      * <p>All we need to do is override the function `analyze` with our desired operations. Here,
      * we compute the average luminosity of the image by looking at the Y plane of the YUV frame.
      */
-    private class LuminosityAnalyzer(listener: LumaListener? = null) : ImageAnalysis.Analyzer {
+    private class LuminosityAnalyzer(listener: LumaListener? = null, context: Context) : ImageAnalysis.Analyzer {
+        private val thisContext = context
         private val frameRateWindow = 8
         private val frameTimestamps = ArrayDeque<Long>(5)
         private val listeners = ArrayList<LumaListener>().apply { listener?.let { add(it) } }
@@ -240,6 +257,8 @@ class CameraFragment : Fragment(), SensorEventListener {
          */
         @SuppressLint("UnsafeOptInUsageError")
         override fun analyze(image: ImageProxy) {
+            System.loadLibrary("opencv_java4")
+
             // If there are no listeners attached, we don't need to perform analysis
             if (listeners.isEmpty()) {
                 image.close()
@@ -262,15 +281,70 @@ class CameraFragment : Fragment(), SensorEventListener {
             // Since we are running in a different thread, it won't stall other use cases
             lastAnalyzedTimestamp = frameTimestamps.first
 
-            CardExtraction.extractCard(
-                image,
-                "C:\\Users\\andre\\Downloads\\TestCards",
-                "C:\\Users\\andre\\Downloads\\TestCards"
-            )
-
-
+            val javaImage: Image? = image.image
+            val bitmap = javaImage?.toBitmap()
+            val mat = Mat()
+            Utils.bitmapToMat(bitmap, mat)
+            val matCrop = CardExtraction.extractCard(mat)
+            if (matCrop == null) {
+                Log.d(TAG, "No card was found!")
+            } else {
+                Log.d(TAG, "There was a card!")
+                val newBitmap = Bitmap.createBitmap(matCrop.cols(), matCrop.rows(), Bitmap.Config.ARGB_8888);
+                Utils.matToBitmap(matCrop,newBitmap)
+                if (bitmap != null) {
+                    saveToStorage(newBitmap)
+                }
+                matCrop.release()
+            }
+            mat.release()
 
             image.close()
+        }
+
+        @SuppressLint("RestrictedApi")
+        fun saveToStorage(bitmapImage: Bitmap): String? {
+            val cw = ContextWrapper(thisContext)
+            // path to /data/data/yourapp/app_data/imageDir
+            val directory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+            val mypath = File(directory, "imageCrop.jpeg")
+            var fos: FileOutputStream? = null
+            try {
+                fos = FileOutputStream(mypath)
+                // Use the compress method on the BitMap object to write image to the OutputStream
+                bitmapImage.compress(Bitmap.CompressFormat.JPEG, 100, fos)
+                fos.getFD().sync()
+                fos.flush()
+            } catch (e: java.lang.Exception) {
+                e.printStackTrace()
+            } finally {
+                try {
+                    fos?.close()
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                }
+            }
+            return directory.getAbsolutePath()
+        }
+
+        // toBitmap extension method: https://stackoverflow.com/questions/56772967/converting-imageproxy-to-bitmap
+        fun Image.toBitmap(): Bitmap {
+            val yBuffer = planes[0].buffer
+            val vuBuffer = planes[2].buffer
+
+            val ySize = yBuffer.remaining()
+            val vuSize = vuBuffer.remaining()
+
+            val nv21 = ByteArray(ySize + vuSize)
+
+            yBuffer.get(nv21, 0, ySize)
+            vuBuffer.get(nv21, ySize, vuSize)
+
+            val yuvImage = YuvImage(nv21, ImageFormat.NV21, this.width, this.height, null)
+            val out = ByteArrayOutputStream()
+            yuvImage.compressToJpeg(Rect(0, 0, yuvImage.width, yuvImage.height), 50, out)
+            val imageBytes = out.toByteArray()
+            return BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
         }
     }
 
