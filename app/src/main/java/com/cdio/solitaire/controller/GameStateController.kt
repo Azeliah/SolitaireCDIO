@@ -48,5 +48,13 @@ class GameStateController() {
         TODO("Not yet implemented. Other dev branch.")
     }
 
+    // TODO: Make updateCard - should update a single card in the game.
 
+    fun getCurrentGameState(): GameState {
+        return gameStateHistory!![gameStateHistory!!.size - 1]
+    }
+
+    fun getLastMove(): Move {
+        return getCurrentGameState().move
+    }
 }
