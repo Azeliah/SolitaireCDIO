@@ -1,12 +1,16 @@
 package com.cdio.solitaire.ml
 
 import android.content.Context
+import android.graphics.Bitmap
 import org.tensorflow.lite.DataType
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
 import java.nio.ByteBuffer
 
 class RankModel {
-    fun predict(byteBuffer: ByteBuffer, context: Context) : Int {
+    fun predict(bitmap: Bitmap, context: Context) : Int {
+        val bytes: Int = bitmap.byteCount
+        val byteBuffer = ByteBuffer.allocate(bytes)
+        bitmap.copyPixelsToBuffer(byteBuffer)
         val model = Rank.newInstance(context)
 
         // Creates inputs for reference.
