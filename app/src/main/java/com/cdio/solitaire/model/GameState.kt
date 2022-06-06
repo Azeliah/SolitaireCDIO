@@ -1,10 +1,11 @@
 package com.cdio.solitaire.model
 
-data class GameState (
+data class GameState(
     val foundations: Array<CardStack>,
     val tableaux: Array<CardStack>,
     val talon: CardStack,
     val stock: CardStack,
+    val move: Move
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

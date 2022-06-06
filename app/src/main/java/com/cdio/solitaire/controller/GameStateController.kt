@@ -1,8 +1,6 @@
 package com.cdio.solitaire.controller
 
-import com.cdio.solitaire.model.Card
-import com.cdio.solitaire.model.CardStack
-import com.cdio.solitaire.model.GameState
+import com.cdio.solitaire.model.*
 
 class GameStateController() {
     var gameStateHistory: MutableList<GameState>? = null
@@ -14,12 +12,14 @@ class GameStateController() {
     private fun initializeGameStateHistory() {
         val deck = createNullCardStack(52) //  TODO: Add listID
         // TODO: Simulation part
-        val foundations = Array<CardStack>(4) { _ -> CardStack() }
-        val tableaux = Array<CardStack>(7) { _ -> CardStack() }
+        val foundations = Array(4) { _ -> CardStack() }
+        val tableaux = Array(7) { _ -> CardStack() }
         val talon = CardStack()
         val stock = CardStack()
         dealOutDeck(deck, tableaux, stock)
-        val initialGameState = GameState(foundations, tableaux, talon, stock)
+        val initialGameState =
+            GameState(foundations, tableaux, talon, stock, Move(MoveType.DEAL_CARDS))
+        // TODO: Add check on first game state
         getFirstCardValues(initialGameState)
         gameStateHistory = mutableListOf(initialGameState)
     }
@@ -29,7 +29,7 @@ class GameStateController() {
         tableaux: Array<CardStack>,
         stock: CardStack
     ) {
-        for (i in 0..6){
+        for (i in 0..6) {
             for (j in i..6) {
                 tableaux[j].pushCard(deck.popCard()!!)
             }
@@ -42,4 +42,11 @@ class GameStateController() {
         for (i in 0..cardCount) cardStack.pushCard(Card())
         return cardStack
     }
+
+    private fun getFirstCardValues(gameState: GameState) {
+        //captureInitialGameState()
+        TODO("Not yet implemented. Other dev branch.")
+    }
+
+
 }

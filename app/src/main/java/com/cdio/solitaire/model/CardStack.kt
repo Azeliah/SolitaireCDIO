@@ -4,13 +4,8 @@ class CardStack {
     var head: Card? = null
     var tail: Card? = null
     var size: Int = 0
+    //val listID: Int
 
-    // val listID: Int
-    /*
-    constructor(listID: Int) {
-        this.listID = listID // -1 as listID is reserved for temporary lists.
-    }
-    */
     fun pushCard(card: Card) { // Standard push, pushing an element to the tail
         when (size) {
             0 -> {
