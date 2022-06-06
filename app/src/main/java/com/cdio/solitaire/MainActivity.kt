@@ -28,8 +28,8 @@ class MainActivity : AppCompatActivity() {
                 this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS
             )
         }
-        val rankModel = RankModel()
-        rankModel.test(this.baseContext)
+        // val rankModel = RankModel()
+        // rankModel.test(this.baseContext)
     }
 
     private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
