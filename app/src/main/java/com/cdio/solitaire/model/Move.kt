@@ -1,5 +1,5 @@
 package com.cdio.solitaire.model
-
+// TODO: Make into a regular Kotlin class, make toString() method and pictureNeeded() method
 enum class MoveType {
     DEAL_CARDS,
     MOVE_STACK,
@@ -15,7 +15,7 @@ data class Move(
     val fromStack: CardStack? = null,
     val toStack: CardStack? = null,
     val cardsMoved: Int = 0,
-    val highCard: Card? = null // Used to specify the particular
+    val highCard: Card? = null // Used to specify the particular card for the popStack, needed for toString()
 )
 
 
