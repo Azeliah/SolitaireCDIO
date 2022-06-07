@@ -68,6 +68,10 @@ class GameStateController() {
         }
     }
 
+    fun moveStack(sourceStack: CardStack, cardsToMove: Int, targetStack: CardStack) {
+        targetStack.pushStack(sourceStack.popStack(cardsToMove)!!)
+    }
+
     // TODO: Make updateCard - should update a single card in the game.
     //  Might not belong here, could be app level
 
