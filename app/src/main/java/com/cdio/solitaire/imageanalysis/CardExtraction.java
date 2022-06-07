@@ -127,7 +127,7 @@ public class CardExtraction {
             return resize;
         } else {
             System.out.println("Card was not valid!");
-            System.out.println("Width: " + rect.size.width + " ,height: " + rect.size.height);
+            System.out.println("Width: " + rect.size.width + ", height: " + rect.size.height);
             src.release();
             blur.release();
             noise.release();
