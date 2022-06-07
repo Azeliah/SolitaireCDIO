@@ -56,6 +56,8 @@ class CameraFragment : Fragment(), SensorEventListener {
     private var camera: Camera? = null
     private var cameraProvider: ProcessCameraProvider? = null
 
+    private var statusMessage: TextView? = null
+
     /** Blocking camera operations are performed using this executor */
     private lateinit var cameraExecutor: ExecutorService
 
@@ -117,6 +119,9 @@ class CameraFragment : Fragment(), SensorEventListener {
             requireActivity().onBackPressed()
         }
 
+        statusMessage = view.findViewById(R.id.status_message)
+        statusMessage?.text = "Test message"
+
         // Set up the camera and its use cases
         setUpCamera()
 
@@ -143,6 +148,14 @@ class CameraFragment : Fragment(), SensorEventListener {
             val xAxis = it.values[0]
             val yAxis = it.values[1]
             val zAxis = it.values[2]
+
+            if (yAxis > 0.2) {
+                statusMessage?.text = "Tilt phone more up"
+            } else if (yAxis < -0.2) {
+                statusMessage?.text = "Tilt phone more down"
+            } else {
+                statusMessage?.text = "Hold phone still"
+            }
 
             rotationTextView.text = getString(R.string.rotation_indicator_text, xAxis, yAxis, zAxis)
         }
