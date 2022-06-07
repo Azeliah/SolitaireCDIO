@@ -149,13 +149,11 @@ class CameraFragment : Fragment(), SensorEventListener {
             val yAxis = it.values[1]
             val zAxis = it.values[2]
 
-            if(yAxis > 0.2){
+            if (yAxis > 0.2) {
                 statusMessage?.text = "Tilt phone more up"
-                Log.d(TAG, "Til phone more up")
-            }else if (yAxis < -0.2){
+            } else if (yAxis < -0.2) {
                 statusMessage?.text = "Tilt phone more down"
-            }
-            else{
+            } else {
                 statusMessage?.text = "Hold phone still"
             }
 
