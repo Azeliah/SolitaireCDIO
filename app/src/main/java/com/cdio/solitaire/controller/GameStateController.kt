@@ -1,5 +1,6 @@
 package com.cdio.solitaire.controller
 
+import android.util.Log
 import com.cdio.solitaire.model.*
 
 class GameStateController() {
@@ -11,10 +12,10 @@ class GameStateController() {
 
     private fun initializeGameStateHistory() {
         val deck = createNullCardStack(52, -1)
-        val foundations = Array(4) { i -> CardStack(i+8) }
-        val tableaux = Array(7) { i -> CardStack(i+1) }
-        val talon = CardStack(13)
-        val stock = CardStack(12)
+        val foundations = Array(4) { i -> CardStack(i + 7) }
+        val tableaux = Array(7) { i -> CardStack(i) }
+        val stock = CardStack(11)
+        val talon = CardStack(12)
         dealOutDeck(deck, tableaux, stock)
         val initialGameState =
             GameState(foundations, tableaux, talon, stock, Move(MoveType.DEAL_CARDS))
@@ -44,9 +45,31 @@ class GameStateController() {
     private fun getFirstCardValues(gameState: GameState) {
         //captureInitialGameState()
         TODO("Not yet implemented. Other dev branch.")
-    } 
+    }
+
+    private fun getCardStackFromID(listID: Int): CardStack? { // Added for ease, might be deleted later
+        return when (listID) {
+            0, 1, 2, 3, 4, 5, 6 -> getCurrentGameState().tableaux[listID]
+            7, 8, 9, 10 -> getCurrentGameState().foundations[listID - 7]
+            11 -> getCurrentGameState().stock
+            12 -> getCurrentGameState().talon
+            else -> null
+        }
+    }
+
+    fun flipTalon() {
+        if (getCurrentGameState().stock.size < 3) {
+            getCurrentGameState().stock.pushStackToHead(getCurrentGameState().talon)
+        } else {
+            Log.e(
+                "Talon cannot be flipped, cards in stock",
+                getCurrentGameState().stock.size.toString()
+            )
+        }
+    }
 
     // TODO: Make updateCard - should update a single card in the game.
+    //  Might not belong here, could be app level
 
     fun getCurrentGameState(): GameState {
         return gameStateHistory!![gameStateHistory!!.size - 1]

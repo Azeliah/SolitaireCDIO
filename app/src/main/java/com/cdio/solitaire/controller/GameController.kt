@@ -4,7 +4,9 @@ class GameController {
     val gsc = GameStateController()
 
     fun flipTalon() {
-        TODO("Add data manipulation in GSC")
+        // While loop can be added to go through the entire talon.
+        // Will need a few extra data features, though - hidden card counts.
+        gsc.flipTalon()
     }
 
     fun drawFromStock() {
@@ -23,7 +25,7 @@ class GameController {
         TODO("Analyze code from other repo for data manipulation/evaluation.")
     }
 
-    fun moveKing(){
+    fun moveKing() {
         TODO("Analyze code from other repo for data manipulation/evaluation.")
     }
 

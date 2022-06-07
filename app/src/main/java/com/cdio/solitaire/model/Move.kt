@@ -1,4 +1,5 @@
 package com.cdio.solitaire.model
+
 // TODO: Make into a regular Kotlin class, make toString() method and pictureNeeded() method
 enum class MoveType {
     DEAL_CARDS,

@@ -93,4 +93,20 @@ class CardStack(val listID: Int) {
         }
         return poppedStack
     }
+
+    fun pushStackToHead(stack: CardStack) {
+        if (stack.size == 0) {
+            Log.e("Trying to push empty stack, listID", stack.listID.toString())
+            return
+        }
+        if (size == 0) {
+            pushStack(stack)
+            return
+        }
+        head!!.prev = stack.tail
+        stack.tail!!.next = head
+        head = stack.head
+        size += stack.size
+        stack.resetCardStack()
+    }
 }
