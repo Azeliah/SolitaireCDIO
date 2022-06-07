@@ -2,7 +2,6 @@ package com.cdio.solitaire.fragment
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.ContextWrapper
 import android.content.res.Configuration
 import android.graphics.*
 import android.hardware.Sensor
@@ -33,14 +32,13 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
-import java.nio.ByteBuffer
 import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 
 /** Helper type alias used for analysis use case callbacks */
-typealias LumaListener = (luma: Double) -> Unit
+typealias CardAnalyzerListener = () -> Unit
 
 class CameraFragment : Fragment(), SensorEventListener {
 
@@ -182,13 +180,9 @@ class CameraFragment : Fragment(), SensorEventListener {
             .build()
             // The analyzer can then be assigned to the instance
             .also {
-                // TODO: Replace this analyzer with one that uses our Solitaire ML model
-                it.setAnalyzer(cameraExecutor, LuminosityAnalyzer({ luma ->
-                    // Values returned from our analyzer are passed to the attached listener
-                    // We log image analysis results here - you should do something useful
-                    // instead!
-                    Log.d(TAG, "Average luminosity: $luma")
-                },thisContext))
+                it.setAnalyzer(cameraExecutor, CardAnalyzer {
+                    Log.d(TAG, "CardAnalyzerListener called")
+                })
             }
 
         // Must unbind the use-cases before rebinding them
@@ -211,33 +205,17 @@ class CameraFragment : Fragment(), SensorEventListener {
     /**
      * Our custom image analysis class.
      *
-     * <p>All we need to do is override the function `analyze` with our desired operations. Here,
-     * we compute the average luminosity of the image by looking at the Y plane of the YUV frame.
+     * Analyzes the image for valid cards and tries to construct information about the current deck.
+     * The deck is returned to any potential listeners added in constructor or with onFrameAnalyzed.
      */
-    private class LuminosityAnalyzer(listener: LumaListener? = null, context: Context) : ImageAnalysis.Analyzer {
-        private val thisContext = context
-        private val frameRateWindow = 8
-        private val frameTimestamps = ArrayDeque<Long>(5)
-        private val listeners = ArrayList<LumaListener>().apply { listener?.let { add(it) } }
-        private var lastAnalyzedTimestamp = 0L
-        var framesPerSecond: Double = -1.0
-            private set
+    private class CardAnalyzer(listener: CardAnalyzerListener? = null) : ImageAnalysis.Analyzer {
+        private val listeners =
+            ArrayList<CardAnalyzerListener>().apply { listener?.let { add(it) } }
 
         /**
-         * Used to add listeners that will be called with each luma computed
+         * Used to add listeners that will be called with each image analyzed
          */
-        fun onFrameAnalyzed(listener: LumaListener) = listeners.add(listener)
-
-        /**
-         * Helper extension function used to extract a byte array from an image plane buffer
-         */
-        private fun ByteBuffer.toByteArray(): ByteArray {
-            rewind()    // Rewind the buffer to zero
-            val data = ByteArray(remaining())
-            get(data)   // Copy the buffer into a byte array
-            return data // Return the byte array
-        }
-
+        fun onFrameAnalyzed(listener: CardAnalyzerListener) = listeners.add(listener)
 
         /**
          * Analyzes an image to produce a result.
@@ -265,22 +243,6 @@ class CameraFragment : Fragment(), SensorEventListener {
                 return
             }
 
-
-            // Keep track of frames analyzed
-            val currentTime = System.currentTimeMillis()
-            frameTimestamps.push(currentTime)
-
-            // Compute the FPS using a moving average
-            while (frameTimestamps.size >= frameRateWindow) frameTimestamps.removeLast()
-            val timestampFirst = frameTimestamps.peekFirst() ?: currentTime
-            val timestampLast = frameTimestamps.peekLast() ?: currentTime
-            framesPerSecond = 1.0 / ((timestampFirst - timestampLast) /
-                    frameTimestamps.size.coerceAtLeast(1).toDouble()) * 1000.0
-
-            // Analysis could take an arbitrarily long amount of time
-            // Since we are running in a different thread, it won't stall other use cases
-            lastAnalyzedTimestamp = frameTimestamps.first
-
             val javaImage: Image? = image.image
             val bitmap = javaImage?.toBitmap()
             val mat = Mat()
@@ -290,8 +252,9 @@ class CameraFragment : Fragment(), SensorEventListener {
                 Log.d(TAG, "No card was found!")
             } else {
                 Log.d(TAG, "There was a card!")
-                val newBitmap = Bitmap.createBitmap(matCrop.cols(), matCrop.rows(), Bitmap.Config.ARGB_8888);
-                Utils.matToBitmap(matCrop,newBitmap)
+                val newBitmap =
+                    Bitmap.createBitmap(matCrop.cols(), matCrop.rows(), Bitmap.Config.ARGB_8888)
+                Utils.matToBitmap(matCrop, newBitmap)
                 if (bitmap != null) {
                     saveToStorage(newBitmap)
                 }
@@ -302,15 +265,21 @@ class CameraFragment : Fragment(), SensorEventListener {
             image.close()
         }
 
-        @SuppressLint("RestrictedApi")
+        /**
+         * Helper function to save the output from CardExtraction to storage.
+         *
+         * <p> This is supposed to be used for debugging only; the bitmap should be passed
+         * to our ML model in the future.
+         */
         fun saveToStorage(bitmapImage: Bitmap): String? {
-            val directory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+            val directory =
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
             val mypath = File(directory, "imageCrop.jpeg")
             var fos: FileOutputStream? = null
             try {
                 fos = FileOutputStream(mypath)
                 bitmapImage.compress(Bitmap.CompressFormat.JPEG, 100, fos)
-                fos.getFD().sync()
+                fos.fd.sync()
                 fos.flush()
             } catch (e: java.lang.Exception) {
                 e.printStackTrace()
@@ -321,10 +290,14 @@ class CameraFragment : Fragment(), SensorEventListener {
                     e.printStackTrace()
                 }
             }
-            return directory.getAbsolutePath()
+            return directory.absolutePath
         }
 
-        // toBitmap extension method. Source: https://stackoverflow.com/questions/56772967/converting-imageproxy-to-bitmap
+        /**
+         * Extension method to convert Image-object to bitmap
+         *
+         * <p> Source: https://stackoverflow.com/questions/56772967/converting-imageproxy-to-bitmap
+         */
         fun Image.toBitmap(): Bitmap {
             val yBuffer = planes[0].buffer
             val vuBuffer = planes[2].buffer
