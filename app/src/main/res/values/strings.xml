@@ -2,4 +2,6 @@
     <string name="app_name">Solitaire CDIO</string>
     <string name="open_camera">Open Camera</string>
     <string name="rotation_indicator_text">x: %f y: %f, z: %f</string>
+    <string name="next_move">Next Move</string>
+    <string name="deal_cards">Deal Cards</string>
 </resources>

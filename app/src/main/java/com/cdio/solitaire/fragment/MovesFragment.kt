@@ -14,6 +14,8 @@ class MovesFragment : Fragment() {
 
     private var moveText: TextView? = null
 
+    private var button: Button? = null
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -27,14 +29,30 @@ class MovesFragment : Fragment() {
 
         moveText = view.findViewById(R.id.move_text)
 
-        view.findViewById<Button>(R.id.open_camera_button).setOnClickListener { (navigateToCamera(view)) }
+        button = view.findViewById(R.id.open_camera_button)
+        button?.setOnClickListener { (navigateToCamera(view)) }
     }
 
     private fun navigateToCamera(view: View) {
+        button?.text = getString(R.string.next_move)
+        button?.setOnClickListener { getNextMove(view) }
         Navigation.findNavController(view).navigate(R.id.action_moves_to_camera)
     }
 
     private fun changeNextMove(str : String){
         moveText?.text = str
+    }
+
+    private fun getNextMove(view: View) {
+        val nextMove = GameController.getLastMove()
+        changeNextMove(nextMove.toString())
+        if(nextMove.NewPictureNeeded){
+            flipButton(view)
+        }
+    }
+
+    private fun flipButton(view: View){
+        button?.text = getString(R.string.open_camera)
+        button?.setOnClickListener { navigateToCamera(view)}
     }
 }

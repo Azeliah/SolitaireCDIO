@@ -50,7 +50,7 @@
         android:layout_marginStart="167dp"
         android:layout_marginTop="28dp"
         android:layout_marginEnd="167dp"
-        android:text="N/A"
+        android:text="Deal Cards"
         android:textSize="20sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.487"
