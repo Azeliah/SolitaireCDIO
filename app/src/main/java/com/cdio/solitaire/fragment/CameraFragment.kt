@@ -56,13 +56,13 @@ class CameraFragment : Fragment(), SensorEventListener {
     private var camera: Camera? = null
     private var cameraProvider: ProcessCameraProvider? = null
 
-    private var statusMessage: TextView? = null
-
     /** Blocking camera operations are performed using this executor */
     private lateinit var cameraExecutor: ExecutorService
 
-    // For showing rotation on camera fragment
-    private lateinit var rotationTextView: TextView
+    // For showing rotation and status message on camera fragment
+    private lateinit var xRotationTextView: TextView
+    private lateinit var yRotationTextView: TextView
+    private lateinit var statusMessageTextView: TextView
     private lateinit var sensorManager: SensorManager
     private lateinit var sensor: Sensor
 
@@ -107,7 +107,9 @@ class CameraFragment : Fragment(), SensorEventListener {
 
         broadcastManager = LocalBroadcastManager.getInstance(view.context)
 
-        rotationTextView = view.findViewById(R.id.rotation_indicator)
+        xRotationTextView = view.findViewById(R.id.rotation_indicator_x)
+        yRotationTextView = view.findViewById(R.id.rotation_indicator_y)
+        statusMessageTextView = view.findViewById(R.id.status_message)
 
         sensorManager = requireActivity().getSystemService(Context.SENSOR_SERVICE) as SensorManager
 
@@ -118,9 +120,6 @@ class CameraFragment : Fragment(), SensorEventListener {
         view.findViewById<Button?>(R.id.back_button).setOnClickListener {
             requireActivity().onBackPressed()
         }
-
-        statusMessage = view.findViewById(R.id.status_message)
-        statusMessage?.text = "Test message"
 
         // Set up the camera and its use cases
         setUpCamera()
@@ -147,28 +146,41 @@ class CameraFragment : Fragment(), SensorEventListener {
         event?.let {
             val xAxis = it.values[0]
             val yAxis = it.values[1]
-            val zAxis = it.values[2]
 
-            if (yAxis > 0.2) {
-                statusMessage?.text = "Tilt phone more up"
-            } else if (yAxis < -0.2) {
-                statusMessage?.text = "Tilt phone more down"
-            } else {
-                statusMessage?.text = "Hold phone still"
+            var statusMessage = R.string.hold_still
+            var xStatusColor = R.color.white
+            var yStatusColor = R.color.white
+
+            if (xAxis > ROTATION_THRESHOLD) {
+                statusMessage = R.string.tilt_right
+                xStatusColor = R.color.red
+            } else if (xAxis < -ROTATION_THRESHOLD) {
+                statusMessage = R.string.tilt_left
+                xStatusColor = R.color.red
             }
 
-            rotationTextView.text = getString(R.string.rotation_indicator_text, xAxis, yAxis, zAxis)
+            if (yAxis > ROTATION_THRESHOLD) {
+                statusMessage = R.string.tilt_up
+                yStatusColor = R.color.red
+            } else if (yAxis < -ROTATION_THRESHOLD) {
+                statusMessage = R.string.tilt_down
+                yStatusColor = R.color.red
+            }
+
+            statusMessageTextView.text = getString(statusMessage)
+            xRotationTextView.text = getString(R.string.rotation_indicator_text, "x", xAxis)
+            yRotationTextView.text = getString(R.string.rotation_indicator_text, " y", yAxis)
+
+            xRotationTextView.setTextColor(ContextCompat.getColor(thisContext, xStatusColor))
+            yRotationTextView.setTextColor(ContextCompat.getColor(thisContext, yStatusColor))
         }
     }
 
-    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
-        Log.i(TAG, "Accuracy changed to $accuracy")
-        // TODO: Should we do something here?
-    }
+    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
 
     /** Initialize CameraX, and prepare to bind the camera use cases  */
     private fun setUpCamera() {
-        val cameraProviderFuture = ProcessCameraProvider.getInstance(requireContext())
+        val cameraProviderFuture = ProcessCameraProvider.getInstance(thisContext)
         cameraProviderFuture.addListener({
 
             // CameraProvider
@@ -176,7 +188,7 @@ class CameraFragment : Fragment(), SensorEventListener {
 
             // Build and bind the camera use cases
             bindCameraUseCases()
-        }, ContextCompat.getMainExecutor(requireContext()))
+        }, ContextCompat.getMainExecutor(thisContext))
     }
 
     /** Declare and bind preview, capture and analysis use cases */
@@ -340,5 +352,6 @@ class CameraFragment : Fragment(), SensorEventListener {
 
     companion object {
         private const val TAG = "CameraFragment"
+        private const val ROTATION_THRESHOLD = 0.1
     }
 }

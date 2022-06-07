@@ -1,5 +1,11 @@
 <resources>
     <string name="app_name">Solitaire CDIO</string>
     <string name="open_camera">Open Camera</string>
-    <string name="rotation_indicator_text">x: %f y: %f, z: %f</string>
+    <string name="rotation_indicator_text">%s: %f</string>
+    <string name="back">Back</string>
+    <string name="tilt_right">Tilt phone more to the right</string>
+    <string name="tilt_left">Tilt phone more to the left</string>
+    <string name="tilt_up">Tilt phone more up</string>
+    <string name="tilt_down">Tilt phone more down</string>
+    <string name="hold_still">Hold phone still</string>
 </resources>
