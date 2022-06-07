@@ -12,11 +12,13 @@ import android.hardware.SensorManager
 import android.media.Image
 import android.os.Bundle
 import android.os.Environment
+import android.os.Looper
 import android.util.Log
 import android.view.*
 import android.view.Surface.ROTATION_90
 import android.widget.TextView
 import android.widget.Button
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.*
 import androidx.camera.core.Camera
@@ -27,6 +29,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.cdio.solitaire.R
 import com.cdio.solitaire.databinding.FragmentCameraBinding
 import com.cdio.solitaire.imageanalysis.CardExtraction
+import com.cdio.solitaire.ml.RankModel
 import org.opencv.android.Utils
 import org.opencv.core.Mat
 import java.io.ByteArrayOutputStream
@@ -191,9 +194,9 @@ class CameraFragment : Fragment(), SensorEventListener {
             .build()
             // The analyzer can then be assigned to the instance
             .also {
-                it.setAnalyzer(cameraExecutor, CardAnalyzer {
+                it.setAnalyzer(cameraExecutor, CardAnalyzer(thisContext, {
                     Log.d(TAG, "CardAnalyzerListener called")
-                })
+                }))
             }
 
         // Must unbind the use-cases before rebinding them
@@ -219,7 +222,8 @@ class CameraFragment : Fragment(), SensorEventListener {
      * Analyzes the image for valid cards and tries to construct information about the current deck.
      * The deck is returned to any potential listeners added in constructor or with onFrameAnalyzed.
      */
-    private class CardAnalyzer(listener: CardAnalyzerListener? = null) : ImageAnalysis.Analyzer {
+    private class CardAnalyzer(context: Context, listener: CardAnalyzerListener? = null) : ImageAnalysis.Analyzer {
+        private val context = context
         private val listeners =
             ArrayList<CardAnalyzerListener>().apply { listener?.let { add(it) } }
 
@@ -263,12 +267,15 @@ class CameraFragment : Fragment(), SensorEventListener {
                 Log.d(TAG, "No card was found!")
             } else {
                 Log.d(TAG, "There was a card!")
-                val newBitmap =
-                    Bitmap.createBitmap(matCrop.cols(), matCrop.rows(), Bitmap.Config.ARGB_8888)
-                Utils.matToBitmap(matCrop, newBitmap)
+                var matRank = CardExtraction.extractRank(matCrop);
+                val newBitmap = Bitmap.createBitmap(matRank.cols(), matRank.rows(), Bitmap.Config.ARGB_8888)
+                Utils.matToBitmap(matRank, newBitmap)
                 if (bitmap != null) {
-                    saveToStorage(newBitmap)
+                    val model = RankModel()
+                    val rank = model.predict(newBitmap, context)
+                    saveToStorage(newBitmap, rank)
                 }
+                matRank.release()
                 matCrop.release()
             }
             mat.release()
@@ -282,10 +289,10 @@ class CameraFragment : Fragment(), SensorEventListener {
          * <p> This is supposed to be used for debugging only; the bitmap should be passed
          * to our ML model in the future.
          */
-        fun saveToStorage(bitmapImage: Bitmap): String? {
+        fun saveToStorage(bitmapImage: Bitmap, rank: Int): String? {
             val directory =
                 Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
-            val mypath = File(directory, "imageCrop.jpeg")
+            val mypath = File(directory, System.currentTimeMillis().toString() + "_rank_" + rank + ".jpeg")
             var fos: FileOutputStream? = null
             try {
                 fos = FileOutputStream(mypath)
