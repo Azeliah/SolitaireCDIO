@@ -14,10 +14,12 @@ import static java.lang.Double.max;
 import static java.lang.Double.min;
 
 public class CardExtraction {
-    static {System.loadLibrary("opencv_java4");}
+    static {
+        System.loadLibrary("opencv_java4");
+    }
 
     public static Mat extractCard(Mat src) {
-        Imgproc.cvtColor(src,src,Imgproc.COLOR_BGRA2BGR);
+        Imgproc.cvtColor(src, src, Imgproc.COLOR_BGRA2BGR);
 
         Mat blur = new Mat();
         Imgproc.medianBlur(src, blur, 5);
@@ -37,7 +39,7 @@ public class CardExtraction {
 
         List<MatOfPoint> points = new ArrayList<>();
         Mat contours = new Mat();
-        Imgproc.findContours(edge,points,contours,Imgproc.RETR_EXTERNAL,Imgproc.CHAIN_APPROX_SIMPLE);
+        Imgproc.findContours(edge, points, contours, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
         System.out.println(points.size());
 
         if (points.size() == 0) {
@@ -54,8 +56,7 @@ public class CardExtraction {
         double maxim = 0;
         double cardDimensions = 2.5 / 3.5;
         double tolerance = 0.12;
-        for (int contourId = 0; contourId < points.size(); contourId++)
-        {
+        for (int contourId = 0; contourId < points.size(); contourId++) {
             MatOfPoint2f cnt = new MatOfPoint2f();
             points.get(contourId).convertTo(cnt, CvType.CV_32FC2);
             RotatedRect rect = Imgproc.minAreaRect(cnt);
@@ -68,10 +69,9 @@ public class CardExtraction {
                 entryDimensions = rect.size.height / rect.size.width;
             }
 
-            if(maxim < temp && (cardDimensions - entryDimensions < tolerance && cardDimensions - entryDimensions > -tolerance) )
-            {
-                maxim=temp;
-                index=contourId;
+            if (maxim < temp && (cardDimensions - entryDimensions < tolerance && cardDimensions - entryDimensions > -tolerance)) {
+                maxim = temp;
+                index = contourId;
             }
         }
 
@@ -90,15 +90,15 @@ public class CardExtraction {
         if (valid) {
             MatOfPoint2f reference = new MatOfPoint2f(
                     new Point(0, 0),
-                    new Point(57*4,0),
-                    new Point(57*4,87*4),
-                    new Point(0,87*4)
+                    new Point(57 * 4, 0),
+                    new Point(57 * 4, 87 * 4),
+                    new Point(0, 87 * 4)
             );
 
             Mat box = new Mat();
-            Imgproc.boxPoints(rect,box);
+            Imgproc.boxPoints(rect, box);
 
-            Mat warpMat = Imgproc.getPerspectiveTransform(box,reference);
+            Mat warpMat = Imgproc.getPerspectiveTransform(box, reference);
 
             Mat warp = new Mat();
             Imgproc.warpPerspective(src, warp, warpMat, new Size(57 * 4, 87 * 4));
@@ -149,10 +149,10 @@ public class CardExtraction {
     }
 
     public static Mat resizeIcon(Mat src) {
-        Imgproc.cvtColor(src,src,Imgproc.COLOR_RGB2GRAY);
-        Imgproc.adaptiveThreshold(src,src, 255, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY, 15, 10);
-        Size sz = new Size(15,45);
-        Imgproc.resize( src, src, sz );
+        Imgproc.cvtColor(src, src, Imgproc.COLOR_RGB2GRAY);
+        Imgproc.adaptiveThreshold(src, src, 255, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY, 15, 10);
+        Size sz = new Size(15, 45);
+        Imgproc.resize(src, src, sz);
         return src;
     }
 }
