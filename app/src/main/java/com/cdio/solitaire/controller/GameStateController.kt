@@ -60,10 +60,11 @@ class GameStateController {
     private fun flipTalon() {
         if (gameState.stock.size < 3) {
             gameState.stock.pushStackToHead(gameState.talon)
+            // TODO: Prevent stock end condition from occurring.
         } else {
             Log.e(
-                "Talon cannot be flipped, cards in stock",
-                gameState.stock.size.toString()
+                "StockThresholdError",
+                "Stock size is: " + gameState.stock.size.toString()
             )
         }
     }
