@@ -1,26 +1,14 @@
 package com.cdio.solitaire.controller
 
-import android.util.Log
-import com.cdio.solitaire.model.GameState
+/*
+ * StrategyController is used to handle the logic behind the strategy, which is then sent to
+ * GameStateController as a Move using performMove, where GSC will then update the data accordingly.
+ */
 
-class GameController {
+class StrategyController {
     val gsc = GameStateController()
-
     fun discoverStock() {
         // Should be used to reveal the entire stock pile to the system.
-    }
-
-    fun flipTalon() {
-        gsc.flipTalon()
-    }
-
-    fun drawFromStock() {
-        val gameState = gsc.getCurrentGameState()
-        if (gameState.stock.size < 3) {
-            Log.e("EmptyStackPop","Not enough cards in stock to draw to talon.")
-            return
-        }
-        gsc.moveStack(gameState.stock, 3, gameState.talon)
     }
 
     fun checkMoveToFoundation() {

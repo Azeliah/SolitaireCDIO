@@ -5,7 +5,7 @@ data class GameState(
     val tableaux: Array<CardStack>,
     val talon: CardStack,
     val stock: CardStack,
-    val move: Move
+    val moves: MutableList<Move>
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

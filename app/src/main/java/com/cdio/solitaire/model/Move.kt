@@ -7,16 +7,18 @@ enum class MoveType {
     MOVE_TO_FOUNDATION,
     MOVE_FROM_FOUNDATION,
     MOVE_FROM_TALON,
+    FLIP_TALON,
     DRAW_STOCK
 }
 
 
 data class Move(
     val moveType: MoveType,
-    val fromStack: CardStack? = null,
-    val toStack: CardStack? = null,
+    val sourceStack: CardStack? = null,
+    val targetStack: CardStack? = null,
     val cardsMoved: Int = 0,
-    val highCard: Card? = null // Used to specify the particular card for the popStack, needed for toString()
+    val highCard: Card? = null, // Used to specify the particular card for the popStack, needed for toString()
+    var cardRevealed: Boolean = false
 )
 
 

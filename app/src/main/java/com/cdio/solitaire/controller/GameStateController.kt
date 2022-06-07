@@ -3,8 +3,8 @@ package com.cdio.solitaire.controller
 import android.util.Log
 import com.cdio.solitaire.model.*
 
-class GameStateController() {
-    var gameStateHistory: MutableList<GameState>? = null
+class GameStateController {
+    lateinit var gameState: GameState
 
     init {
         initializeGameStateHistory()
@@ -12,15 +12,15 @@ class GameStateController() {
 
     private fun initializeGameStateHistory() {
         val deck = createNullCardStack(52, -1)
-        val foundations = Array(4) { i -> CardStack(i + 7) }
-        val tableaux = Array(7) { i -> CardStack(i) }
+        val foundations = Array(4) { i -> CardStack(i + 7) } // 7, 8, 9, 10
+        val tableaux = Array(7) { i -> CardStack(i) } // 0, 1, 2, 3, 4, 5, 6
         val stock = CardStack(11)
         val talon = CardStack(12)
         dealOutDeck(deck, tableaux, stock)
         val initialGameState =
-            GameState(foundations, tableaux, talon, stock, Move(MoveType.DEAL_CARDS))
-        getFirstCardValues(initialGameState) // TODO: This should be handled by the app and ML system
-        gameStateHistory = mutableListOf(initialGameState)
+            GameState(foundations, tableaux, talon, stock, mutableListOf(Move(MoveType.DEAL_CARDS)))
+        getFirstCardValues() // TODO: This should be handled by the app and ML system
+        gameState = initialGameState
     }
 
     private fun dealOutDeck(
@@ -42,44 +42,81 @@ class GameStateController() {
         return cardStack
     }
 
-    private fun getFirstCardValues(gameState: GameState) {
+    private fun getFirstCardValues() {
         //captureInitialGameState()
         TODO("Not yet implemented. Other dev branch.")
     }
 
     private fun getCardStackFromID(listID: Int): CardStack? { // Added for ease, might be deleted later
         return when (listID) {
-            0, 1, 2, 3, 4, 5, 6 -> getCurrentGameState().tableaux[listID]
-            7, 8, 9, 10 -> getCurrentGameState().foundations[listID - 7]
-            11 -> getCurrentGameState().stock
-            12 -> getCurrentGameState().talon
+            0, 1, 2, 3, 4, 5, 6 -> gameState.tableaux[listID]
+            7, 8, 9, 10 -> gameState.foundations[listID - 7]
+            11 -> gameState.stock
+            12 -> gameState.talon
             else -> null
         }
     }
 
-    fun flipTalon() {
-        if (getCurrentGameState().stock.size < 3) {
-            getCurrentGameState().stock.pushStackToHead(getCurrentGameState().talon)
+    private fun flipTalon() {
+        if (gameState.stock.size < 3) {
+            gameState.stock.pushStackToHead(gameState.talon)
         } else {
             Log.e(
                 "Talon cannot be flipped, cards in stock",
-                getCurrentGameState().stock.size.toString()
+                gameState.stock.size.toString()
             )
         }
     }
 
-    fun moveStack(sourceStack: CardStack, cardsToMove: Int, targetStack: CardStack) {
+    private fun drawFromStock(): Boolean {
+        if (gameState.stock.size < 3) {
+            Log.e("EmptyStackPop", "Not enough cards in stock to draw to talon.")
+            return false
+        }
+        moveStack(gameState.stock, 3, gameState.talon)
+        return true // TODO: cardRevealed Boolean
+    }
+
+    private fun moveStack(
+        sourceStack: CardStack,
+        cardsToMove: Int,
+        targetStack: CardStack
+    ): Boolean {
         targetStack.pushStack(sourceStack.popStack(cardsToMove)!!)
+        // TODO: Missing functionality for tracking hidden cards.
+        return true
+    }
+
+    private fun moveCard(sourceStack: CardStack, targetStack: CardStack): Boolean {
+        if (sourceStack.listID < 7 || sourceStack.listID == 12) TODO("Check if on top of hidden card.")
+        // TODO: Finish this part
+        return false
+    }
+
+    fun performMove(move: Move) {
+        var cardRevealed = false
+        when (move.moveType) {
+            MoveType.MOVE_STACK -> cardRevealed = moveStack(
+                move.sourceStack!!,
+                move.cardsMoved,
+                move.targetStack!!
+            )
+            MoveType.MOVE_FROM_FOUNDATION,
+            MoveType.MOVE_FROM_TALON,
+            MoveType.MOVE_TO_FOUNDATION -> cardRevealed =
+                moveCard(move.sourceStack!!, move.targetStack!!)
+            MoveType.FLIP_TALON -> flipTalon()
+            MoveType.DRAW_STOCK -> cardRevealed = drawFromStock()
+            else -> Log.e("MoveTypeNotDefined", "This cannot happen.")
+        }
+        move.cardRevealed = cardRevealed
+        gameState.moves.add(move)
     }
 
     // TODO: Make updateCard - should update a single card in the game.
     //  Might not belong here, could be app level
 
-    fun getCurrentGameState(): GameState {
-        return gameStateHistory!![gameStateHistory!!.size - 1]
-    }
-
     fun getLastMove(): Move {
-        return getCurrentGameState().move
+        return gameState.moves.last()
     }
 }
