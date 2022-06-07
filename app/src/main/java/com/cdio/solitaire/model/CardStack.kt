@@ -1,10 +1,11 @@
 package com.cdio.solitaire.model
 
-class CardStack {
+import android.util.Log
+
+class CardStack(val listID: Int) {
     var head: Card? = null
     var tail: Card? = null
     var size: Int = 0
-    //val listID: Int
 
     fun pushCard(card: Card) { // Standard push, pushing an element to the tail
         when (size) {
@@ -20,14 +21,15 @@ class CardStack {
                 size++
             }
         }
-        // card.listID = listID
+        card.listID = listID
     }
 
     fun popCard(): Card? {
         val poppedCard: Card? = tail
         when (size) {
             0 -> {
-                print("Trying to pop empty list.")
+                Log.e("popCard on empty stack", listID.toString())
+                return null
             }
             1 -> {
                 poppedCard!!.prev = null
@@ -40,6 +42,7 @@ class CardStack {
                 size--
             }
         }
+        poppedCard.listID = -1
         return poppedCard
     }
 
@@ -51,6 +54,12 @@ class CardStack {
 
     fun pushStack(stack: CardStack) { // Push a CardStack to tail
         if (stack.size == 0) return
+        var card = stack.head
+        for (i in 1..stack.size) {
+            card!!.listID = listID
+            card = card.next
+        }
+
         when (size) {
             0 -> {
                 head = stack.head
@@ -70,7 +79,7 @@ class CardStack {
     fun popStack(cardsToPop: Int): CardStack? {
         if (size == 0 || size < cardsToPop) return null
 
-        val poppedStack = CardStack() // use -1 as listID, as this list is considered temporary
+        val poppedStack = CardStack(-1)
         if (size - cardsToPop == 0) poppedStack.pushStack(this)
         else {
             poppedStack.tail = tail

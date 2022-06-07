@@ -10,17 +10,15 @@ class GameStateController() {
     }
 
     private fun initializeGameStateHistory() {
-        val deck = createNullCardStack(52) //  TODO: Add listID
-        // TODO: Simulation part
-        val foundations = Array(4) { _ -> CardStack() }
-        val tableaux = Array(7) { _ -> CardStack() }
-        val talon = CardStack()
-        val stock = CardStack()
+        val deck = createNullCardStack(52, -1)
+        val foundations = Array(4) { i -> CardStack(i+8) }
+        val tableaux = Array(7) { i -> CardStack(i+1) }
+        val talon = CardStack(13)
+        val stock = CardStack(12)
         dealOutDeck(deck, tableaux, stock)
         val initialGameState =
             GameState(foundations, tableaux, talon, stock, Move(MoveType.DEAL_CARDS))
-        // TODO: Add check on first game state
-        getFirstCardValues(initialGameState)
+        getFirstCardValues(initialGameState) // TODO: This should be handled by the app and ML system
         gameStateHistory = mutableListOf(initialGameState)
     }
 
@@ -37,16 +35,16 @@ class GameStateController() {
         stock.pushStack(deck)
     }
 
-    private fun createNullCardStack(cardCount: Int): CardStack { // TODO: Add listID
-        val cardStack = CardStack() // TODO: Parse listID
-        for (i in 0..cardCount) cardStack.pushCard(Card())
+    private fun createNullCardStack(cardCount: Int, listID: Int): CardStack {
+        val cardStack = CardStack(listID)
+        for (i in 0..cardCount) cardStack.pushCard(Card(listID = listID))
         return cardStack
     }
 
     private fun getFirstCardValues(gameState: GameState) {
         //captureInitialGameState()
         TODO("Not yet implemented. Other dev branch.")
-    }
+    } 
 
     // TODO: Make updateCard - should update a single card in the game.
 
