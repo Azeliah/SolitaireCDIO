@@ -10,8 +10,10 @@ import android.hardware.SensorManager
 import android.os.Bundle
 import android.util.Log
 import android.view.*
+import android.view.Surface.ROTATION_90
 import android.widget.TextView
 import android.widget.Button
+import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
@@ -53,7 +55,11 @@ class CameraFragment : Fragment(), SensorEventListener {
         _fragmentCameraBinding = null
         super.onDestroyView()
 
-        activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        // Exit fullscreen mode
+        activity?.let {
+            it.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+            it.window.clearFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)
+        }
 
         // Stop listening to rotation changes
         sensorManager.unregisterListener(this)
@@ -74,7 +80,11 @@ class CameraFragment : Fragment(), SensorEventListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+        // Go into fullscreen mode
+        activity?.let {
+            it.window.addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)
+            (it as AppCompatActivity).supportActionBar?.hide()
+        }
 
         // Initialize our background executor
         cameraExecutor = Executors.newSingleThreadExecutor()
@@ -88,14 +98,15 @@ class CameraFragment : Fragment(), SensorEventListener {
         sensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)
 
         sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_UI)
-        view.findViewById<Button?>(R.id.back_button).setOnClickListener(){requireActivity().onBackPressed()}
 
-        // Wait for the views to be properly laid out
-        fragmentCameraBinding.viewFinder.post {
-
-            // Set up the camera and its use cases
-            setUpCamera()
+        view.findViewById<Button?>(R.id.back_button).setOnClickListener {
+            requireActivity().onBackPressed()
         }
+
+        // Set up the camera and its use cases
+        setUpCamera()
+
+        activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
     }
 
     /**
@@ -155,16 +166,14 @@ class CameraFragment : Fragment(), SensorEventListener {
         preview = Preview.Builder()
             // We request aspect ratio but no resolution
             .setTargetAspectRatio(AspectRatio.RATIO_16_9)
-            // TODO: Set camera rotation to landscape
-            // .setTargetRotation(rotation)
+            .setTargetRotation(ROTATION_90)
             .build()
 
         // ImageAnalysis
         imageAnalyzer = ImageAnalysis.Builder()
             // We request aspect ratio but no resolution
             .setTargetAspectRatio(AspectRatio.RATIO_16_9)
-            // TODO: Set camera rotation to landscape
-            // .setTargetRotation(rotation)
+            .setTargetRotation(ROTATION_90)
             .build()
             // The analyzer can then be assigned to the instance
             .also {
