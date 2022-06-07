@@ -2,6 +2,7 @@ package com.cdio.solitaire.fragment
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.graphics.*
 import android.hardware.Sensor
@@ -67,6 +68,8 @@ class CameraFragment : Fragment(), SensorEventListener {
         _fragmentCameraBinding = null
         super.onDestroyView()
 
+        activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+
         // Stop listening to rotation changes
         sensorManager.unregisterListener(this)
 
@@ -86,6 +89,8 @@ class CameraFragment : Fragment(), SensorEventListener {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
 
         // Initialize our background executor
         cameraExecutor = Executors.newSingleThreadExecutor()
