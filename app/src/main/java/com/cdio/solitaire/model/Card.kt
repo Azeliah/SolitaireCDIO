@@ -27,14 +27,7 @@ enum class Rank {
     fun short(): String {
         return when (this.ordinal) {
             1 -> "A"
-            2 -> "2"
-            3 -> "3"
-            4 -> "4"
-            5 -> "5"
-            6 -> "6"
-            7 -> "7"
-            8 -> "8"
-            9 -> "9"
+            in 2..9 -> this.ordinal.toString()
             10 -> "T"
             11 -> "J"
             12 -> "Q"

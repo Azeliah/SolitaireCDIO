@@ -46,8 +46,8 @@ class GameStateController {
 
     private fun getCardStackFromID(stackID: Int): CardStack? { // Added for ease, might be deleted later
         return when (stackID) {
-            1, 2, 3, 4, 5, 6, 7 -> gameState.tableaux[stackID]
-            8, 9, 10, 11 -> gameState.foundations[stackID - 7]
+            in 1..7 -> gameState.tableaux[stackID]
+            in 8..11 -> gameState.foundations[stackID - 7]
             12 -> gameState.stock
             0 -> gameState.talon
             else -> null
@@ -140,8 +140,8 @@ class GameStateController {
     }
 
 
-    private fun tableauOrdering(card: Card, targetStack: CardStack): Boolean {
-        return if (targetStack.stackID !in 1..7) false
+    private fun tableauOrdering(card: Card, targetStack: CardStack): Boolean =
+        if (targetStack.stackID !in 1..7) false
         else when (targetStack.size) {
             0 -> card.rank.ordinal == 13 // Only kings can go on an empty tableau
             else -> {
@@ -151,15 +151,13 @@ class GameStateController {
                 ranksMatch && offColor
             }
         }
-    }
 
 
-    private fun verifyMoveStack(move: Move): Boolean {
-        return if (move.sourceStack == null || move.targetStack == null) {
+    private fun verifyMoveStack(move: Move): Boolean =
+        if (move.sourceStack == null || move.targetStack == null) {
             Log.e("IllegalMoveError", "You need to specify a sourceStack and targetStack.")
             false
         } else tableauOrdering(move.sourceCard!!, move.targetStack!!)
-    }
 
     private fun verifyMoveFromFoundation(move: Move): Boolean {
         val foundation = move.sourceStack
@@ -173,15 +171,14 @@ class GameStateController {
         }
     }
 
-    private fun verifyMoveFromTalon(move: Move): Boolean {
-        return if (gameState.talon.tail != move.sourceCard) {
+    private fun verifyMoveFromTalon(move: Move): Boolean =
+        if (gameState.talon.tail != move.sourceCard) {
             false
         } else if (move.targetStack!!.stackID in 8..11 && getFoundation(move.sourceCard!!.suit) == move.targetStack) {
             true
         } else if (move.targetStack!!.stackID in 1..7) {
             verifyMoveStack(move)
         } else false
-    }
 
     private fun getFoundation(suit: Suit): CardStack? {
         var foundation: CardStack? = null
