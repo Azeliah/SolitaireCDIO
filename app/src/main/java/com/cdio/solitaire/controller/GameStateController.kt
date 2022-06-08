@@ -4,8 +4,8 @@ import android.util.Log
 import com.cdio.solitaire.model.*
 
 class GameStateController {
-    lateinit var gameState: GameState
-    val sortedDeck = arrayOfNulls<Card>(52) // Use this to track cards in the game.
+    private lateinit var gameState: GameState
+    private val sortedDeck = arrayOfNulls<Card>(52) // Use this to track cards in the game.
 
     // TODO: Populate sortedDeck as cards are revealed.
     init {
@@ -243,7 +243,7 @@ class GameStateController {
         }
     }
 
-    fun cardStackIDFromRankSuit(rank: Int, suit: Int): Int {
+    private fun cardStackIDFromRankSuit(rank: Int, suit: Int): Int {
         return if (sortedDeck[(suit - 1) * 13 + rank - 1] == null) -1
         else sortedDeck[(suit - 1) * 13 + rank - 1]!!.stackID
     }
