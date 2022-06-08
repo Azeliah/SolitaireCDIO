@@ -6,6 +6,7 @@ class CardStack(val listID: Int) {
     var head: Card? = null
     var tail: Card? = null
     var size: Int = 0
+    var hiddenCards: Int = 0
 
     fun pushCard(card: Card) { // Standard push, pushing an element to the tail
         when (size) {
@@ -28,7 +29,7 @@ class CardStack(val listID: Int) {
         val poppedCard: Card? = tail
         when (size) {
             0 -> {
-                Log.e("popCard on empty stack", listID.toString())
+                Log.e("EmptyStackPop", "Stack: $listID")
                 return null
             }
             1 -> {
@@ -94,14 +95,22 @@ class CardStack(val listID: Int) {
         return poppedStack
     }
 
-    fun pushStackToHead(stack: CardStack) {
+    fun pushStackToHead(stack: CardStack) { // Used when flipping talon
         if (stack.size == 0) {
-            Log.e("Trying to push empty stack, listID", stack.listID.toString())
+            Log.e(
+                "EmptyStackPush",
+                "Trying to push empty stack, listID: " + stack.listID.toString()
+            )
             return
         }
         if (size == 0) {
             pushStack(stack)
             return
+        }
+        var card = stack.head
+        for (i in 1..stack.size) {
+            card!!.listID = listID
+            card = card.next
         }
         head!!.prev = stack.tail
         stack.tail!!.next = head

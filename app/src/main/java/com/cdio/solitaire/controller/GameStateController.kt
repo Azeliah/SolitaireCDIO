@@ -5,7 +5,8 @@ import com.cdio.solitaire.model.*
 
 class GameStateController {
     lateinit var gameState: GameState
-    val sortedDeck = Array(52) { _ -> Card(0) } // Use this to track cards in the game.
+    val sortedDeck = arrayOfNulls<Card>(52) // Use this to track cards in the game.
+
     // TODO: Populate sortedDeck as cards are revealed.
     init {
         initializeGameStateHistory()
@@ -18,10 +19,9 @@ class GameStateController {
         val stock = CardStack(11)
         val talon = CardStack(12)
         dealOutDeck(deck, tableaux, stock)
-        val initialGameState =
+        gameState =
             GameState(foundations, tableaux, talon, stock, mutableListOf(Move(MoveType.DEAL_CARDS)))
-        getFirstCardValues() // TODO: This should be handled by the app and ML system
-        gameState = initialGameState
+
     }
 
     private fun dealOutDeck(
@@ -32,20 +32,17 @@ class GameStateController {
         for (i in 0..6) {
             for (j in i..6) {
                 tableaux[j].pushCard(deck.popCard()!!)
+                tableaux[j].hiddenCards++
             }
         }
         stock.pushStack(deck)
+        stock.hiddenCards = stock.size
     }
 
     private fun createNullCardStack(cardCount: Int, listID: Int): CardStack {
         val cardStack = CardStack(listID)
         for (i in 0..cardCount) cardStack.pushCard(Card(listID))
         return cardStack
-    }
-
-    private fun getFirstCardValues() {
-        //captureInitialGameState()
-        TODO("Not yet implemented. Other dev branch.")
     }
 
     private fun getCardStackFromID(listID: Int): CardStack? { // Added for ease, might be deleted later
@@ -59,9 +56,10 @@ class GameStateController {
     }
 
     private fun flipTalon() {
-        if (gameState.stock.size < 3) {
+        if (gameState.stock.size < 3) { // TODO: Prevent stock end condition from occurring.
             gameState.stock.pushStackToHead(gameState.talon)
-            // TODO: Prevent stock end condition from occurring.
+            gameState.stock.hiddenCards += gameState.talon.hiddenCards
+            gameState.talon.hiddenCards = 0
         } else {
             Log.e(
                 "StockThresholdError",
@@ -77,6 +75,14 @@ class GameStateController {
         }
         // Cannot use gsc.moveStack here, because we want to check talon.tail, not stock.tail.
         gameState.talon.pushStack(gameState.stock.popStack(3)!!)
+        var hiddenCardsMoved = 0
+        var cardToCheck = gameState.talon.tail
+        for (i in 0..2) {
+            if (cardToCheck!!.rank == 0) hiddenCardsMoved++
+            cardToCheck = cardToCheck.prev
+        }
+        gameState.talon.hiddenCards += hiddenCardsMoved
+        gameState.stock.hiddenCards -= hiddenCardsMoved
         return cardToUpdate(gameState.talon)
     }
 
@@ -119,10 +125,12 @@ class GameStateController {
         gameState.moves.add(move)
     }
 
-    // TODO: Make updateCard - should update a single card in the game.
-    //  Might not belong here, could be app level
 
     fun getLastMove(): Move {
         return gameState.moves.last()
+    }
+
+    fun updateSortedDeck(card: Card) {
+        sortedDeck[card.suit * 13 + card.rank - 1] = card
     }
 }
