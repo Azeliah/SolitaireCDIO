@@ -7,7 +7,6 @@ class GameStateController {
     private lateinit var gameState: GameState
     private val sortedDeck = arrayOfNulls<Card>(52) // Use this to track cards in the game.
 
-    // TODO: Populate sortedDeck as cards are revealed.
     init {
         initializeGameState()
     }
@@ -84,7 +83,7 @@ class GameStateController {
         else null
     }
 
-    private fun moveStack(
+    private fun moveStack( // TODO: Does this actually need cardsToMove? See popStack comment.
         sourceStack: CardStack,
         cardsToMove: Int,
         targetStack: CardStack
