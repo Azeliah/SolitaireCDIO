@@ -17,8 +17,9 @@ data class Move(
     val sourceStack: CardStack? = null,
     val targetStack: CardStack? = null,
     val cardsMoved: Int = 0,
-    val highCard: Card? = null, // Used to specify the particular card for the popStack, needed for toString()
-    var cardRevealed: Boolean = false
+    val sourceCard: Card? = null, // Used to specify the particular card for the popStack, needed for toString()
+    val targetCard: Card? = null,
+    var cardToUpdate: Card? = null
 )
 
 

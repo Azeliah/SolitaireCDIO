@@ -5,7 +5,8 @@ import com.cdio.solitaire.model.*
 
 class GameStateController {
     lateinit var gameState: GameState
-
+    val sortedDeck = Array(52) { _ -> Card(0) } // Use this to track cards in the game.
+    // TODO: Populate sortedDeck as cards are revealed.
     init {
         initializeGameStateHistory()
     }
@@ -38,7 +39,7 @@ class GameStateController {
 
     private fun createNullCardStack(cardCount: Int, listID: Int): CardStack {
         val cardStack = CardStack(listID)
-        for (i in 0..cardCount) cardStack.pushCard(Card(listID = listID))
+        for (i in 0..cardCount) cardStack.pushCard(Card(listID))
         return cardStack
     }
 
@@ -69,48 +70,52 @@ class GameStateController {
         }
     }
 
-    private fun drawFromStock(): Boolean {
+    private fun drawFromStock(): Card? {
         if (gameState.stock.size < 3) {
             Log.e("EmptyStackPop", "Not enough cards in stock to draw to talon.")
-            return false
+            return null
         }
-        moveStack(gameState.stock, 3, gameState.talon)
-        return true // TODO: cardRevealed Boolean
+        // Cannot use gsc.moveStack here, because we want to check talon.tail, not stock.tail.
+        gameState.talon.pushStack(gameState.stock.popStack(3)!!)
+        return cardToUpdate(gameState.talon)
+    }
+
+    private fun cardToUpdate(stack: CardStack): Card? {
+        return if (stack.tail == null) null
+        else if (stack.tail!!.rank == 0) stack.tail
+        else null
     }
 
     private fun moveStack(
         sourceStack: CardStack,
         cardsToMove: Int,
         targetStack: CardStack
-    ): Boolean {
+    ): Card? {
         targetStack.pushStack(sourceStack.popStack(cardsToMove)!!)
-        // TODO: Missing functionality for tracking hidden cards.
-        return true
+        return cardToUpdate(sourceStack)
     }
 
-    private fun moveCard(sourceStack: CardStack, targetStack: CardStack): Boolean {
-        if (sourceStack.listID < 7 || sourceStack.listID == 12) TODO("Check if on top of hidden card.")
-        // TODO: Finish this part
-        return false
+    private fun moveCard(sourceStack: CardStack, targetStack: CardStack): Card? {
+        return moveStack(sourceStack, 1, targetStack)
     }
 
     fun performMove(move: Move) {
-        var cardRevealed = false
+        var cardToUpdate: Card? = null
         when (move.moveType) {
-            MoveType.MOVE_STACK -> cardRevealed = moveStack(
+            MoveType.MOVE_STACK -> cardToUpdate = moveStack(
                 move.sourceStack!!,
                 move.cardsMoved,
                 move.targetStack!!
             )
             MoveType.MOVE_FROM_FOUNDATION,
             MoveType.MOVE_FROM_TALON,
-            MoveType.MOVE_TO_FOUNDATION -> cardRevealed =
+            MoveType.MOVE_TO_FOUNDATION -> cardToUpdate =
                 moveCard(move.sourceStack!!, move.targetStack!!)
             MoveType.FLIP_TALON -> flipTalon()
-            MoveType.DRAW_STOCK -> cardRevealed = drawFromStock()
+            MoveType.DRAW_STOCK -> cardToUpdate = drawFromStock()
             else -> Log.e("MoveTypeNotDefined", "This cannot happen.")
         }
-        move.cardRevealed = cardRevealed
+        move.cardToUpdate = cardToUpdate
         gameState.moves.add(move)
     }
 
