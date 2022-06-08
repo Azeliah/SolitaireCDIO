@@ -2,7 +2,7 @@ package com.cdio.solitaire.model
 
 import android.util.Log
 
-class CardStack(val listID: Int) {
+class CardStack(val stackID: Int) {
     var head: Card? = null
     var tail: Card? = null
     var size: Int = 0
@@ -22,14 +22,14 @@ class CardStack(val listID: Int) {
                 size++
             }
         }
-        card.listID = listID
+        card.stackID = stackID
     }
 
     fun popCard(): Card? {
         val poppedCard: Card? = tail
         when (size) {
             0 -> {
-                Log.e("EmptyStackPop", "Stack: $listID")
+                Log.e("EmptyStackPop", "Stack: $stackID")
                 return null
             }
             1 -> {
@@ -43,7 +43,7 @@ class CardStack(val listID: Int) {
                 size--
             }
         }
-        poppedCard.listID = -1
+        poppedCard.stackID = -1
         return poppedCard
     }
 
@@ -57,7 +57,7 @@ class CardStack(val listID: Int) {
         if (stack.size == 0) return
         var card = stack.head
         for (i in 1..stack.size) {
-            card!!.listID = listID
+            card!!.stackID = stackID
             card = card.next
         }
 
@@ -99,7 +99,7 @@ class CardStack(val listID: Int) {
         if (stack.size == 0) {
             Log.e(
                 "EmptyStackPush",
-                "Trying to push empty stack, listID: " + stack.listID.toString()
+                "Trying to push empty stack, stackID: " + stack.stackID.toString()
             )
             return
         }
@@ -109,7 +109,7 @@ class CardStack(val listID: Int) {
         }
         var card = stack.head
         for (i in 1..stack.size) {
-            card!!.listID = listID
+            card!!.stackID = stackID
             card = card.next
         }
         head!!.prev = stack.tail

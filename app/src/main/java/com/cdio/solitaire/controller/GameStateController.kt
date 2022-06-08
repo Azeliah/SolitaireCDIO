@@ -9,19 +9,18 @@ class GameStateController {
 
     // TODO: Populate sortedDeck as cards are revealed.
     init {
-        initializeGameStateHistory()
+        initializeGameState()
     }
 
-    private fun initializeGameStateHistory() {
+    private fun initializeGameState() {
         val deck = createNullCardStack(52, -1)
-        val foundations = Array(4) { i -> CardStack(i + 7) } // 7, 8, 9, 10
-        val tableaux = Array(7) { i -> CardStack(i) } // 0, 1, 2, 3, 4, 5, 6
-        val stock = CardStack(11)
-        val talon = CardStack(12)
+        val foundations = Array(4) { i -> CardStack(i + 8) } // 8, 9, 10, 11
+        val tableaux = Array(7) { i -> CardStack(i + 1) } // 1, 2, 3, 4, 5, 6, 7
+        val stock = CardStack(12)
+        val talon = CardStack(0)
         dealOutDeck(deck, tableaux, stock)
         gameState =
             GameState(foundations, tableaux, talon, stock, mutableListOf(Move(MoveType.DEAL_CARDS)))
-
     }
 
     private fun dealOutDeck(
@@ -39,18 +38,18 @@ class GameStateController {
         stock.hiddenCards = stock.size
     }
 
-    private fun createNullCardStack(cardCount: Int, listID: Int): CardStack {
-        val cardStack = CardStack(listID)
-        for (i in 0..cardCount) cardStack.pushCard(Card(listID))
+    private fun createNullCardStack(cardCount: Int, stackID: Int): CardStack {
+        val cardStack = CardStack(stackID)
+        for (i in 0..cardCount) cardStack.pushCard(Card(stackID))
         return cardStack
     }
 
-    private fun getCardStackFromID(listID: Int): CardStack? { // Added for ease, might be deleted later
-        return when (listID) {
-            0, 1, 2, 3, 4, 5, 6 -> gameState.tableaux[listID]
-            7, 8, 9, 10 -> gameState.foundations[listID - 7]
-            11 -> gameState.stock
-            12 -> gameState.talon
+    private fun getCardStackFromID(stackID: Int): CardStack? { // Added for ease, might be deleted later
+        return when (stackID) {
+            1, 2, 3, 4, 5, 6, 7 -> gameState.tableaux[stackID]
+            8, 9, 10, 11 -> gameState.foundations[stackID - 7]
+            12 -> gameState.stock
+            0 -> gameState.talon
             else -> null
         }
     }
@@ -124,7 +123,6 @@ class GameStateController {
         move.cardToUpdate = cardToUpdate
         gameState.moves.add(move)
     }
-
 
     fun getLastMove(): Move {
         return gameState.moves.last()

@@ -46,7 +46,7 @@ enum class Rank {
 }
 
 data class Card(
-    var listID: Int,
+    var stackID: Int,
     var rank: Int = 0, // TODO: enum class for rank (short format)
     var suit: Int = 0, // TODO: enum class for suit (short format)
     var prev: Card? = null,

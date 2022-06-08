@@ -1,5 +1,8 @@
 package com.cdio.solitaire.controller
 
+import com.cdio.solitaire.model.Move
+import com.cdio.solitaire.model.MoveType
+
 /*
  * StrategyController is used to handle the logic behind the strategy, which is then sent to
  * GameStateController as a Move using performMove, where GSC will then update the data accordingly.
@@ -7,8 +10,20 @@ package com.cdio.solitaire.controller
 
 class StrategyController {
     val gsc = GameStateController()
+
+    fun nextMove() {
+        val move = decideMove()
+        gsc.performMove(move)
+    }
+
+    fun decideMove(): Move {
+        return Move(MoveType.FLIP_TALON)
+    }
+
+
     fun discoverStock() {
-        // Should be used to reveal the entire stock pile to the system.
+        // Check that stock size + talon size is not 0 modulo 3
+        // while (stock.hiddenCards + talon.hiddenCards > 0) flipTalon()
     }
 
     fun checkMoveToFoundation() {
