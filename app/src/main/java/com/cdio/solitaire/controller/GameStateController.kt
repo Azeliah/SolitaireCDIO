@@ -55,16 +55,9 @@ class GameStateController {
     }
 
     private fun flipTalon() {
-        if (gameState.stock.size < 3) { // TODO: Prevent stock end condition from occurring.
-            gameState.stock.pushStackToHead(gameState.talon)
-            gameState.stock.hiddenCards += gameState.talon.hiddenCards
-            gameState.talon.hiddenCards = 0
-        } else {
-            Log.e(
-                "StockThresholdError",
-                "Stock size is: " + gameState.stock.size.toString()
-            )
-        }
+        gameState.stock.pushStackToHead(gameState.talon)
+        gameState.stock.hiddenCards += gameState.talon.hiddenCards
+        gameState.talon.hiddenCards = 0
     }
 
     private fun drawFromStock(): Card? {
@@ -148,9 +141,8 @@ class GameStateController {
 
 
     private fun tableauOrdering(card: Card, targetStack: CardStack): Boolean {
-        if (targetStack.stackID !in 1..7) return false
-
-        return when (targetStack.size) {
+        return if (targetStack.stackID !in 1..7) false
+        else when (targetStack.size) {
             0 -> card.rank.ordinal == 13 // Only kings can go on an empty tableau
             else -> {
                 val targetCard = targetStack.tail!!
@@ -179,6 +171,16 @@ class GameStateController {
         } else {
             false
         }
+    }
+
+    private fun verifyMoveFromTalon(move: Move): Boolean {
+        return if (gameState.talon.tail != move.sourceCard) {
+            false
+        } else if (move.targetStack!!.stackID in 8..11 && getFoundation(move.sourceCard!!.suit) == move.targetStack) {
+            true
+        } else if (move.targetStack!!.stackID in 1..7) {
+            verifyMoveStack(move)
+        } else false
     }
 
     private fun getFoundation(suit: Suit): CardStack? {
@@ -219,20 +221,29 @@ class GameStateController {
         }
     }
 
+    private fun verifyFlipTalon(): Boolean {
+        return if (gameState.stock.size >= 3) {
+            false
+        } else gameState.stock.size + gameState.talon.size >= 3
+    }
+
+    private fun verifyDrawStock(): Boolean {
+        return gameState.stock.size >= 3
+    }
 
     fun isMoveLegal(move: Move): Boolean {
-        when (move.moveType) {
+        return when (move.moveType) {
             MoveType.MOVE_STACK -> verifyMoveStack(move)
             MoveType.MOVE_FROM_FOUNDATION -> verifyMoveFromFoundation(move)
-            MoveType.MOVE_FROM_TALON -> TODO()
+            MoveType.MOVE_FROM_TALON -> verifyMoveFromTalon(move)
             MoveType.MOVE_TO_FOUNDATION -> verifyMoveFromFoundation(move)
-            MoveType.FLIP_TALON -> TODO()
-            MoveType.DRAW_STOCK -> TODO()
+            MoveType.FLIP_TALON -> verifyFlipTalon()
+            MoveType.DRAW_STOCK -> verifyDrawStock()
             else -> {
                 Log.e("NotExistingMoveType", "This cannot happen.")
+                false
             }
         }
-        return true
     }
 
     fun cardStackIDFromRankSuit(rank: Int, suit: Int): Int {
