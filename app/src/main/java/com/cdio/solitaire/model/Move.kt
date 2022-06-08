@@ -15,10 +15,8 @@ enum class MoveType {
 data class Move(
     val moveType: MoveType,
     val sourceStack: CardStack? = null,
-    val targetStack: CardStack? = null,
-    val cardsMoved: Int = 0,
-    val sourceCard: Card? = null, // Used to specify the particular card for the popStack, needed for toString()
-    val targetCard: Card? = null,
+    var targetStack: CardStack? = null,
+    val sourceCard: Card? = null, // Needed for toString() method, and for checking validity
     var cardToUpdate: Card? = null
 )
 

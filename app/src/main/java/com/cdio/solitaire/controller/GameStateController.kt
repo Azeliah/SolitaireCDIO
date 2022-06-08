@@ -77,7 +77,7 @@ class GameStateController {
         var hiddenCardsMoved = 0
         var cardToCheck = gameState.talon.tail
         for (i in 0..2) {
-            if (cardToCheck!!.rank == 0) hiddenCardsMoved++
+            if (cardToCheck!!.rank.ordinal == 0) hiddenCardsMoved++
             cardToCheck = cardToCheck.prev
         }
         gameState.talon.hiddenCards += hiddenCardsMoved
@@ -87,7 +87,7 @@ class GameStateController {
 
     private fun cardToUpdate(stack: CardStack): Card? {
         return if (stack.tail == null) null
-        else if (stack.tail!!.rank == 0) stack.tail
+        else if (stack.tail!!.rank.ordinal == 0) stack.tail
         else null
     }
 
@@ -109,7 +109,7 @@ class GameStateController {
         when (move.moveType) {
             MoveType.MOVE_STACK -> cardToUpdate = moveStack(
                 move.sourceStack!!,
-                move.cardsMoved,
+                getCardPosition(move.sourceCard, move.sourceStack),
                 move.targetStack!!
             )
             MoveType.MOVE_FROM_FOUNDATION,
@@ -124,11 +124,123 @@ class GameStateController {
         gameState.moves.add(move)
     }
 
+    private fun getCardPosition(card: Card?, stack: CardStack): Int {
+        if (card!!.stackID != stack.stackID) {
+            Log.e("CardNotInStack", "Card stackID differs from stack stackID")
+            return -1
+        }
+        var stackCard = stack.tail!!
+        var i = 1
+        while (stackCard.rank.ordinal != card.rank.ordinal) {
+            i++
+            stackCard = stackCard.prev!!
+        }
+        return i
+    }
+
     fun getLastMove(): Move {
         return gameState.moves.last()
     }
 
     fun updateSortedDeck(card: Card) {
-        sortedDeck[card.suit * 13 + card.rank - 1] = card
+        sortedDeck[(card.suit.ordinal - 1) * 13 + card.rank.ordinal - 1] = card
+    }
+
+
+    private fun tableauOrdering(card: Card, targetStack: CardStack): Boolean {
+        if (targetStack.stackID !in 1..7) return false
+
+        return when (targetStack.size) {
+            0 -> card.rank.ordinal == 13 // Only kings can go on an empty tableau
+            else -> {
+                val targetCard = targetStack.tail!!
+                val ranksMatch = targetCard.rank.ordinal - card.rank.ordinal == 1
+                val offColor = targetCard.suit.isRed() xor card.suit.isRed()
+                ranksMatch && offColor
+            }
+        }
+    }
+
+
+    private fun verifyMoveStack(move: Move): Boolean {
+        return if (move.sourceStack == null || move.targetStack == null) {
+            Log.e("IllegalMoveError", "You need to specify a sourceStack and targetStack.")
+            false
+        } else tableauOrdering(move.sourceCard!!, move.targetStack!!)
+    }
+
+    private fun verifyMoveFromFoundation(move: Move): Boolean {
+        val foundation = move.sourceStack
+        return if (foundation == null || move.targetStack == null) {
+            Log.e("IllegalMoveError", "You need to specify a sourceStack and targetStack.")
+            false
+        } else if (foundation.stackID in 8..11 && foundation.tail == move.sourceCard) {
+            tableauOrdering(move.sourceCard!!, move.targetStack!!)
+        } else {
+            false
+        }
+    }
+
+    private fun getFoundation(suit: Suit): CardStack? {
+        var foundation: CardStack? = null
+        for (stack in gameState.foundations) {
+            if (stack.tail == null) {
+                foundation = stack
+                break
+            } else if (stack.tail!!.suit == suit) {
+                foundation = stack
+                break
+            } else {
+                Log.e("FoundationNotFound", "This cannot happen.")
+            }
+        }
+        return foundation
+    }
+
+    private fun verifyMoveToFoundation(move: Move): Boolean {
+        return if (move.sourceStack!!.tail != move.sourceCard) false
+        else when (move.sourceCard!!.rank.ordinal) {
+            1 -> {
+                move.targetStack = getFoundation(move.sourceCard.suit)
+                true
+            }
+            in 2..13 -> {
+                val targetStack = getFoundation(move.sourceCard.suit)
+                if (targetStack!!.tail == null) {
+                    false
+                } else if (move.sourceCard.rank.ordinal - targetStack.tail!!.rank.ordinal == 1) {
+                    move.targetStack = targetStack
+                    true
+                } else {
+                    false
+                }
+            }
+            else -> false
+        }
+    }
+
+
+    fun isMoveLegal(move: Move): Boolean {
+        when (move.moveType) {
+            MoveType.MOVE_STACK -> verifyMoveStack(move)
+            MoveType.MOVE_FROM_FOUNDATION -> verifyMoveFromFoundation(move)
+            MoveType.MOVE_FROM_TALON -> TODO()
+            MoveType.MOVE_TO_FOUNDATION -> verifyMoveFromFoundation(move)
+            MoveType.FLIP_TALON -> TODO()
+            MoveType.DRAW_STOCK -> TODO()
+            else -> {
+                Log.e("NotExistingMoveType", "This cannot happen.")
+            }
+        }
+        return true
+    }
+
+    fun cardStackIDFromRankSuit(rank: Int, suit: Int): Int {
+        return if (sortedDeck[(suit - 1) * 13 + rank - 1] == null) -1
+        else sortedDeck[(suit - 1) * 13 + rank - 1]!!.stackID
+    }
+
+    fun cardStackIDFromRankSuit(rank: Rank, suit: Suit): Int {
+        return cardStackIDFromRankSuit(rank.ordinal, suit.ordinal)
     }
 }

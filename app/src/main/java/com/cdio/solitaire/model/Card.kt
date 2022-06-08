@@ -3,8 +3,8 @@ package com.cdio.solitaire.model
 enum class Suit {
     NA, CLUBS, DIAMONDS, HEARTS, SPADES;
 
-    fun short(suit: Int): String {
-        return when (suit) {
+    fun short(): String {
+        return when (this.ordinal) {
             1 -> "C"
             2 -> "D"
             3 -> "H"
@@ -13,16 +13,19 @@ enum class Suit {
         }
     }
 
-    fun short(suit: Suit): String{
-        return short(suit.ordinal)
+    fun isRed(): Boolean {
+        return when (this) {
+            DIAMONDS, HEARTS -> true
+            else -> false
+        }
     }
 }
 
 enum class Rank {
     NA, ACE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE, TEN, JACK, QUEEN, KING;
 
-    fun short(rank: Int): String {
-        return when (rank) {
+    fun short(): String {
+        return when (this.ordinal) {
             1 -> "A"
             2 -> "2"
             3 -> "3"
@@ -39,16 +42,12 @@ enum class Rank {
             else -> "NA"
         }
     }
-
-    fun short(rank: Rank): String{
-        return short(rank.ordinal)
-    }
 }
 
 data class Card(
     var stackID: Int,
-    var rank: Int = 0, // TODO: enum class for rank (short format)
-    var suit: Int = 0, // TODO: enum class for suit (short format)
+    var rank: Rank = Rank.NA,
+    var suit: Suit = Suit.NA,
     var prev: Card? = null,
     var next: Card? = null
 )
