@@ -19,10 +19,114 @@ import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 public class SolitaireAnalysisModel {
+
+    // Method for extracting content in form of talon and columns of the Solitaire game
+    private ContentNode[] extractContent(Mat src) {
+
+        // Detection of edges using Canny edge detection
+        Mat edge = cannyEdge(src);
+
+        // Dilates the edges using MORPH_CROSS to enhance the edge thickness
+        Imgproc.dilate(edge, edge, Imgproc.getStructuringElement(Imgproc.MORPH_CROSS, new Size(2 * 4 + 1, 2 * 4 + 1), new Point(4, 4)));
+
+        // Arraylist of MatOfPoints found using findContours on external contours
+        List<MatOfPoint> points = new ArrayList<>();
+        Mat contours = new Mat();
+        Imgproc.findContours(edge, points, contours, Imgproc.RETR_LIST , Imgproc.CHAIN_APPROX_SIMPLE);
+        System.out.println("Content contours: " + points.size());
+
+        // If less than 8 points/contours where found
+        if (points.size() < 8) {
+            src.release();
+            edge.release();
+            contours.release();
+            return null;
+        }
+
+        // Finds the 10 biggest contours in the image and stores them in a ContourNode array
+        ContourNode[] nodeArr = new ContourNode[points.size()];
+        for (int contourId = 0; contourId < points.size(); contourId++) {
+            MatOfPoint2f cnt = new MatOfPoint2f();
+            points.get(contourId).convertTo(cnt, CvType.CV_32FC2);
+            RotatedRect rect = Imgproc.minAreaRect(cnt);
+            double area = rect.size.height * rect.size.width;
+
+            nodeArr[contourId] = new ContourNode(contourId,area,rect.center);
+        }
+
+        // Sorts array by area
+        Arrays.sort(nodeArr, (n1, n2) -> (int) (n2.area - n1.area));
+
+        //  Store talon and columns in an array of ContentNode nodes
+        ContentNode[] matArr = new ContentNode[8];
+        for (int i = 0; i < 8; i++) {
+
+            // Create rectangle using the biggest contour points
+            MatOfPoint2f cnt = new MatOfPoint2f();
+            points.get(nodeArr[i+1].index).convertTo(cnt, CvType.CV_32FC2);
+            RotatedRect rect = Imgproc.minAreaRect(cnt);
+
+            // Contour is drawn onto the image
+            Point[] vertices = new Point[4];
+            rect.points(vertices);
+            MatOfPoint newPoints = new MatOfPoint(vertices);
+            Imgproc.drawContours(edge, Collections.singletonList(newPoints), -1, new Scalar(81, 190, 0), 4);
+
+            double minAreaTolerance = 100000;
+            boolean valid = rect.size.height * rect.size.width > minAreaTolerance;
+
+            // If minimum tolerance is upheld
+            if (valid) {
+
+                // Manuel reshape of height and width to fit output format
+                rect.size.set(new double[]{rect.size.width - 30, rect.size.height - 30});
+                int height = (int) rect.size.width;
+                int width = (int) rect.size.height;
+
+                // Reference points to fit output format
+                MatOfPoint2f reference = new MatOfPoint2f(
+                        new Point(0, 0),
+                        new Point(width, 0),
+                        new Point(width, height),
+                        new Point(0, height)
+                );
+
+                // Wrap source image to rectangle using reference points for size
+                Mat box = new Mat();
+                Imgproc.boxPoints(rect, box);
+                Mat warpMat = Imgproc.getPerspectiveTransform(box, reference);
+                Mat warp = new Mat();
+                Imgproc.warpPerspective(src, warp, warpMat, new Size(width, height));
+
+                // Rotate if width is greater than height
+                if (rect.size.height > rect.size.width) {
+                    Core.rotate(warp, warp, Core.ROTATE_90_COUNTERCLOCKWISE);
+                }
+
+                // Release Mat objects still in memory and add content to array
+                box.release();
+                warpMat.release();
+                matArr[i] = new ContentNode(warp,nodeArr[i+1].center);
+            } else {
+
+                src.release();
+                edge.release();
+                contours.release();
+                return null;
+            }
+        }
+
+        // Release Mat objects still in memory and return array
+        src.release();
+        edge.release();
+        contours.release();
+        return matArr;
+    }
 
     // Method for extracting card suit and rank in an image
     private Mat extractCard(Mat src) {
