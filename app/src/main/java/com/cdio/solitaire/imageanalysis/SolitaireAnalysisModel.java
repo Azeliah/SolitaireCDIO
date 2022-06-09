@@ -5,6 +5,9 @@ import static org.opencv.imgproc.Imgproc.THRESH_BINARY;
 import static java.lang.Double.max;
 import static java.lang.Double.min;
 
+import android.graphics.Bitmap;
+
+import org.opencv.android.Utils;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
@@ -15,7 +18,6 @@ import org.opencv.core.Rect;
 import org.opencv.core.RotatedRect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
-import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
 import java.util.ArrayList;
@@ -24,6 +26,67 @@ import java.util.Collections;
 import java.util.List;
 
 public class SolitaireAnalysisModel {
+
+    // Load in OpenCV library
+    static {
+        System.loadLibrary("opencv_java4");
+    }
+
+    // Method for extracting suit and rank from every card in a Solitaire game deck
+    public Bitmap[] extractSolitaire(Mat src) {
+
+        // Extracts a cropout of the Solitaire game in the source picture
+        Mat game = extractGame(src);
+        if (game != null) {
+            // Extracts content in form of talon and columns of the Solitaire game as an array of ContentNodes
+            ContentNode[] content = extractContent(game);
+            if (content != null && content.length == 8) {
+
+                // Extracts the suit and rank of the talon card
+                Mat talon = extractCard(content[0].content);
+
+                // Copies the indexes 1 to 7 into a column array and sorts it in order of position along the x-axis
+                ContentNode[] column = Arrays.copyOfRange(content,1,8);
+                Arrays.sort(column, (n1, n2) -> (int) (n1.position.x - n2.position.x));
+
+                // Extracts suit and rank of the most forward card in each of the columns 1 to 7
+                Mat[] columns = new Mat[7];
+                for (int i = 0; i < 7; i++) {
+                    columns[i] = extractCard(column[i].content);
+                }
+
+                // Convert to array of BitMap and release the Mat objects still in memory
+                src.release();
+                game.release();
+                Bitmap[] bitmapArr = new Bitmap[8];
+                for (int i = 0; i < 8; i++) {
+                    if (columns[i] != null) {
+                        Bitmap bitmap = Bitmap.createBitmap(30, 90, Bitmap.Config.ARGB_8888);
+                        if (i == 0) {
+                            Utils.matToBitmap(talon, bitmap);
+                            bitmapArr[i] = bitmap;
+                            talon.release();
+                        } else {
+                            Utils.matToBitmap(columns[i-1], bitmap);
+                            bitmapArr[i] = bitmap;
+                            columns[i-1].release();
+                        }
+                    }
+                    bitmapArr[i] = null;
+                }
+                return bitmapArr;
+            } else {
+                src.release();
+                game.release();
+                System.out.println("Something was wrong with the game content!");
+                return null;
+            }
+        } else {
+            src.release();
+            System.out.println("No suitable game was found!");
+            return null;
+        }
+    }
 
     // Method for extracting a cropout of a Solitaire game
     private Mat extractGame(Mat src) {
@@ -268,7 +331,6 @@ public class SolitaireAnalysisModel {
         rect.points(vertices);
         MatOfPoint newPoints = new MatOfPoint(vertices);
         Imgproc.drawContours(edge, Collections.singletonList(newPoints), -1, new Scalar(81, 190, 0), 4);
-        Imgcodecs.imwrite("C:\\Users\\rasmu\\Desktop\\NOT_VALID\\edge" + System.currentTimeMillis() + ".jpg", edge);
 
         double minAreaTolerance = 50000;
         boolean valid = rect.size.height * rect.size.width > minAreaTolerance;
