@@ -12,13 +12,12 @@ import android.hardware.SensorManager
 import android.media.Image
 import android.os.Bundle
 import android.os.Environment
-import android.os.Looper
 import android.util.Log
+import android.util.Size
 import android.view.*
 import android.view.Surface.ROTATION_90
 import android.widget.TextView
 import android.widget.Button
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.*
 import androidx.camera.core.Camera
@@ -28,7 +27,7 @@ import androidx.fragment.app.Fragment
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.cdio.solitaire.R
 import com.cdio.solitaire.databinding.FragmentCameraBinding
-import com.cdio.solitaire.imageanalysis.CardExtraction
+import com.cdio.solitaire.imageanalysis.CardExtractionModel
 import com.cdio.solitaire.ml.RankModel
 import org.opencv.android.Utils
 import org.opencv.core.Mat
@@ -201,8 +200,8 @@ class CameraFragment : Fragment(), SensorEventListener {
 
         // ImageAnalysis
         imageAnalyzer = ImageAnalysis.Builder()
-            // We request aspect ratio but no resolution
-            .setTargetAspectRatio(AspectRatio.RATIO_16_9)
+            // We request a specific resolution
+            .setTargetResolution(Size(4032,1816))
             .setTargetRotation(ROTATION_90)
             .build()
             // The analyzer can then be assigned to the instance
@@ -275,12 +274,13 @@ class CameraFragment : Fragment(), SensorEventListener {
             val bitmap = javaImage?.toBitmap()
             val mat = Mat()
             Utils.bitmapToMat(bitmap, mat)
-            val matCrop = CardExtraction.extractCard(mat)
+            Log.d(TAG, "Mat width: " + mat.width().toString() + " Mat height:  " + mat.height())
+            val matCrop = CardExtractionModel.extractCard(mat)
             if (matCrop == null) {
                 Log.d(TAG, "No card was found!")
             } else {
                 Log.d(TAG, "There was a card!")
-                var matRank = CardExtraction.extractRank(matCrop);
+                var matRank = CardExtractionModel.extractRank(matCrop);
                 val newBitmap = Bitmap.createBitmap(matRank.cols(), matRank.rows(), Bitmap.Config.ARGB_8888)
                 Utils.matToBitmap(matRank, newBitmap)
                 if (bitmap != null) {
@@ -339,7 +339,7 @@ class CameraFragment : Fragment(), SensorEventListener {
             vuBuffer.get(nv21, ySize, vuSize)
             val yuvImage = YuvImage(nv21, ImageFormat.NV21, this.width, this.height, null)
             val out = ByteArrayOutputStream()
-            yuvImage.compressToJpeg(Rect(0, 0, yuvImage.width, yuvImage.height), 50, out)
+            yuvImage.compressToJpeg(Rect(0, 0, yuvImage.width, yuvImage.height), 100, out)
             val imageBytes = out.toByteArray()
             return BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
         }

@@ -13,7 +13,7 @@ import static org.opencv.imgproc.Imgproc.THRESH_BINARY;
 import static java.lang.Double.max;
 import static java.lang.Double.min;
 
-public class CardExtraction {
+public class CardExtractionModel {
     static {
         System.loadLibrary("opencv_java4");
     }
@@ -46,6 +46,7 @@ public class CardExtraction {
             src.release();
             blur.release();
             noise.release();
+            gray.release();
             edge.release();
             contours.release();
             return null;
@@ -121,6 +122,7 @@ public class CardExtraction {
             src.release();
             blur.release();
             noise.release();
+            gray.release();
             edge.release();
             contours.release();
 
@@ -131,6 +133,7 @@ public class CardExtraction {
             src.release();
             blur.release();
             noise.release();
+            gray.release();
             edge.release();
             contours.release();
 
