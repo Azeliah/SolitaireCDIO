@@ -4,4 +4,6 @@
     <string name="rotation_indicator_text">x: %f y: %f, z: %f</string>
     <string name="next_move">Next Move</string>
     <string name="deal_cards">Deal Cards</string>
+    <string name="input_field_hint">Eks: &quot;3H&quot;, &quot;AS&quot;</string>
+    <string name="ok">OK</string>
 </resources>
