@@ -23,7 +23,7 @@
         android:layout_marginStart="156dp"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="156dp"
-        android:text="Next Move"
+        android:text="@string/next_move"
         android:textAlignment="center"
         android:textSize="34sp"
         app:layout_constraintEnd_toEndOf="parent"
@@ -50,7 +50,7 @@
         android:layout_marginStart="167dp"
         android:layout_marginTop="28dp"
         android:layout_marginEnd="167dp"
-        android:text="Deal Cards"
+        android:text="@string/deal_cards"
         android:textSize="20sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.487"
@@ -69,6 +69,7 @@
         <com.google.android.material.textfield.TextInputEditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="@string/input_field_hint" />
+            android:hint="@string/input_field_hint"
+            android:textColorHint="#616161" />
     </com.google.android.material.textfield.TextInputLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
