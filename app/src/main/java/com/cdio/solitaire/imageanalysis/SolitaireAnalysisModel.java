@@ -25,6 +25,101 @@ import java.util.List;
 
 public class SolitaireAnalysisModel {
 
+    // Method for extracting a cropout of a Solitaire game
+    private Mat extractGame(Mat src) {
+
+        // Detection of edges using Canny edge detection
+        Mat edge = cannyEdge(src);
+
+        // Arraylist of MatOfPoints found using findContours on external contours
+        List<MatOfPoint> points = new ArrayList<>();
+        Mat contours = new Mat();
+        Imgproc.findContours(edge, points, contours, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
+        System.out.println("Game contours: " + points.size());
+
+        // If no points/contours where found
+        if (points.size() == 0) {
+            src.release();
+            edge.release();
+            contours.release();
+            return null;
+        }
+
+        //Finds the biggest contour in the image
+        int index = 0;
+        double maxim = 0;
+        for (int contourId = 0; contourId < points.size(); contourId++)
+        {
+            MatOfPoint2f cnt = new MatOfPoint2f();
+            points.get(contourId).convertTo(cnt, CvType.CV_32FC2);
+            RotatedRect rect = Imgproc.minAreaRect(cnt);
+            double area = rect.size.height * rect.size.width;
+
+            if(maxim < area)
+            {
+                maxim=area;
+                index=contourId;
+            }
+        }
+
+        // Create rectangle using the biggest contour points
+        MatOfPoint2f cnt = new MatOfPoint2f();
+        points.get(index).convertTo(cnt, CvType.CV_32FC2);
+        RotatedRect rect = Imgproc.minAreaRect(cnt);
+
+        // Contour is drawn onto the image
+        Point[] vertices = new Point[4];
+        rect.points(vertices);
+        MatOfPoint newPoints = new MatOfPoint(vertices);
+        Imgproc.drawContours(edge, Collections.singletonList(newPoints), -1, new Scalar(81, 190, 0), 4);
+
+        double minAreaTolerance = 100000;
+        boolean valid = rect.size.height * rect.size.width > minAreaTolerance;
+
+        // If minimum tolerance is upheld
+        if (valid) {
+
+            // Manuel reshape of height and width to fit output format
+            rect.size.set(new double[]{rect.size.width + 30, rect.size.height + 30});
+            int height = (int) rect.size.width;
+            int width = (int) rect.size.height;
+
+            // Reference points to fit output format
+            MatOfPoint2f reference = new MatOfPoint2f(
+                    new Point(0, 0),
+                    new Point(width, 0),
+                    new Point(width, height),
+                    new Point(0, height)
+            );
+
+            // Wrap source image to rectangle using reference points for size
+            Mat box = new Mat();
+            Imgproc.boxPoints(rect, box);
+            Mat warpMat = Imgproc.getPerspectiveTransform(box, reference);
+            Mat warp = new Mat();
+            Imgproc.warpPerspective(src, warp, warpMat, new Size(width, height));
+
+            // Rotate if width is greater than height
+            if (rect.size.height < rect.size.width) {
+                Core.rotate(warp, warp, Core.ROTATE_90_COUNTERCLOCKWISE);
+            }
+
+            // Release Mat objects still in memory
+            src.release();
+            edge.release();
+            contours.release();
+            box.release();
+            warpMat.release();
+            return warp;
+        } else {
+
+            src.release();
+            edge.release();
+            contours.release();
+            return null;
+        }
+    }
+
     // Method for extracting content in form of talon and columns of the Solitaire game
     private ContentNode[] extractContent(Mat src) {
 
