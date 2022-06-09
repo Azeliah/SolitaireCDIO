@@ -4,7 +4,6 @@ import android.util.Log
 
 // TODO: Consider adding nullable suit var for foundations
 // TODO: Consider adding isEmpty method for code brevity
-// TODO: Consider
 
 class CardStack(val stackID: Int) {
     var head: Card? = null
@@ -12,7 +11,10 @@ class CardStack(val stackID: Int) {
     var size: Int = 0
     var hiddenCards: Int = 0
 
-    fun pushCard(card: Card) { // Standard push, pushing an element to the tail
+    /**
+     * Standard push, pushing an element to the tail of the stack
+     */
+    fun pushCard(card: Card) {
         when (size) {
             0 -> {
                 head = card
@@ -29,6 +31,9 @@ class CardStack(val stackID: Int) {
         card.stackID = stackID
     }
 
+    /**
+     * Standard pop, popping and returning the tail element of the stack
+     */
     fun popCard(): Card? {
         val poppedCard: Card? = tail
         when (size) {
@@ -51,12 +56,18 @@ class CardStack(val stackID: Int) {
         return poppedCard
     }
 
+    /**
+     * Reset the cardStack attributes (used when a pop method results in an empty stack).
+     */
     private fun resetCardStack() { // Used solely to prevent faulty use of stacks considered discarded.
         head = null
         tail = null
         size = 0
     }
 
+    /**
+     * Standard push, pushing a cardStack to the tail of the stack
+     */
     fun pushStack(stack: CardStack) { // Push a CardStack to tail
         if (stack.size == 0) return
         var card = stack.head
@@ -80,7 +91,9 @@ class CardStack(val stackID: Int) {
         stack.resetCardStack()
     }
 
-
+    /**
+     * Standard pop, popping a stack off the tail of the stack.
+     */
     fun popStack(cardsToPop: Int): CardStack? {
         if (size == 0 || size < cardsToPop) return null
 
@@ -101,7 +114,11 @@ class CardStack(val stackID: Int) {
         return poppedStack
     }
 
-    fun pushStackToHead(stack: CardStack) { // Used when flipping talon
+    /**
+     * Special push used for stock specifically when flipping talon. This pushes the stack to head
+     * instead of tail.
+     */
+    fun pushStackToHead(stack: CardStack) {
         if (stack.size == 0) {
             Log.e(
                 "EmptyStackPush",

@@ -11,6 +11,9 @@ class GameStateController {
         initializeGameState()
     }
 
+    /**
+     * Creates the initial gameState. Refer to this for cardStack IDs.
+     */
     private fun initializeGameState() {
         val deck = createNullCardStack(52, -1)
         val foundations = Array(4) { i -> CardStack(i + 8) } // 8, 9, 10, 11
@@ -22,6 +25,9 @@ class GameStateController {
             GameState(foundations, tableaux, talon, stock, mutableListOf(Move(MoveType.DEAL_CARDS)))
     }
 
+    /**
+     * Deals out cards in compliance with solitaire rules.
+     */
     private fun dealOutDeck(
         deck: CardStack,
         tableaux: Array<CardStack>,
@@ -37,13 +43,19 @@ class GameStateController {
         stock.hiddenCards = stock.size
     }
 
+    /**
+     * Used to create anonymous (hidden) cards.
+     */
     private fun createNullCardStack(cardCount: Int, stackID: Int): CardStack {
         val cardStack = CardStack(stackID)
         for (i in 0..cardCount) cardStack.pushCard(Card(stackID))
         return cardStack
     }
 
-    private fun getCardStackFromID(stackID: Int): CardStack? { // Added for ease, might be deleted later
+    /**
+     * Retrieve a cardStack using the ID. The numbering is in compliance with initial gameState.
+     */
+    fun getCardStackFromID(stackID: Int): CardStack? { // Added for ease, might be deleted later
         return when (stackID) {
             in 1..7 -> gameState.tableaux[stackID]
             in 8..11 -> gameState.foundations[stackID - 7]
@@ -53,12 +65,19 @@ class GameStateController {
         }
     }
 
+    /**
+     * Flips the talon by pushing the talon to the head end of stock.
+     */
     private fun flipTalon() {
         gameState.stock.pushStackToHead(gameState.talon)
         gameState.stock.hiddenCards += gameState.talon.hiddenCards
         gameState.talon.hiddenCards = 0
     }
 
+    /**
+     * Draw 3 cards from stock. Do accounting on hiddenCards, and, if needed, signal card recognition.
+     */
+    // TODO: Consider legal move check.
     private fun drawFromStock(): Card? {
         if (gameState.stock.size < 3) {
             Log.e("EmptyStackPop", "Not enough cards in stock to draw to talon.")
@@ -77,12 +96,18 @@ class GameStateController {
         return cardToUpdate(gameState.talon)
     }
 
+    /**
+     * If the rank of the tail card is 0 (== NA), card recognition is needed.
+     */
     private fun cardToUpdate(stack: CardStack): Card? {
         return if (stack.tail == null) null
         else if (stack.tail!!.rank.ordinal == 0) stack.tail
         else null
     }
 
+    /**
+     * moveStack moves a stack and adds cardToUpdate information to the move object.
+     */
     private fun moveStack( // TODO: Does this actually need cardsToMove? See popStack comment.
         sourceStack: CardStack,
         cardsToMove: Int,
@@ -96,6 +121,10 @@ class GameStateController {
         return moveStack(sourceStack, 1, targetStack)
     }
 
+    /**
+     * performMove is a fork function on moveType of the move object.
+     * It maps each moveType to their respective methods.
+     */
     fun performMove(move: Move) {
         var cardToUpdate: Card? = null
         when (move.moveType) {
@@ -116,6 +145,9 @@ class GameStateController {
         gameState.moves.add(move)
     }
 
+    /**
+     * Searches for the position of a card in a given cardStack, measured from the tail element.
+     */
     private fun getCardPosition(card: Card?, stack: CardStack): Int {
         if (card!!.stackID != stack.stackID) {
             Log.e("CardNotInStack", "Card stackID differs from stack stackID")
@@ -138,7 +170,9 @@ class GameStateController {
         sortedDeck[(card.suit.ordinal - 1) * 13 + card.rank.ordinal - 1] = card
     }
 
-
+    /**
+     * Used to ensure consistency in tableauOrdering when performing moves.
+     */
     private fun tableauOrdering(card: Card, targetStack: CardStack): Boolean =
         if (targetStack.stackID !in 1..7) false
         else when (targetStack.size) {
@@ -151,13 +185,18 @@ class GameStateController {
             }
         }
 
-
+    /**
+     * Assesses whether a stack move is legal.
+     */
     private fun verifyMoveStack(move: Move): Boolean =
         if (move.sourceStack == null || move.targetStack == null) {
             Log.e("IllegalMoveError", "You need to specify a sourceStack and targetStack.")
             false
         } else tableauOrdering(move.sourceCard!!, move.targetStack!!)
 
+    /**
+     * Assesses whether a move from foundation is legal.
+     */
     private fun verifyMoveFromFoundation(move: Move): Boolean {
         val foundation = move.sourceStack
         return if (foundation == null || move.targetStack == null) {
@@ -170,6 +209,9 @@ class GameStateController {
         }
     }
 
+    /**
+     * Assesses whether a move from talon is legal.
+     */
     private fun verifyMoveFromTalon(move: Move): Boolean =
         if (gameState.talon.tail != move.sourceCard) {
             false
@@ -179,6 +221,9 @@ class GameStateController {
             verifyMoveStack(move)
         } else false
 
+    /**
+     * Gets the foundation which has been used for the suit. If none exist, return the first empty foundation.
+     */
     private fun getFoundation(suit: Suit): CardStack? {
         var foundation: CardStack? = null
         for (stack in gameState.foundations) {
@@ -189,12 +234,15 @@ class GameStateController {
                 foundation = stack
                 break
             } else {
-                Log.e("FoundationNotFound", "This cannot happen.")
+                Log.e("FoundationNotFound", "This shouldn't ever happen.")
             }
         }
         return foundation
     }
 
+    /**
+     * Assesses whether a move to foundation is legal.
+     */
     private fun verifyMoveToFoundation(move: Move): Boolean {
         return if (move.sourceStack!!.tail != move.sourceCard) false
         else when (move.sourceCard!!.rank.ordinal) {
@@ -217,22 +265,31 @@ class GameStateController {
         }
     }
 
+    /**
+     * Assesses whether flipping the talon is legal.
+     */
     private fun verifyFlipTalon(): Boolean {
         return if (gameState.stock.size >= 3) {
             false
         } else gameState.stock.size + gameState.talon.size >= 3
     }
 
+    /**
+     * Assesses whether drawing cards from stock is legal.
+     */
     private fun verifyDrawStock(): Boolean {
         return gameState.stock.size >= 3
     }
 
+    /**
+     * Fork function to check if a given move is legal.
+     */
     fun isMoveLegal(move: Move): Boolean {
         return when (move.moveType) {
             MoveType.MOVE_STACK -> verifyMoveStack(move)
             MoveType.MOVE_FROM_FOUNDATION -> verifyMoveFromFoundation(move)
             MoveType.MOVE_FROM_TALON -> verifyMoveFromTalon(move)
-            MoveType.MOVE_TO_FOUNDATION -> verifyMoveFromFoundation(move)
+            MoveType.MOVE_TO_FOUNDATION -> verifyMoveToFoundation(move)
             MoveType.FLIP_TALON -> verifyFlipTalon()
             MoveType.DRAW_STOCK -> verifyDrawStock()
             else -> {
@@ -242,11 +299,17 @@ class GameStateController {
         }
     }
 
+    /**
+     * Retrieves the stackID of a card using the rank, suit pair as key to search the sorted deck.
+     */
     private fun cardStackIDFromRankSuit(rank: Int, suit: Int): Int {
         return if (sortedDeck[(suit - 1) * 13 + rank - 1] == null) -1
         else sortedDeck[(suit - 1) * 13 + rank - 1]!!.stackID
     }
 
+    /**
+     * Retrieves the stackID of a card using the rank, suit pair as key to search the sorted deck.
+     */
     fun cardStackIDFromRankSuit(rank: Rank, suit: Suit): Int {
         return cardStackIDFromRankSuit(rank.ordinal, suit.ordinal)
     }

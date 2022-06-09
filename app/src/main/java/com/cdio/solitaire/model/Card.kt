@@ -1,7 +1,7 @@
 package com.cdio.solitaire.model
 
 enum class Suit {
-    NA, CLUBS, DIAMONDS, HEARTS, SPADES;
+    NA, CLUBS, DIAMONDS, HEARTS, SPADES; // Note the order: C = 1, D = 2, H = 3, S = 4.
 
     fun short(): String {
         return when (this.ordinal) {
