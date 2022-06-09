@@ -155,4 +155,14 @@ public class CardExtraction {
         Imgproc.resize(src, src, sz);
         return src;
     }
+
+    public static Mat extractRank(Mat src) {
+        Mat original = src.clone();
+        Rect rect_min = new Rect();
+        rect_min.x = 1;
+        rect_min.y = 0;
+        rect_min.width = 13;
+        rect_min.height = 25;
+        return original.submat(rect_min);
+    }
 }
