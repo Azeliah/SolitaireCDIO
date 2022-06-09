@@ -49,5 +49,4 @@ class StrategyController {
     fun moveStack() {
         TODO("Analyze code from other repo for data manipulation/evaluation.")
     }
-
 }

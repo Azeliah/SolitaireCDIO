@@ -4,17 +4,13 @@ import android.util.Log
 import com.cdio.solitaire.model.*
 
 class GameStateController {
-    private lateinit var gameState: GameState
+    private var gameState: GameState
     private val sortedDeck = arrayOfNulls<Card>(52) // Use this to track cards in the game.
-
-    init {
-        initializeGameState()
-    }
 
     /**
      * Creates the initial gameState. Refer to this for cardStack IDs.
      */
-    private fun initializeGameState() {
+    init {
         val deck = createNullCardStack(52, -1)
         val foundations = Array(4) { i -> CardStack(i + 8) } // 8, 9, 10, 11
         val tableaux = Array(7) { i -> CardStack(i + 1) } // 1, 2, 3, 4, 5, 6, 7
@@ -35,7 +31,7 @@ class GameStateController {
     ) {
         for (i in 0..6) {
             for (j in i..6) {
-                tableaux[j].pushCard(deck.popCard()!!)
+                tableaux[j].pushCard(deck.popCard())
                 tableaux[j].hiddenCards++
             }
         }
@@ -79,12 +75,9 @@ class GameStateController {
      */
     // TODO: Consider legal move check.
     private fun drawFromStock(): Card? {
-        if (gameState.stock.size < 3) {
-            Log.e("EmptyStackPop", "Not enough cards in stock to draw to talon.")
-            return null
-        }
+        if (gameState.stock.size < 3) throw Exception("EmptyStackPop: Not enough cards in stock to draw to talon.")
         // Cannot use gsc.moveStack here, because we want to check talon.tail, not stock.tail.
-        gameState.talon.pushStack(gameState.stock.popStack(3)!!)
+        gameState.talon.pushStack(gameState.stock.popStack(3))
         var hiddenCardsMoved = 0
         var cardToCheck = gameState.talon.tail
         for (i in 0..2) {
@@ -113,7 +106,7 @@ class GameStateController {
         cardsToMove: Int,
         targetStack: CardStack
     ): Card? {
-        targetStack.pushStack(sourceStack.popStack(cardsToMove)!!)
+        targetStack.pushStack(sourceStack.popStack(cardsToMove))
         return cardToUpdate(sourceStack)
     }
 
@@ -139,7 +132,7 @@ class GameStateController {
                 moveCard(move.sourceStack!!, move.targetStack!!)
             MoveType.FLIP_TALON -> flipTalon()
             MoveType.DRAW_STOCK -> cardToUpdate = drawFromStock()
-            else -> Log.e("MoveTypeNotDefined", "This cannot happen.")
+            MoveType.DEAL_CARDS -> throw Exception("DEAL_CARDS is not for use here.")
         }
         move.cardToUpdate = cardToUpdate
         gameState.moves.add(move)
@@ -150,8 +143,7 @@ class GameStateController {
      */
     private fun getCardPosition(card: Card?, stack: CardStack): Int {
         if (card!!.stackID != stack.stackID) {
-            Log.e("CardNotInStack", "Card stackID differs from stack stackID")
-            return -1
+            throw Exception("CardNotInStack: Card stackID differs from stack stackID")
         }
         var stackCard = stack.tail!!
         var i = 1
@@ -180,7 +172,7 @@ class GameStateController {
             else -> {
                 val targetCard = targetStack.tail!!
                 val ranksMatch = targetCard.rank.ordinal - card.rank.ordinal == 1
-                val offColor = targetCard.suit.isRed() xor card.suit.isRed()
+                val offColor = targetCard.suit.offSuit(card.suit)
                 ranksMatch && offColor
             }
         }
@@ -190,8 +182,7 @@ class GameStateController {
      */
     private fun verifyMoveStack(move: Move): Boolean =
         if (move.sourceStack == null || move.targetStack == null) {
-            Log.e("IllegalMoveError", "You need to specify a sourceStack and targetStack.")
-            false
+            throw Exception("IllegalMoveError: You need to specify a sourceStack and targetStack.")
         } else tableauOrdering(move.sourceCard!!, move.targetStack!!)
 
     /**
@@ -199,10 +190,9 @@ class GameStateController {
      */
     private fun verifyMoveFromFoundation(move: Move): Boolean {
         val foundation = move.sourceStack
-        return if (foundation == null || move.targetStack == null) {
-            Log.e("IllegalMoveError", "You need to specify a sourceStack and targetStack.")
-            false
-        } else if (foundation.stackID in 8..11 && foundation.tail == move.sourceCard) {
+        if (foundation == null || move.targetStack == null)
+            throw Exception("You need to specify a sourceStack and targetStack.")
+        return if (foundation.stackID in 8..11 && foundation.tail == move.sourceCard) {
             tableauOrdering(move.sourceCard!!, move.targetStack!!)
         } else {
             false
@@ -233,9 +223,7 @@ class GameStateController {
             } else if (stack.tail!!.suit == suit) {
                 foundation = stack
                 break
-            } else {
-                Log.e("FoundationNotFound", "This shouldn't ever happen.")
-            }
+            } else throw Exception("Foundation not found. This shouldn't happen. Ever. Good job.")
         }
         return foundation
     }
@@ -292,25 +280,17 @@ class GameStateController {
             MoveType.MOVE_TO_FOUNDATION -> verifyMoveToFoundation(move)
             MoveType.FLIP_TALON -> verifyFlipTalon()
             MoveType.DRAW_STOCK -> verifyDrawStock()
-            else -> {
-                Log.e("NotExistingMoveType", "This cannot happen.")
-                false
-            }
+            MoveType.DEAL_CARDS -> throw Exception("DEAL_CARDS is reserved for initialization.")
         }
     }
 
     /**
      * Retrieves the stackID of a card using the rank, suit pair as key to search the sorted deck.
      */
-    private fun cardStackIDFromRankSuit(rank: Int, suit: Int): Int {
-        return if (sortedDeck[(suit - 1) * 13 + rank - 1] == null) -1
-        else sortedDeck[(suit - 1) * 13 + rank - 1]!!.stackID
-    }
-
-    /**
-     * Retrieves the stackID of a card using the rank, suit pair as key to search the sorted deck.
-     */
-    fun cardStackIDFromRankSuit(rank: Rank, suit: Suit): Int {
-        return cardStackIDFromRankSuit(rank.ordinal, suit.ordinal)
+    fun cardStackIDFromRankSuit(rank: Int, suit: Int): Int {
+        sortedDeck[(suit - 1) * 13 + rank - 1]?.let { card ->
+            return card.stackID
+        }
+        return -1
     }
 }

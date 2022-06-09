@@ -34,13 +34,10 @@ class CardStack(val stackID: Int) {
     /**
      * Standard pop, popping and returning the tail element of the stack
      */
-    fun popCard(): Card? {
+    fun popCard(): Card {
         val poppedCard: Card? = tail
         when (size) {
-            0 -> {
-                Log.e("EmptyStackPop", "Stack: $stackID")
-                return null
-            }
+            0 -> throw Exception("Empty stack pop.")
             1 -> {
                 poppedCard!!.prev = null
                 resetCardStack()
@@ -94,8 +91,8 @@ class CardStack(val stackID: Int) {
     /**
      * Standard pop, popping a stack off the tail of the stack.
      */
-    fun popStack(cardsToPop: Int): CardStack? {
-        if (size == 0 || size < cardsToPop) return null
+    fun popStack(cardsToPop: Int): CardStack {
+        if (size == 0 || size < cardsToPop) throw Exception("Empty stack pop")
 
         val poppedStack = CardStack(-1)
         if (size - cardsToPop == 0) poppedStack.pushStack(this)
@@ -120,11 +117,7 @@ class CardStack(val stackID: Int) {
      */
     fun pushStackToHead(stack: CardStack) {
         if (stack.size == 0) {
-            Log.e(
-                "EmptyStackPush",
-                "Trying to push empty stack, stackID: " + stack.stackID.toString()
-            )
-            return
+            throw Exception("Trying to push empty stack, stackID: " + stack.stackID.toString())
         }
         if (size == 0) {
             pushStack(stack)

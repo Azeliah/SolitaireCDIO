@@ -20,5 +20,3 @@ class Move(val moveType: MoveType) {
 
     // TODO: Make toString() method and pictureNeeded() method
 }
-
-
