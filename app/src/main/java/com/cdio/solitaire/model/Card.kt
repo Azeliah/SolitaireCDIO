@@ -39,10 +39,14 @@ enum class Rank {
     }
 }
 
-data class Card(
-    var stackID: Int,
-    var rank: Rank = Rank.NA,
-    var suit: Suit = Suit.NA,
-    var prev: Card? = null,
+class Card (var stackID: Int, var rank: Rank = Rank.NA, var suit: Suit = Suit.NA) {
+    var prev: Card? = null
     var next: Card? = null
-)
+
+    /**
+     *  Returns a copy of the card object stripped of stackID and pointers.
+     */
+    fun copyOf() : Card {
+        return Card(-1, this.rank, this.suit)
+    }
+}
