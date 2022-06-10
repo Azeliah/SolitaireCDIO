@@ -136,7 +136,7 @@ class CardStack(val stackID: Int) {
         stack.resetCardStack()
     }
 
-    fun copyCardStack(): CardStack {
+    fun copyOf(): CardStack {
         val newStack = CardStack(stackID)
         var cardToCopy = head
         while (cardToCopy != null) {

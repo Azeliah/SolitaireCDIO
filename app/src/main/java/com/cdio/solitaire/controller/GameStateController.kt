@@ -289,4 +289,13 @@ class GameStateController {
         }
         return -1
     }
+
+    fun copyGameState(): GameState {
+        val tableaux = Array<CardStack>(gameState.tableaux.size) { i -> gameState.tableaux[i].copyOf() }
+        val foundations = Array<CardStack>(gameState.foundations.size) { i -> gameState.foundations[i].copyOf() }
+        val stock = gameState.stock.copyOf()
+        val talon = gameState.talon.copyOf()
+        val moves = gameState.moves.toMutableList()
+        return GameState(foundations, tableaux, talon, stock, moves)
+    }
 }
