@@ -4,6 +4,7 @@ class MoveQueue(var gameState: GameState) {
     var head: Move? = null
     var tail: Move? = null
     var size: Int = 0
+    var moveSequenceValue = 0
 
     fun push(move: Move) { // Push to tail
         when (size) {
