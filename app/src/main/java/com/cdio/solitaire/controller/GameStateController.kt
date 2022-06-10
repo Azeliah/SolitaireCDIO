@@ -1,6 +1,5 @@
 package com.cdio.solitaire.controller
 
-import android.util.Log
 import com.cdio.solitaire.model.*
 
 class GameStateController {
@@ -30,10 +29,7 @@ class GameStateController {
         stock: CardStack
     ) {
         for (i in 0..6) {
-            for (j in i..6) {
-                tableaux[j].pushCard(deck.popCard())
-                tableaux[j].hiddenCards++
-            }
+            for (j in i..6) tableaux[j].pushCard(deck.popCard())
         }
         stock.pushStack(deck)
         stock.hiddenCards = stock.size

@@ -28,6 +28,7 @@ class CardStack(val stackID: Int) {
                 size++
             }
         }
+        if (card.rank == Rank.NA) hiddenCards++
         card.stackID = stackID
     }
 
@@ -133,5 +134,15 @@ class CardStack(val stackID: Int) {
         head = stack.head
         size += stack.size
         stack.resetCardStack()
+    }
+
+    fun copyCardStack(): CardStack {
+        val newStack = CardStack(stackID)
+        var cardToCopy = head
+        while (cardToCopy != null) {
+            newStack.pushCard(cardToCopy.copyOf())
+            cardToCopy = cardToCopy.next
+        }
+        return newStack
     }
 }
