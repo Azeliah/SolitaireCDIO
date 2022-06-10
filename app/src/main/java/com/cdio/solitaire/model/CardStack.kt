@@ -19,15 +19,14 @@ class CardStack(val stackID: Int) {
             0 -> {
                 head = card
                 tail = card
-                size++
             }
             else -> {
                 tail!!.next = card
                 card.prev = tail
                 tail = card
-                size++
             }
         }
+        size++
         if (card.rank == Rank.NA) hiddenCards++
         card.stackID = stackID
     }
