@@ -11,7 +11,7 @@ import java.util.*
 
 class StrategyController {
     val gsc = GameStateController()
-
+    val listOfMoves: LinkedList<Array<Move>> = getAllMoves()
     fun nextMove() {
         val move = decideMove()
         gsc.performMove(move)
@@ -52,21 +52,32 @@ class StrategyController {
     }
 
     fun getAllMoves(): LinkedList<Array<Move>>{
-        var moveArray: Array<Move>?
         var move: Move?
         val moves: LinkedList<Array<Move>> = LinkedList()
-        for(sourceColumn in gsc.gameState.tableaux){
-            for(targetFoundation in gsc.gameState.foundations){
-                move = Move(MoveType.MOVE_TO_FOUNDATION, sourceColumn, sourceCard=sourceColumn.tail)
+        for(column in gsc.gameState.tableaux){
+                //Possible moves from column to foundation.
+                move = Move(MoveType.MOVE_TO_FOUNDATION, column, sourceCard=column.tail)
                 if(gsc.isMoveLegal(move)){
                     moves.add(arrayOf(move))
                 }
-            }
+                //Possible moves from Talon to foundation.
+                move = Move(MoveType.MOVE_TO_FOUNDATION,gsc.gameState.talon,sourceCard = gsc.gameState.talon.tail)
+                if(gsc.isMoveLegal(move)) {
+                    moves.add(arrayOf(move))
+                }
+                //Possible moves from talon to a column.
+                move = Move(MoveType.MOVE_FROM_TALON,targetStack = column,sourceCard = gsc.gameState.talon.tail)
+                if(gsc.isMoveLegal(move)){
+                    moves.add(arrayOf(move))
+                }
             for(targetColumn in gsc.gameState.tableaux){
-                move = Move(MoveType.MOVE_STACK,sourceColumn,targetColumn, sourceColumn.getStackHighCard())
+                //Possible moves between columns
+                move = Move(MoveType.MOVE_STACK,column,targetColumn, column.getStackHighCard())
                 if(gsc.isMoveLegal(move)){
                     moves.add(arrayOf(move))
                 }
+                //Possible Conditional moves, currently waiting for Michael with ghost/dummy state for checks.
+                //TODO finish this part when Michael's code is ready.
                 move = Move(MoveType.MOVE_FROM_TALON, sourceCard = gsc.gameState.talon.tail, targetStack = targetColumn)
                 if(gsc.isMoveLegal(move)){
                     move = Move(MoveType.MOVE_STACK,)
