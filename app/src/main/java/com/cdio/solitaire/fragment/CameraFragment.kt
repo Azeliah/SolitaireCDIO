@@ -28,6 +28,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.cdio.solitaire.R
 import com.cdio.solitaire.databinding.FragmentCameraBinding
 import com.cdio.solitaire.imageanalysis.CardExtractionModel
+import com.cdio.solitaire.imageanalysis.SolitaireAnalysisModel
 import com.cdio.solitaire.ml.RankModel
 import org.opencv.android.Utils
 import org.opencv.core.Mat
@@ -275,21 +276,21 @@ class CameraFragment : Fragment(), SensorEventListener {
             val mat = Mat()
             Utils.bitmapToMat(bitmap, mat)
             Log.d(TAG, "Mat width: " + mat.width().toString() + " Mat height:  " + mat.height())
-            val matCrop = CardExtractionModel.extractCard(mat)
-            if (matCrop == null) {
-                Log.d(TAG, "No card was found!")
-            } else {
-                Log.d(TAG, "There was a card!")
-                var matRank = CardExtractionModel.extractRank(matCrop);
-                val newBitmap = Bitmap.createBitmap(matRank.cols(), matRank.rows(), Bitmap.Config.ARGB_8888)
-                Utils.matToBitmap(matRank, newBitmap)
-                if (bitmap != null) {
-                    val model = RankModel()
-                    val rank = model.predict(newBitmap, context)
-                    saveToStorage(newBitmap, rank)
+            val solitaireAnalysis = SolitaireAnalysisModel()
+            val bitmapArr = solitaireAnalysis.extractSolitaire(mat)
+            val model = RankModel()
+            if (bitmapArr != null) {
+                Log.d(TAG, "Success. A complete solitaire game was found!")
+                val date = System.currentTimeMillis().toString()
+                for (i in bitmapArr.indices) {
+                    if (bitmapArr[i] != null) {
+                        val rank = model.predict(bitmapArr[i], context)
+                        Log.d(TAG,   i.toString() + "_rank: " + rank)
+                        saveToStorage(date, i , bitmapArr[i], rank)
+                    }
                 }
-                matRank.release()
-                matCrop.release()
+            } else {
+                Log.d(TAG, "Failure. No complete solitaire game was found!")
             }
             mat.release()
 
@@ -302,10 +303,15 @@ class CameraFragment : Fragment(), SensorEventListener {
          * <p> This is supposed to be used for debugging only; the bitmap should be passed
          * to our ML model in the future.
          */
-        fun saveToStorage(bitmapImage: Bitmap, rank: Int): String? {
-            val directory =
-                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
-            val mypath = File(directory, System.currentTimeMillis().toString() + "_rank_" + rank + ".jpeg")
+        fun saveToStorage(dirName: String, index: Int, bitmapImage: Bitmap, rank: Int) {
+            val directory = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).absolutePath + "/" + dirName)
+            if (!directory.exists()) {
+                directory.mkdir()
+            }
+            val mypath = File(directory, index.toString() + "_rank_" + rank + ".jpeg")
+            if (!mypath.exists()) {
+                mypath.createNewFile();
+            }
             var fos: FileOutputStream? = null
             try {
                 fos = FileOutputStream(mypath)
@@ -321,7 +327,6 @@ class CameraFragment : Fragment(), SensorEventListener {
                     e.printStackTrace()
                 }
             }
-            return directory.absolutePath
         }
 
         /**

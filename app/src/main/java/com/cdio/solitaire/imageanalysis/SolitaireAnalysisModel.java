@@ -18,6 +18,7 @@ import org.opencv.core.Rect;
 import org.opencv.core.RotatedRect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
+import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
 import java.util.ArrayList;
@@ -34,53 +35,34 @@ public class SolitaireAnalysisModel {
 
     // Method for extracting suit and rank from every card in a Solitaire game deck
     public Bitmap[] extractSolitaire(Mat src) {
+        Imgproc.cvtColor(src, src, Imgproc.COLOR_BGRA2BGR);
 
         // Extracts a cropout of the Solitaire game in the source picture
-        Mat game = extractGame(src);
+        ContentNode[] game = extractCards(src);
         if (game != null) {
-            // Extracts content in form of talon and columns of the Solitaire game as an array of ContentNodes
-            ContentNode[] content = extractContent(game);
-            if (content != null && content.length == 8) {
+            Arrays.sort(game, (n1, n2) -> (int) (n1.position.y - n2.position.y));
+            ContentNode talon = game[0];
+            ContentNode[] columns = Arrays.copyOfRange(game,1,8);
+            Arrays.sort(columns, (n1, n2) -> (int) (n1.position.x - n2.position.x));
 
-                // Extracts the suit and rank of the talon card
-                Mat talon = extractCard(content[0].content);
-
-                // Copies the indexes 1 to 7 into a column array and sorts it in order of position along the x-axis
-                ContentNode[] column = Arrays.copyOfRange(content,1,8);
-                Arrays.sort(column, (n1, n2) -> (int) (n1.position.x - n2.position.x));
-
-                // Extracts suit and rank of the most forward card in each of the columns 1 to 7
-                Mat[] columns = new Mat[7];
-                for (int i = 0; i < 7; i++) {
-                    columns[i] = extractCard(column[i].content);
-                }
-
-                // Convert to array of BitMap and release the Mat objects still in memory
-                src.release();
-                game.release();
-                Bitmap[] bitmapArr = new Bitmap[8];
-                for (int i = 0; i < 8; i++) {
-                    if (columns[i] != null) {
-                        Bitmap bitmap = Bitmap.createBitmap(30, 90, Bitmap.Config.ARGB_8888);
-                        if (i == 0) {
-                            Utils.matToBitmap(talon, bitmap);
-                            bitmapArr[i] = bitmap;
-                            talon.release();
-                        } else {
-                            Utils.matToBitmap(columns[i-1], bitmap);
-                            bitmapArr[i] = bitmap;
-                            columns[i-1].release();
-                        }
-                    }
+            // Convert to array of BitMap and release the Mat objects still in memory
+            src.release();
+            Bitmap[] bitmapArr = new Bitmap[8];
+            for (int i = 0; i < 8; i++) {
+                Bitmap bitmap = Bitmap.createBitmap(13, 25, Bitmap.Config.ARGB_8888);
+                if (i == 0 && talon != null) {
+                    Utils.matToBitmap(talon.content, bitmap);
+                    bitmapArr[i] = bitmap;
+                    talon.content.release();
+                } else if (i != 0 && columns[i-1] != null) {
+                    Utils.matToBitmap(columns[i-1].content, bitmap);
+                    bitmapArr[i] = bitmap;
+                    columns[i-1].content.release();
+                } else {
                     bitmapArr[i] = null;
                 }
-                return bitmapArr;
-            } else {
-                src.release();
-                game.release();
-                System.out.println("Something was wrong with the game content!");
-                return null;
             }
+            return bitmapArr;
         } else {
             src.release();
             System.out.println("No suitable game was found!");
@@ -88,115 +70,14 @@ public class SolitaireAnalysisModel {
         }
     }
 
-    // Method for extracting a cropout of a Solitaire game
-    private Mat extractGame(Mat src) {
+    public ContentNode[] extractCards(Mat src) {
 
-        // Detection of edges using Canny edge detection
         Mat edge = cannyEdge(src);
 
-        // Arraylist of MatOfPoints found using findContours on external contours
         List<MatOfPoint> points = new ArrayList<>();
         Mat contours = new Mat();
-        Imgproc.findContours(edge, points, contours, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
-        System.out.println("Game contours: " + points.size());
-
-        // If no points/contours where found
-        if (points.size() == 0) {
-            src.release();
-            edge.release();
-            contours.release();
-            return null;
-        }
-
-        //Finds the biggest contour in the image
-        int index = 0;
-        double maxim = 0;
-        for (int contourId = 0; contourId < points.size(); contourId++)
-        {
-            MatOfPoint2f cnt = new MatOfPoint2f();
-            points.get(contourId).convertTo(cnt, CvType.CV_32FC2);
-            RotatedRect rect = Imgproc.minAreaRect(cnt);
-            double area = rect.size.height * rect.size.width;
-
-            if(maxim < area)
-            {
-                maxim=area;
-                index=contourId;
-            }
-        }
-
-        // Create rectangle using the biggest contour points
-        MatOfPoint2f cnt = new MatOfPoint2f();
-        points.get(index).convertTo(cnt, CvType.CV_32FC2);
-        RotatedRect rect = Imgproc.minAreaRect(cnt);
-
-        // Contour is drawn onto the image
-        Point[] vertices = new Point[4];
-        rect.points(vertices);
-        MatOfPoint newPoints = new MatOfPoint(vertices);
-        Imgproc.drawContours(edge, Collections.singletonList(newPoints), -1, new Scalar(81, 190, 0), 4);
-
-        double minAreaTolerance = 100000;
-        boolean valid = rect.size.height * rect.size.width > minAreaTolerance;
-
-        // If minimum tolerance is upheld
-        if (valid) {
-
-            // Manuel reshape of height and width to fit output format
-            rect.size.set(new double[]{rect.size.width + 30, rect.size.height + 30});
-            int height = (int) rect.size.width;
-            int width = (int) rect.size.height;
-
-            // Reference points to fit output format
-            MatOfPoint2f reference = new MatOfPoint2f(
-                    new Point(0, 0),
-                    new Point(width, 0),
-                    new Point(width, height),
-                    new Point(0, height)
-            );
-
-            // Wrap source image to rectangle using reference points for size
-            Mat box = new Mat();
-            Imgproc.boxPoints(rect, box);
-            Mat warpMat = Imgproc.getPerspectiveTransform(box, reference);
-            Mat warp = new Mat();
-            Imgproc.warpPerspective(src, warp, warpMat, new Size(width, height));
-
-            // Rotate if width is greater than height
-            if (rect.size.height < rect.size.width) {
-                Core.rotate(warp, warp, Core.ROTATE_90_COUNTERCLOCKWISE);
-            }
-
-            // Release Mat objects still in memory
-            src.release();
-            edge.release();
-            contours.release();
-            box.release();
-            warpMat.release();
-            return warp;
-        } else {
-
-            src.release();
-            edge.release();
-            contours.release();
-            return null;
-        }
-    }
-
-    // Method for extracting content in form of talon and columns of the Solitaire game
-    private ContentNode[] extractContent(Mat src) {
-
-        // Detection of edges using Canny edge detection
-        Mat edge = cannyEdge(src);
-
-        // Dilates the edges using MORPH_CROSS to enhance the edge thickness
-        Imgproc.dilate(edge, edge, Imgproc.getStructuringElement(Imgproc.MORPH_CROSS, new Size(2 * 4 + 1, 2 * 4 + 1), new Point(4, 4)));
-
-        // Arraylist of MatOfPoints found using findContours on external contours
-        List<MatOfPoint> points = new ArrayList<>();
-        Mat contours = new Mat();
-        Imgproc.findContours(edge, points, contours, Imgproc.RETR_LIST , Imgproc.CHAIN_APPROX_SIMPLE);
-        System.out.println("Content contours: " + points.size());
+        Imgproc.findContours(edge,points,contours,Imgproc.RETR_EXTERNAL,Imgproc.CHAIN_APPROX_SIMPLE);
+        System.out.println(points.size());
 
         // If less than 8 points/contours where found
         if (points.size() < 8) {
@@ -224,29 +105,22 @@ public class SolitaireAnalysisModel {
         ContentNode[] matArr = new ContentNode[8];
         for (int i = 0; i < 8; i++) {
 
-            // Create rectangle using the biggest contour points
             MatOfPoint2f cnt = new MatOfPoint2f();
-            points.get(nodeArr[i+1].index).convertTo(cnt, CvType.CV_32FC2);
+            points.get(nodeArr[i].index).convertTo(cnt, CvType.CV_32FC2);
             RotatedRect rect = Imgproc.minAreaRect(cnt);
 
-            // Contour is drawn onto the image
             Point[] vertices = new Point[4];
             rect.points(vertices);
             MatOfPoint newPoints = new MatOfPoint(vertices);
             Imgproc.drawContours(edge, Collections.singletonList(newPoints), -1, new Scalar(81, 190, 0), 4);
 
-            double minAreaTolerance = 100000;
+            double minAreaTolerance = 50000;
             boolean valid = rect.size.height * rect.size.width > minAreaTolerance;
 
-            // If minimum tolerance is upheld
             if (valid) {
+                int width = 57 * 4;
+                int height = 87 * 4;
 
-                // Manuel reshape of height and width to fit output format
-                rect.size.set(new double[]{rect.size.width - 30, rect.size.height - 30});
-                int height = (int) rect.size.width;
-                int width = (int) rect.size.height;
-
-                // Reference points to fit output format
                 MatOfPoint2f reference = new MatOfPoint2f(
                         new Point(0, 0),
                         new Point(width, 0),
@@ -254,148 +128,45 @@ public class SolitaireAnalysisModel {
                         new Point(0, height)
                 );
 
-                // Wrap source image to rectangle using reference points for size
                 Mat box = new Mat();
                 Imgproc.boxPoints(rect, box);
+
                 Mat warpMat = Imgproc.getPerspectiveTransform(box, reference);
+
                 Mat warp = new Mat();
                 Imgproc.warpPerspective(src, warp, warpMat, new Size(width, height));
 
                 // Rotate if width is greater than height
                 if (rect.size.height > rect.size.width) {
+                    Imgproc.resize(warp, warp, new Size(height, width));
                     Core.rotate(warp, warp, Core.ROTATE_90_COUNTERCLOCKWISE);
                 }
 
-                // Release Mat objects still in memory and add content to array
+                Mat alphaLayer = new Mat();
+                Imgproc.cvtColor(warp, alphaLayer, Imgproc.COLOR_BGR2BGRA);
+
+                Mat icon = extractIcon(alphaLayer);
+                Mat resize = resizeIcon(icon);
+                Mat crop = extractRank(resize);
+
+                matArr[i] = new ContentNode(crop,nodeArr[i].center);
                 box.release();
                 warpMat.release();
-                matArr[i] = new ContentNode(warp,nodeArr[i+1].center);
+                warp.release();
+                alphaLayer.release();
             } else {
-
                 src.release();
                 edge.release();
                 contours.release();
+                System.out.println("Card " + i + "was not valid!");
+                System.out.println("Width: " + rect.size.width + " ,height: " + rect.size.height);
                 return null;
             }
         }
-
-        // Release Mat objects still in memory and return array
         src.release();
         edge.release();
         contours.release();
         return matArr;
-    }
-
-    // Method for extracting card suit and rank in an image
-    private Mat extractCard(Mat src) {
-
-        // Detection of edges using Canny edge detection
-        Mat edge = cannyEdge(src);
-
-        // Arraylist of MatOfPoints found using findContours on external contours
-        List<MatOfPoint> points = new ArrayList<>();
-        Mat contours = new Mat();
-        Imgproc.findContours(edge, points, contours, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
-        System.out.println("Column contours: " + points.size());
-
-        // If no points/contours where found
-        if (points.size() == 0) {
-            src.release();
-            edge.release();
-            contours.release();
-            return null;
-        }
-
-        // Finds the biggest contour in the image within specific angle and area limits
-        double maxim = 0;
-        int index = 0;
-        for (int contourId = 0; contourId < points.size(); contourId++) {
-            MatOfPoint2f cnt = new MatOfPoint2f();
-            points.get(contourId).convertTo(cnt, CvType.CV_32FC2);
-            RotatedRect rect = Imgproc.minAreaRect(cnt);
-            double area = rect.size.height * rect.size.width;
-
-            if (maxim < area && (rect.angle > 80 && rect.angle < 110) && area < ((src.width()*src.height())/100f)*90f) {
-                maxim = area;
-                index = contourId;
-            }
-        }
-
-        // Create rectangle using the biggest contour points
-        MatOfPoint2f cnt = new MatOfPoint2f();
-        points.get(index).convertTo(cnt, CvType.CV_32FC2);
-        RotatedRect rect = Imgproc.minAreaRect(cnt);
-
-        // Contour is drawn onto the image
-        Point[] vertices = new Point[4];
-        rect.points(vertices);
-        MatOfPoint newPoints = new MatOfPoint(vertices);
-        Imgproc.drawContours(edge, Collections.singletonList(newPoints), -1, new Scalar(81, 190, 0), 4);
-
-        double minAreaTolerance = 50000;
-        boolean valid = rect.size.height * rect.size.width > minAreaTolerance;
-
-        // If minimum tolerance is upheld
-        if (valid) {
-
-            // Adapt height or width to a fixed size depending on which is highest. The both sides are adjusted accordingly.
-            int width;
-            int height;
-            if (rect.size.height > rect.size.width) {
-                height = 57 * 4;
-                width = (int) (((57 * 4) / rect.size.width) * rect.size.height);
-            } else {
-                height = (int) (((57 * 4) / rect.size.height) * rect.size.width);
-                width = 57 * 4;
-            }
-
-            // Reference points to fit output format
-            MatOfPoint2f reference = new MatOfPoint2f(
-                    new Point(0, 0),
-                    new Point(width, 0),
-                    new Point(width, height),
-                    new Point(0, height)
-            );
-
-            // Wrap source image to rectangle using reference points for size
-            Mat box = new Mat();
-            Imgproc.boxPoints(rect, box);
-            Mat warpMat = Imgproc.getPerspectiveTransform(box, reference);
-            Mat warp = new Mat();
-            Imgproc.warpPerspective(src, warp, warpMat, new Size(width, height));
-
-            // Rotate if width is greater than height
-            if (rect.size.height > rect.size.width) {
-                Core.rotate(warp, warp, Core.ROTATE_90_COUNTERCLOCKWISE);
-            }
-
-            // Get alpha layer
-            Mat alphaLayer = new Mat();
-            Imgproc.cvtColor(warp, alphaLayer, Imgproc.COLOR_BGR2BGRA);
-
-            // Extraction of card icon containing suit and rank from the bottom of a card, followed by a resize and 180-degree rotation
-            Mat icon = extractIcon(alphaLayer);
-            Mat resize = resizeIcon(icon);
-            Core.rotate(resize, resize, Core.ROTATE_180);
-
-            // Release Mat objects that are still in memory and return resized icon
-            src.release();
-            edge.release();
-            contours.release();
-            box.release();
-            warpMat.release();
-            warp.release();
-            alphaLayer.release();
-
-            return resize;
-        } else {
-            System.out.println("Card was not valid!");
-            System.out.println("Width: " + rect.size.width + " ,height: " + rect.size.height);
-            src.release();
-            edge.release();
-            contours.release();
-            return null;
-        }
     }
 
     // Method for detecting edges in an image using Canny edge detection
@@ -431,23 +202,31 @@ public class SolitaireAnalysisModel {
         return edge;
     }
 
-    // Method for extracting card icon from bottom right corner containing suit and rank
-    private Mat extractIcon(Mat src) {
+    public static Mat extractIcon(Mat src) {
         Mat original = src.clone();
         Rect rect_min = new Rect();
-        rect_min.x = original.width() - 35;
-        rect_min.y = original.height() - 90;
+        rect_min.x = 5;
+        rect_min.y = 5;
         rect_min.width = 30;
         rect_min.height = 90;
         return original.submat(rect_min);
     }
 
-    // Method for converting card icon to binary colors and resizing to 30x90 pixels
-    private Mat resizeIcon(Mat src) {
+    public static Mat resizeIcon(Mat src) {
         Imgproc.cvtColor(src,src,Imgproc.COLOR_RGB2GRAY);
-        Imgproc.adaptiveThreshold(src,src, 255, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY, 15, 9);
-        Size sz = new Size(30,90);
+        Imgproc.adaptiveThreshold(src,src, 255, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY, 15, 10);
+        Size sz = new Size(15,45);
         Imgproc.resize( src, src, sz );
         return src;
+    }
+
+    public static Mat extractRank(Mat src) {
+        Mat original = src.clone();
+        Rect rect_min = new Rect();
+        rect_min.x = 1;
+        rect_min.y = 0;
+        rect_min.width = 13;
+        rect_min.height = 25;
+        return original.submat(rect_min);
     }
 }
