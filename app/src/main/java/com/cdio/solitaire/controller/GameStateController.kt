@@ -1,6 +1,5 @@
 package com.cdio.solitaire.controller
 
-import android.util.Log
 import com.cdio.solitaire.model.*
 
 class GameStateController {
@@ -30,10 +29,7 @@ class GameStateController {
         stock: CardStack
     ) {
         for (i in 0..6) {
-            for (j in i..6) {
-                tableaux[j].pushCard(deck.popCard())
-                tableaux[j].hiddenCards++
-            }
+            for (j in i..6) tableaux[j].pushCard(deck.popCard())
         }
         stock.pushStack(deck)
         stock.hiddenCards = stock.size
@@ -292,5 +288,14 @@ class GameStateController {
             return card.stackID
         }
         return -1
+    }
+
+    fun copyGameState(): GameState {
+        val tableaux = Array<CardStack>(gameState.tableaux.size) { i -> gameState.tableaux[i].copyOf() }
+        val foundations = Array<CardStack>(gameState.foundations.size) { i -> gameState.foundations[i].copyOf() }
+        val stock = gameState.stock.copyOf()
+        val talon = gameState.talon.copyOf()
+        val moves = gameState.moves.toMutableList()
+        return GameState(foundations, tableaux, talon, stock, moves)
     }
 }
