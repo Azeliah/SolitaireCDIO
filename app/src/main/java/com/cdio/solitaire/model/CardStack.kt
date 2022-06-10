@@ -134,4 +134,22 @@ class CardStack(val stackID: Int) {
         size += stack.size
         stack.resetCardStack()
     }
+
+    /**
+     * Gets the first instance of a revealed card in a stack.
+     */
+    fun getStackHighCard(): Card? {
+        return when (hiddenCards) {
+            0 -> head // Can be null
+            else -> {
+                var card = tail
+                while (true) {
+                    if (card!!.prev!!.suit == Suit.NA) break
+                    else card = card.prev
+                }
+                card
+            }
+        }
+    }
+
 }
