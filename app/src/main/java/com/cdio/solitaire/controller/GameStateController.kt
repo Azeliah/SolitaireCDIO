@@ -3,7 +3,7 @@ package com.cdio.solitaire.controller
 import com.cdio.solitaire.model.*
 
 class GameStateController {
-    private var gameState: GameState
+    var gameState: GameState
     private val sortedDeck = arrayOfNulls<Card>(52) // Use this to track cards in the game.
 
     /**
