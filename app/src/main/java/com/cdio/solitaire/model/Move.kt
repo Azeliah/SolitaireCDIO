@@ -12,13 +12,7 @@ enum class MoveType {
 }
 
 
-class Move(val moveType: MoveType) {
-    val sourceStack: CardStack? = null
-    var targetStack: CardStack? = null
-    val sourceCard: Card? = null // Needed for toString() method, and for checking validity
-    var cardToUpdate: Card? = null
-    var prev: Move? = null
-    var next: Move? = null
-
+class Move(val moveType: MoveType,val sourceStack: CardStack? =null,var targetStack: CardStack?= null,val sourceCard: Card?= null) { // Needed for toString() method, and for checking validity
+    var cardToUpdate: Card?= null
     // TODO: Make toString() method and pictureNeeded() method
 }
