@@ -49,17 +49,16 @@ public class SolitaireAnalysisModel {
             // Convert to array of BitMaps and release the Mat objects still in memory
             Bitmap[] bitmapArr = new Bitmap[8];
             for (int i = 0; i < 8; i++) {
+                // Todo update width and height to 40x100
                 Bitmap bitmap = Bitmap.createBitmap(13, 25, Bitmap.Config.ARGB_8888);
-                if (i == 0 && talon != null) {
+                if (i == 0) {
                     Utils.matToBitmap(talon.content, bitmap);
                     bitmapArr[i] = bitmap;
                     talon.content.release();
-                } else if (i != 0 && columns[i-1] != null) {
+                } else {
                     Utils.matToBitmap(columns[i-1].content, bitmap);
                     bitmapArr[i] = bitmap;
                     columns[i-1].content.release();
-                } else {
-                    bitmapArr[i] = null;
                 }
             }
             src.release();

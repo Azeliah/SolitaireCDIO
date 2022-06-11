@@ -49,11 +49,9 @@ public class CardDataCreationModel {
             Bitmap[] bitmapArr = new Bitmap[14];
             for (int i = 0; i < 14; i++) {
                 Bitmap bitmap = Bitmap.createBitmap(40, 100, Bitmap.Config.ARGB_8888);
-                if (SortedArr[i] != null) {
-                    Utils.matToBitmap(SortedArr[i].content, bitmap);
-                    bitmapArr[i] = bitmap;
-                    SortedArr[i].content.release();
-                }
+                Utils.matToBitmap(SortedArr[i].content, bitmap);
+                bitmapArr[i] = bitmap;
+                SortedArr[i].content.release();
             }
             src.release();
             return bitmapArr;
