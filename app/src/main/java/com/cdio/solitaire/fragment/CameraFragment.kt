@@ -206,9 +206,9 @@ class CameraFragment : Fragment(), SensorEventListener {
             .build()
             // The analyzer can then be assigned to the instance
             .also {
-                it.setAnalyzer(cameraExecutor, CardAnalyzer(thisContext, {
+                it.setAnalyzer(cameraExecutor, CardAnalyzer(thisContext) {
                     Log.d(TAG, "CardAnalyzerListener called")
-                }))
+                })
             }
 
         // Must unbind the use-cases before rebinding them
@@ -270,14 +270,18 @@ class CameraFragment : Fragment(), SensorEventListener {
                 return
             }
 
+            // Convert Camerax ImageProxy to a Mat object and extract card icons in the image
             val javaImage: Image? = image.image
             val bitmap = javaImage?.toBitmap()
             val mat = Mat()
             Utils.bitmapToMat(bitmap, mat)
-            Log.d(TAG, "Mat width: " + mat.width().toString() + " Mat height:  " + mat.height())
             val solitaireAnalysis = SolitaireAnalysisModel()
             val bitmapArr = solitaireAnalysis.extractSolitaire(mat)
             val model = RankModel()
+
+            // Todo add code for ML and GameMoves
+
+            // Todo remove when no longer needed or make debug only
             if (bitmapArr != null) {
                 Log.d(TAG, "Success. A complete solitaire game was found!")
                 val date = System.currentTimeMillis().toString()
@@ -303,17 +307,17 @@ class CameraFragment : Fragment(), SensorEventListener {
          * to our ML model in the future.
          */
         fun saveToStorage(dirName: String, index: Int, bitmapImage: Bitmap, rank: Int) {
-            val directory = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).absolutePath + "/" + dirName)
+            val directory = File(Environment.DIRECTORY_PICTURES + "/" + dirName)
             if (!directory.exists()) {
                 directory.mkdir()
             }
-            val mypath = File(directory, index.toString() + "_rank_" + rank + ".jpeg")
-            if (!mypath.exists()) {
-                mypath.createNewFile();
+            val file = File(directory, index.toString() + "_rank_" + rank + ".jpeg")
+            if (!file.exists()) {
+                file.createNewFile();
             }
             var fos: FileOutputStream? = null
             try {
-                fos = FileOutputStream(mypath)
+                fos = FileOutputStream(file)
                 bitmapImage.compress(Bitmap.CompressFormat.JPEG, 100, fos)
                 fos.fd.sync()
                 fos.flush()
@@ -330,7 +334,6 @@ class CameraFragment : Fragment(), SensorEventListener {
 
         /**
          * Extension method to convert Image-object to bitmap
-         *
          * <p> Source: https://stackoverflow.com/questions/56772967/converting-imageproxy-to-bitmap
          */
         fun Image.toBitmap(): Bitmap {
