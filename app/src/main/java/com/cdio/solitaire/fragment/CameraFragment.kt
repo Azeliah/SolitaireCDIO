@@ -27,7 +27,6 @@ import androidx.fragment.app.Fragment
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.cdio.solitaire.R
 import com.cdio.solitaire.databinding.FragmentCameraBinding
-import com.cdio.solitaire.imageanalysis.CardExtractionModel
 import com.cdio.solitaire.imageanalysis.SolitaireAnalysisModel
 import com.cdio.solitaire.ml.RankModel
 import org.opencv.android.Utils

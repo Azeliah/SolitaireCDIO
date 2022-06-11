@@ -30,13 +30,13 @@ public class SolitaireAnalysisModel {
         System.loadLibrary("opencv_java4");
     }
 
-    // Method for extracting suit and rank icon from every card in a Solitaire game image as Bitmaps
+    /** Method for extracting suit and rank icon from every card in a Solitaire game image as Bitmaps */
     public Bitmap[] extractSolitaire(Mat src) {
         // Convert to BGR colors
         Imgproc.cvtColor(src, src, Imgproc.COLOR_BGRA2BGR);
 
-        // Extract all cards of the Solitaire game image as and array of ContentNodes
-        ContentNode[] game = extractCards(src);
+        // Extract all 8 cards of the Solitaire game image as and array of ContentNodes
+        ContentNode[] game = extractCards(src, 8);
 
         // If Solitaire game image is valid
         if (game != null) {
@@ -71,8 +71,8 @@ public class SolitaireAnalysisModel {
         }
     }
 
-    // Method for extracting all card suit and rank icons in a Solitaire game image
-    public ContentNode[] extractCards(Mat src) {
+    /** Method for extracting a specific number of card suit and rank icons in an image */
+    public ContentNode[] extractCards(Mat src, int n) {
 
         // Detection of edges using Canny edge detection
         Mat edge = cannyEdge(src);
@@ -83,8 +83,8 @@ public class SolitaireAnalysisModel {
         Imgproc.findContours(edge,points,contours,Imgproc.RETR_EXTERNAL,Imgproc.CHAIN_APPROX_SIMPLE);
         System.out.println(points.size());
 
-        // If less than 8 points/contours where found, return null
-        if (points.size() < 8) {
+        // If less than n points/contours where found, return null
+        if (points.size() < n) {
             src.release();
             edge.release();
             contours.release();
@@ -105,9 +105,9 @@ public class SolitaireAnalysisModel {
         // Sort ContourNode array by area, such that card contours come first
         Arrays.sort(nodeArr, (n1, n2) -> (int) (n2.area - n1.area));
 
-        // Store image icons for the 8 first card contours (talon and columns) in an array of ContentNode nodes
-        ContentNode[] matArr = new ContentNode[8];
-        for (int i = 0; i < 8; i++) {
+        // Store image icons for the n first card contours (talon and columns) in an array of ContentNode nodes
+        ContentNode[] matArr = new ContentNode[n];
+        for (int i = 0; i < n; i++) {
 
             // Create rectangle using the index entry contour points
             MatOfPoint2f cnt = new MatOfPoint2f();
@@ -178,7 +178,7 @@ public class SolitaireAnalysisModel {
         return matArr;
     }
 
-    // Method for detecting edges in an image using Canny edge detection
+    /** Method for detecting edges in an image using Canny edge detection */
     private Mat cannyEdge(Mat src) {
 
         // Blur image to remove small details and imperfections
@@ -210,7 +210,8 @@ public class SolitaireAnalysisModel {
         return edge;
     }
 
-    // Method for extracting card icon from upper left corner containing suit and rank
+    /** Method for extracting card icon from upper left corner containing suit and rank */
+    // Todo update to 40x100 with x=0 and y=0
     public static Mat extractIcon(Mat src) {
         Mat original = src.clone();
         Rect rect_min = new Rect();
@@ -221,7 +222,7 @@ public class SolitaireAnalysisModel {
         return original.submat(rect_min);
     }
 
-    // Method for converting card icon to binary colors and resizing to 40x100 pixels
+    /** Method for converting card icon to binary colors and resizing to 40x100 pixels */
     // Todo update to 40x100
     public static Mat resizeIcon(Mat src) {
         Imgproc.cvtColor(src,src,Imgproc.COLOR_RGB2GRAY);
