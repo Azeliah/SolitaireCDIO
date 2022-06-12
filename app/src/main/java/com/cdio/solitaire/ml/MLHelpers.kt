@@ -8,30 +8,21 @@ import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.util.Log
 import com.cdio.solitaire.R
-import org.tensorflow.lite.DataType
-import org.tensorflow.lite.support.image.TensorImage
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
-import java.nio.ByteBuffer
-import java.sql.Types.FLOAT
 
+class MLHelpers{
 
-class RankModel {
-    fun predict(bitmap: Bitmap, context: Context): Int {
-        val newBitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true)
-        val tfImage = TensorBuffer.createFrom(TensorImage.fromBitmap(newBitmap).tensorBuffer, DataType.FLOAT32)
-        Log.d("tfImage shape", tfImage.buffer.toString())
+    private val models = ModelPredictions()
+    // TODO: The min confidence should be at least 90-95,
+    //  however its 85 currently so it can be used for test, since the model is not fine tuned yet.
+    private val minConfidence = 85
 
-        val model = Rank.newInstance(context)
-        // Creates inputs for reference.
-        val inputFeature0 = TensorBuffer.createFixedSize(intArrayOf(1, 25, 13, 3), DataType.FLOAT32)
-        Log.d("inputFeature shape", inputFeature0.buffer.toString())
-        inputFeature0.loadBuffer(tfImage.buffer)
-
-        // Runs model inference and gets result.
-        val outputs = model.process(inputFeature0)
-        val outputFeature0 = outputs.outputFeature0AsTensorBuffer
-
-        val confidences = outputFeature0.floatArray
+    /**
+     * Returns -1 if the confidence is NOT high enough
+     * Else returns the index of the card.
+     */
+    fun getMaxIndex(tensorBufferOutput: TensorBuffer) : Int{
+        val confidences = tensorBufferOutput.floatArray
         var maxIndex = -1
         var maxConfidence = 0.0.toFloat()
 
@@ -42,16 +33,17 @@ class RankModel {
             }
         }
 
-        // TODO: Add confidence limits here.
+        if (maxConfidence < minConfidence) {
+            return -1
+        }
 
-        // Releases model resources if no longer used.
-        model.close()
-        return maxIndex // TODO: Change return type?
+        return maxIndex
     }
 
     /**
      * @source https://stackoverflow.com/posts/10600736/revisions
      * @date_retrieved 6th of June 2022
+     * Used for testing (takes a jpg. from the drawable folder and converts to bitmap)
      */
     fun drawableToBitmap(drawable: Drawable): Bitmap? {
         var bitmap: Bitmap? = null
@@ -79,12 +71,22 @@ class RankModel {
         return bitmap
     }
 
+    /**
+     * Testing for prediction
+     */
+    @SuppressLint("UseCompatLoadingForDrawables")
+    fun testRankModel(context: Context) {
+        val sixBitmap = drawableToBitmap(context.resources.getDrawable(R.drawable.six, context.theme))
+        Log.d("Model prediction for rank", models.predictRank(sixBitmap!!, context).toString())
+        val aceBitmap = drawableToBitmap(context.resources.getDrawable(R.drawable.ace, context.theme))
+        Log.d("Model prediction for rank", models.predictRank(aceBitmap!!, context).toString())
+    }
 
     @SuppressLint("UseCompatLoadingForDrawables")
-    fun test(context: Context) {
+    fun testSuitModel(context: Context) {
         val sixBitmap = drawableToBitmap(context.resources.getDrawable(R.drawable.six, context.theme))
-        Log.d("Model prediction", predict(sixBitmap!!, context).toString())
+        Log.d("Model prediction for suit", models.predictSuit(sixBitmap!!, context).toString())
         val aceBitmap = drawableToBitmap(context.resources.getDrawable(R.drawable.ace, context.theme))
-        Log.d("Model prediction", predict(aceBitmap!!, context).toString())
+        Log.d("Model prediction for suit", models.predictSuit(aceBitmap!!, context).toString())
     }
 }
