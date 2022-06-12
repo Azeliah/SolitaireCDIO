@@ -24,7 +24,7 @@ class ModelPredictions {
 
         val model = Rank.newInstance(context)
         // Creates inputs for reference.
-        val inputFeature0 = TensorBuffer.createFixedSize(intArrayOf(1, 25, 13, 3), DataType.FLOAT32)
+        val inputFeature0 = TensorBuffer.createFixedSize(intArrayOf(25, 13, 3), DataType.FLOAT32)
         Log.d("inputFeature shape", inputFeature0.buffer.toString())
         inputFeature0.loadBuffer(tfImage.buffer)
 
@@ -51,7 +51,7 @@ class ModelPredictions {
         val model = Rank.newInstance(context)
         // Creates inputs for reference.
         // TODO: test intArrayOf is correct.
-        val inputFeature0 = TensorBuffer.createFixedSize(intArrayOf(1, 21, 15, 3), DataType.FLOAT32)
+        val inputFeature0 = TensorBuffer.createFixedSize(intArrayOf(21, 15, 3), DataType.FLOAT32)
         Log.d("inputFeature shape", inputFeature0.buffer.toString())
         inputFeature0.loadBuffer(tfImage.buffer)
 
