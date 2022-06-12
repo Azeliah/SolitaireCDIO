@@ -61,7 +61,7 @@ class StrategyController {
         return moves[moves.size - movesLeft--]
     }
 
-    fun isGameFinished(): Boolean { // Used for testing purposes.
+    fun isGameFinished(): Boolean { // Used for testing purposes, could be replaced with something else.
         if (movesLeft == moves.size - 1) {
             println("GSC GAMESTATE:")
             for (i in gsc.gameState.tableaux.indices) {

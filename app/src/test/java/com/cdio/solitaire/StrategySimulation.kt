@@ -29,7 +29,6 @@ class DataSource {
         for (i in 0..6) {
             for (j in i..6) tableaux[j].pushCard(deck.popCard())
         }
-        for (i in 0..6) println(tableaux[i].size)
         stock.pushStack(deck)
         stock.hiddenCards = stock.size
     }
@@ -65,10 +64,6 @@ class DataSource {
         for (i in tableaux.indices) {
             cards[i] = tableaux[i].popCard()
         }
-        println("DATASOURCE")
-        for (card in cards) {
-            println(card!!.rank.short() + card.suit.short())
-        }
         return cards
     }
 }
@@ -78,6 +73,12 @@ class StrategySimulation {
     fun simulateGame() {
         val dataSource = DataSource()
         val strategyController = StrategyController()
+        val gameTableaux = strategyController.gsc.gameState.tableaux
+        val cards = dataSource.updateFirstLayer()
+        for (i in cards.indices) {
+            gameTableaux[i].tail!!.rank = cards[i]!!.rank
+            gameTableaux[i].tail!!.suit = cards[i]!!.suit
+        }
         var gameFinished = false
         var rounds = 1000
         while (!gameFinished && rounds != 0) {
@@ -87,14 +88,6 @@ class StrategySimulation {
             // Output move to screen
 
             when (moveToPlay.moveType) {
-                MoveType.DEAL_CARDS -> {
-                    val gameTableaux = strategyController.gsc.gameState.tableaux
-                    val cards = dataSource.updateFirstLayer()
-                    for (i in cards.indices) {
-                        gameTableaux[i].tail!!.rank = cards[i]!!.rank
-                        gameTableaux[i].tail!!.suit = cards[i]!!.suit
-                    }
-                }
                 MoveType.MOVE_FROM_TALON -> dataSource.talon.popCard()
                 MoveType.DRAW_STOCK -> dataSource.drawStock()
                 MoveType.FLIP_TALON -> dataSource.flipTalon()
