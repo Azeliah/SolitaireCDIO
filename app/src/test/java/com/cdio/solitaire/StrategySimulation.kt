@@ -1,11 +1,7 @@
 package com.cdio.solitaire
 
-import androidx.core.os.persistableBundleOf
 import com.cdio.solitaire.controller.StrategyController
-import com.cdio.solitaire.model.Card
-import com.cdio.solitaire.model.CardStack
-import com.cdio.solitaire.model.Rank
-import com.cdio.solitaire.model.Suit
+import com.cdio.solitaire.model.*
 import org.junit.Test
 
 class DataSource {
@@ -33,6 +29,7 @@ class DataSource {
         for (i in 0..6) {
             for (j in i..6) tableaux[j].pushCard(deck.popCard())
         }
+        for (i in 0..6) println(tableaux[i].size)
         stock.pushStack(deck)
         stock.hiddenCards = stock.size
     }
@@ -54,6 +51,26 @@ class DataSource {
             else -> throw Exception("No hidden cards here.")
         }
     }
+
+    fun drawStock() {
+        talon.pushStack(stock.popStack(3))
+    }
+
+    fun flipTalon() {
+        stock.pushStackToHead(talon)
+    }
+
+    fun updateFirstLayer(): Array<Card?> {
+        val cards = Array<Card?>(7) { _ -> null}
+        for (i in tableaux.indices) {
+            cards[i] = tableaux[i].popCard()
+        }
+        println("DATASOURCE")
+        for (card in cards) {
+            println(card!!.rank.short() + card.suit.short())
+        }
+        return cards
+    }
 }
 
 class StrategySimulation {
@@ -65,7 +82,33 @@ class StrategySimulation {
         var rounds = 1000
         while (!gameFinished && rounds != 0) {
             rounds--
-            strategyController.decideMove()
+            val moveToPlay = strategyController.playMove()
+
+            // Output move to screen
+
+            when (moveToPlay.moveType) {
+                MoveType.DEAL_CARDS -> {
+                    val gameTableaux = strategyController.gsc.gameState.tableaux
+                    val cards = dataSource.updateFirstLayer()
+                    for (i in cards.indices) {
+                        gameTableaux[i].tail!!.rank = cards[i]!!.rank
+                        gameTableaux[i].tail!!.suit = cards[i]!!.suit
+                    }
+                }
+                MoveType.MOVE_FROM_TALON -> dataSource.talon.popCard()
+                MoveType.DRAW_STOCK -> dataSource.drawStock()
+                MoveType.FLIP_TALON -> dataSource.flipTalon()
+                else -> {}
+            }
+
+            // Is a card discovered? Get its values.
+            if (moveToPlay.cardToUpdate != null) {
+                val discoveredCard = dataSource.discoverCard(moveToPlay.cardToUpdate!!.stackID)
+                moveToPlay.cardToUpdate!!.rank = discoveredCard.rank
+                moveToPlay.cardToUpdate!!.suit = discoveredCard.suit
+            }
+
+            gameFinished = strategyController.isGameFinished()
         }
 
 
