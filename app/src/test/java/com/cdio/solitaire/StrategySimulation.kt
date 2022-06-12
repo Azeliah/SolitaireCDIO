@@ -7,7 +7,7 @@ import org.junit.Test
 class DataSource {
     // This essentially mimics the user actions with the physical cards that still need to be recognized
     private val sortedDeck: Array<Card>
-    private val shuffledDeck: Array<Card>
+    val shuffledDeck: Array<Card>
     val tableaux: Array<CardStack>
     val stock: CardStack
     val talon: CardStack
@@ -71,6 +71,7 @@ class DataSource {
 class StrategySimulation {
     @Test
     fun simulateGame() {
+        // TODO: Make an iteration loop with accounting for statistics.
         val dataSource = DataSource()
         val strategyController = StrategyController()
         val gameTableaux = strategyController.gsc.gameState.tableaux
@@ -87,7 +88,7 @@ class StrategySimulation {
 
             // Output move to screen
 
-            when (moveToPlay.moveType) {
+            when (moveToPlay!!.moveType) {
                 MoveType.MOVE_FROM_TALON -> dataSource.talon.popCard()
                 MoveType.DRAW_STOCK -> dataSource.drawStock()
                 MoveType.FLIP_TALON -> dataSource.flipTalon()
@@ -101,11 +102,16 @@ class StrategySimulation {
                 moveToPlay.cardToUpdate!!.suit = discoveredCard.suit
             }
 
-            gameFinished = strategyController.isGameFinished()
+            gameFinished = strategyController.isGameFinished() // TODO: Replace this when merging with strategy.
         }
-
-
+        if (strategyController.gsc.isGameWon()) {
+            var deckString = ""
+            for (i in dataSource.shuffledDeck.indices) deckString += dataSource.shuffledDeck[51 - i].toStringDanish() + ","
+            deckString += "\b"
+            println("Deck used:")
+            println(deckString)
+            println("Moves made:")
+            println(strategyController.gsc.movesAsString() + "\b")
+        }
     }
-
-
 }

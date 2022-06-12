@@ -10,12 +10,6 @@ import com.cdio.solitaire.model.MoveType
 
 class StrategyController {
     val gsc = GameStateController()
-    private val moves = arrayOf(
-        Move(MoveType.DEAL_CARDS),
-        Move(MoveType.DRAW_STOCK),
-        Move(MoveType.MOVE_FROM_TALON)
-    )
-    var movesLeft = moves.size
 
     fun nextMove() {
         val move = decideMove()
@@ -56,18 +50,12 @@ class StrategyController {
         TODO("Analyze code from other repo for data manipulation/evaluation.")
     }
 
-    fun playMove(): Move { // Used for testing purposes, should be replaced with
+    fun playMove(): Move? { // Used for testing purposes, should be replaced with
         // whatever method returns the next move to print.
-        return moves[moves.size - movesLeft--]
+        return null
     }
 
-    fun isGameFinished(): Boolean { // Used for testing purposes, could be replaced with something else.
-        if (movesLeft == moves.size - 1) {
-            println("GSC GAMESTATE:")
-            for (i in gsc.gameState.tableaux.indices) {
-                println(gsc.gameState.tableaux[i].tail!!.rank.short() + gsc.gameState.tableaux[i].tail!!.suit.short())
-            }
-        }
-        return movesLeft == 0
+    fun isGameFinished(): Boolean { // Used for testing purposes, should be replaced with something else.
+        return false
     }
 }
