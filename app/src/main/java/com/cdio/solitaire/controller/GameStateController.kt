@@ -331,4 +331,15 @@ class GameStateController {
             lowestFoundation
         }
     }
+
+    fun movesAsString(): String {
+        var resultString = ""
+        for (move in gameState.moves) resultString += move.toStringDanish()
+        return resultString
+    }
+
+    fun isGameWon(): Boolean { // Might be useful in general??
+        for (foundation in gameState.foundations) if (foundation.size != 13) return false
+        return true
+    }
 }

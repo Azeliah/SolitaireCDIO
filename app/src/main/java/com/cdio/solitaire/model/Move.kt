@@ -17,4 +17,13 @@ class Move(val moveType: MoveType,val sourceStack: CardStack? =null,var targetSt
     var prev:Move?=null
     var next:Move?=null
     // TODO: Make toString() method and pictureNeeded() method
+    fun toStringDanish(): String {
+        return when (moveType) {
+            MoveType.MOVE_STACK, MoveType.MOVE_FROM_TALON, MoveType.MOVE_FROM_FOUNDATION -> sourceCard!!.toStringDanish() + "-" + targetStack!!.stackID + ","
+            MoveType.MOVE_TO_FOUNDATION -> sourceCard!!.rank.ordinal.toString() + sourceCard.suit.shortDanish() + "-F,"
+            MoveType.DRAW_STOCK -> "T,"
+            MoveType.FLIP_TALON -> "S,"
+            else -> ""
+        }
+    }
 }

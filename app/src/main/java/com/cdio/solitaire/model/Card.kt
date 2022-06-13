@@ -17,6 +17,16 @@ enum class Suit {
         }
     }
 
+    fun shortDanish(): String {
+        return when (this) {
+            CLUBS -> "K"
+            DIAMONDS -> "R"
+            HEARTS -> "H"
+            SPADES -> "S"
+            NA -> "NA"
+        }
+    }
+
     fun offSuit(suitToCompare: Suit): Boolean {
         if (suitToCompare == NA || this == NA) throw Exception("UndefinedSuitException: Suit is NA")
         return this.getColor() != suitToCompare.getColor()
@@ -56,5 +66,9 @@ class Card(var stackID: Int, var rank: Rank = Rank.NA, var suit: Suit = Suit.NA)
      */
     fun copyOf(): Card {
         return Card(-1, this.rank, this.suit)
+    }
+
+    fun toStringDanish(): String {
+        return suit.shortDanish() + rank.ordinal.toString()
     }
 }

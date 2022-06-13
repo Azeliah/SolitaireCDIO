@@ -229,4 +229,13 @@ class StrategyController {
         }
         return moves
     }
+
+    fun playMove(): Move? { // Used for testing purposes, should be replaced with
+        // whatever method returns the next move to print.
+        return null
+    }
+
+    fun isGameFinished(): Boolean { // Used for testing purposes, should be replaced with something else.
+        return false
+    }
 }
