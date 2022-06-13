@@ -105,7 +105,7 @@ class StrategyController {
      * @return MoveQueue , returns the first instance of a movequeue with 2 moves in the case of a conditional move, else returns null.
      */
     private fun checkConditionalMoveFromTalon(): MoveQueue? {
-        val moveQueue: MoveQueue = MoveQueue(gsc.gameState)
+        val moveQueue = MoveQueue(gsc.gameState)
         val talonCard = gsc.gameState.talon.tail!!
         for (column in gsc.gameState.tableaux) {
             val columnCard = column.tail!!
@@ -119,16 +119,16 @@ class StrategyController {
                             talonCard.suit
                         )
                     ) {
-                        val move1: Move = Move(
+                        val move1 = Move(
                             MoveType.MOVE_FROM_TALON,
                             targetStack = column,
                             sourceCard = talonCard
                         )
-                        val move2: Move =
+                        val move2 =
                             Move(MoveType.MOVE_STACK, conditionalColumn, column, conditionalCard)
                         moveQueue.moveSequenceValue = 23 + conditionalColumn.hiddenCards
-                        moveQueue.head = move1
-                        moveQueue.head!!.next = move2
+                        moveQueue.push(move1)
+                        moveQueue.push(move2)
                         return moveQueue
                         //Move is possible
                     }
