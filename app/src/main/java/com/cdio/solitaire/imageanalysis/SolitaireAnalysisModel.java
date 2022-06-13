@@ -49,8 +49,7 @@ public class SolitaireAnalysisModel {
             // Convert to array of BitMaps and release the Mat objects still in memory
             Bitmap[] bitmapArr = new Bitmap[8];
             for (int i = 0; i < 8; i++) {
-                // Todo update width and height to 40x100
-                Bitmap bitmap = Bitmap.createBitmap(13, 25, Bitmap.Config.ARGB_8888);
+                Bitmap bitmap = Bitmap.createBitmap(40, 100, Bitmap.Config.ARGB_8888);
                 if (i == 0) {
                     Utils.matToBitmap(talon.content, bitmap);
                     bitmapArr[i] = bitmap;
@@ -145,11 +144,11 @@ public class SolitaireAnalysisModel {
                 // Extract card icon containing suit and rank from the top left corner of the card, followed by a resize to 40x100 pixels
                 Mat icon = extractIcon(warp);
                 Mat resize = resizeIcon(icon);
-                // Todo remove extract rank
-                Mat crop = extractRank(resize);
+                // Todo remove extractRank
+                //resize = extractRank(resize);
 
                 // Add ContentNode containing a card position and a Mat image of the icon crop to array
-                matArr[i] = new ContentNode(crop,nodeArr[i].center);
+                matArr[i] = new ContentNode(resize,nodeArr[i].center);
 
                 // Release Mat objects that are still in memory
                 box.release();
@@ -205,23 +204,21 @@ public class SolitaireAnalysisModel {
     }
 
     /** Method for extracting card icon from upper left corner containing suit and rank */
-    // Todo update to 40x100 with x=0 and y=0
     public static Mat extractIcon(Mat src) {
         Mat original = src.clone();
         Rect rect_min = new Rect();
-        rect_min.x = 5;
-        rect_min.y = 5;
-        rect_min.width = 30;
-        rect_min.height = 90;
+        rect_min.x = 0;
+        rect_min.y = 0;
+        rect_min.width = 40;
+        rect_min.height = 100;
         return original.submat(rect_min);
     }
 
     /** Method for converting card icon to binary colors and resizing to 40x100 pixels */
-    // Todo update to 40x100
     public static Mat resizeIcon(Mat src) {
         Imgproc.cvtColor(src,src,Imgproc.COLOR_RGB2GRAY);
         Imgproc.adaptiveThreshold(src,src, 255, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY, 15, 10);
-        Size sz = new Size(15,45);
+        Size sz = new Size(40,100);
         Imgproc.resize( src, src, sz );
         return src;
     }
