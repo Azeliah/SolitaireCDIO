@@ -64,6 +64,22 @@ class StrategyController {
         }
         return false
     }
+    fun isQueenOppositeColorAvailable(king: Card): Boolean{
+        if(king.suit.getColor()==Color.BLACK){
+            for(column in gsc.gameState.tableaux){
+                if(column.getStackHighCard()!!.rank.ordinal==12&&column.tail!!.suit.getColor()==Color.BLACK){
+                    return true
+                }
+            }
+        } else{
+            for(column in gsc.gameState.tableaux){
+                if(column.getStackHighCard()!!.rank.ordinal==12&&column.tail!!.suit.getColor()==Color.RED){
+                    return true
+                }
+            }
+        }
+        return false
+    }
     fun getAllMoves(comparemoveQueue: Comparator<MoveQueue>): PriorityQueue<MoveQueue>{
         var move: Move?
         val moveQueue: MoveQueue = MoveQueue(gsc.gameState)
@@ -106,7 +122,16 @@ class StrategyController {
                 //Possible moves between columns
                 move = Move(MoveType.MOVE_STACK,column,targetColumn, column.getStackHighCard())
                 if(gsc.isMoveLegal(move)){
-                    moveQueue.moveSequenceValue = 30+2*column.hiddenCards //30-42
+                    //If the card is a king
+                    if(column.getStackHighCard()!!.rank.ordinal==13){
+                        if(isQueenOppositeColorAvailable(column.getStackHighCard()!!)){
+                            moveQueue.moveSequenceValue = 43
+                        } else if(!isQueenOppositeColorAvailable(column.getStackHighCard()!!)){
+                            moveQueue.moveSequenceValue = 8
+                            }
+                    } else{
+                        moveQueue.moveSequenceValue = 30+2*column.hiddenCards //30-42
+                    }
                     moveQueue.head = move
                     moves.add(moveQueue)
                 }
