@@ -21,7 +21,6 @@ class StrategyController {
     }
 
     fun decideMove(): Move {
-
         //listOfMoves.poll()
         return Move(MoveType.FLIP_TALON)
     }
@@ -64,25 +63,32 @@ class StrategyController {
                 //Possible moves from column to foundation.
                 move = Move(MoveType.MOVE_TO_FOUNDATION, column, sourceCard=column.tail)
                 if(gsc.isMoveLegal(move)){
+                    moveQueue.head = move
+                    moveQueue.moveSequenceValue = 50
+                    moves.add(moveQueue)
 
                 }
                 //Possible moves from Talon to foundation.
                 move = Move(MoveType.MOVE_TO_FOUNDATION,gsc.gameState.talon,sourceCard = gsc.gameState.talon.tail)
                 if(gsc.isMoveLegal(move)) {
+                    moveQueue.moveSequenceValue = 49
                     moveQueue.head = move
                     moves.add(moveQueue)
                 }
                 //Possible moves from talon to a column. If drawpile %3!=0
                 move = Move(MoveType.MOVE_FROM_TALON,targetStack = column,sourceCard = gsc.gameState.talon.tail)
                 if(gsc.isMoveLegal(move)){
-                    moveQueue.head = move
-                    moves.add(moveQueue)
-
+                    if(gsc.gameState.talon.size+gsc.gameState.stock.size%3==0){
+                        moveQueue.moveSequenceValue = 10
+                        moveQueue.head = move
+                        moves.add(moveQueue)
+                    }
                 }
             for(targetColumn in gsc.gameState.tableaux){
                 //Possible moves between columns
                 move = Move(MoveType.MOVE_STACK,column,targetColumn, column.getStackHighCard())
                 if(gsc.isMoveLegal(move)){
+                    moveQueue.moveSequenceValue = 30+2*column.hiddenCards //30-42
                     moveQueue.head = move
                     moves.add(moveQueue)
                 }
