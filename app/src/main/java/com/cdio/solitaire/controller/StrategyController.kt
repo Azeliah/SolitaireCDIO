@@ -1,8 +1,6 @@
 package com.cdio.solitaire.controller
 
-import com.cdio.solitaire.model.Move
-import com.cdio.solitaire.model.MoveQueue
-import com.cdio.solitaire.model.MoveType
+import com.cdio.solitaire.model.*
 import java.util.*
 import kotlin.Comparator
 
@@ -54,7 +52,18 @@ class StrategyController {
     fun moveStack() {
         TODO("Analyze code from other repo for data manipulation/evaluation.")
     }
-
+    fun checkFoundationPlusTwoRule(cardToCheck: Card):Boolean{
+        if(cardToCheck.suit.getColor() == Color.BLACK){
+            if(cardToCheck.rank.ordinal<gsc.getLowestRedFoundation()+2){
+                return true
+            }
+        } else if(cardToCheck.suit.getColor() == Color.RED){
+            if(cardToCheck.rank.ordinal<gsc.getLowestBlackFoundation()+2){
+                return true
+            }
+        }
+        return false
+    }
     fun getAllMoves(comparemoveQueue: Comparator<MoveQueue>): PriorityQueue<MoveQueue>{
         var move: Move?
         val moveQueue: MoveQueue = MoveQueue(gsc.gameState)
@@ -63,17 +72,20 @@ class StrategyController {
                 //Possible moves from column to foundation.
                 move = Move(MoveType.MOVE_TO_FOUNDATION, column, sourceCard=column.tail)
                 if(gsc.isMoveLegal(move)){
-                    moveQueue.head = move
-                    moveQueue.moveSequenceValue = 50
-                    moves.add(moveQueue)
-
+                    if(checkFoundationPlusTwoRule(column.tail!!)){
+                        moveQueue.head = move
+                        moveQueue.moveSequenceValue = 50
+                        moves.add(moveQueue)
+                    }
                 }
                 //Possible moves from Talon to foundation.
                 move = Move(MoveType.MOVE_TO_FOUNDATION,gsc.gameState.talon,sourceCard = gsc.gameState.talon.tail)
                 if(gsc.isMoveLegal(move)) {
-                    moveQueue.moveSequenceValue = 49
-                    moveQueue.head = move
-                    moves.add(moveQueue)
+                    if(checkFoundationPlusTwoRule(gsc.gameState.talon.tail!!)){
+                        moveQueue.moveSequenceValue = 49
+                        moveQueue.head = move
+                        moves.add(moveQueue)
+                    }
                 }
                 //Possible moves from talon to a column. If drawpile %3!=0
                 move = Move(MoveType.MOVE_FROM_TALON,targetStack = column,sourceCard = gsc.gameState.talon.tail)
