@@ -142,12 +142,8 @@ public class SolitaireAnalysisModel {
                     Core.rotate(warp, warp, Core.ROTATE_90_COUNTERCLOCKWISE);
                 }
 
-                // Get alpha layer
-                Mat alphaLayer = new Mat();
-                Imgproc.cvtColor(warp, alphaLayer, Imgproc.COLOR_BGR2BGRA);
-
                 // Extract card icon containing suit and rank from the top left corner of the card, followed by a resize to 40x100 pixels
-                Mat icon = extractIcon(alphaLayer);
+                Mat icon = extractIcon(warp);
                 Mat resize = resizeIcon(icon);
                 // Todo remove extract rank
                 Mat crop = extractRank(resize);
@@ -159,7 +155,6 @@ public class SolitaireAnalysisModel {
                 box.release();
                 warpMat.release();
                 warp.release();
-                alphaLayer.release();
             } else {
                 src.release();
                 edge.release();
