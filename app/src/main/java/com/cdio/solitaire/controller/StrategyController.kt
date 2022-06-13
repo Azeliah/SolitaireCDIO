@@ -45,7 +45,7 @@ class StrategyController {
         if (stock.hiddenCards + talon.hiddenCards == 0)
             return null
 
-        if (stock.size + talon.size % 3 == 0 && talon.size > 0) {
+        if ((stock.size + talon.size) % 3 == 0 && talon.size > 0) {
 
             // Try to move card from talon
             for (targetColumn in gsc.gameState.tableaux) {
