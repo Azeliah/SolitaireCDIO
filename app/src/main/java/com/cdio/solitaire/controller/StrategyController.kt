@@ -10,10 +10,9 @@ import kotlin.Comparator
  * StrategyController is used to handle the logic behind the strategy, which is then sent to
  * GameStateController as a Move using performMove, where GSC will then update the data accordingly.
  */
-
 class StrategyController {
     val gsc = GameStateController()
-    val compareMoveQueue: Comparator<MoveQueue> = compareBy{0-it.moveSequenceValue}
+    val compareMoveQueue: Comparator<MoveQueue> = compareBy { 0 - it.moveSequenceValue }
     val listOfMoves: PriorityQueue<MoveQueue> = getAllMoves(compareMoveQueue)
     fun nextMove() {
         val move = decideMove()
@@ -26,14 +25,49 @@ class StrategyController {
         return Move(MoveType.FLIP_TALON)
     }
 
+    /**
+     * Function for discovering all cards in the stock.
+     * The idea is that it can be called in `getAllMoves` to check if it should be done before
+     * anything else.
+     *
+     * The function returns a move that, if performed, may help discover more cards in the stock.
+     * In order to discover new cards, we attempt to remove a card from talon, if the number of
+     * cards in stock and talon is divisible by 3.
+     *
+     * @return Move necessary for discovering more of stock.
+     *         If null, all cards in stock/talon has been discovered.
+     */
+    private fun discoverStock(): Move? {
 
-    fun discoverStock() {
-        // Check that stock size + talon size is not 0 modulo 3
-        // while (stock.hiddenCards + talon.hiddenCards > 0) flipTalon()
+        val stock = gsc.gameState.stock
+        val talon = gsc.gameState.talon
+
+        if (stock.hiddenCards + talon.hiddenCards == 0)
+            return null
+
+        if (stock.size + talon.size % 3 == 0 && talon.size > 0) {
+
+            // Try to move card from talon
+            for (targetColumn in gsc.gameState.tableaux) {
+                val move = Move(MoveType.MOVE_FROM_TALON, talon, targetColumn, talon.tail)
+
+                if (gsc.isMoveLegal(move))
+                    return move;
+            }
+        }
+
+        // Try to draw from stock
+        val move = Move(MoveType.DRAW_STOCK)
+        if (gsc.isMoveLegal(move))
+            return move
+
+        // Nothing else to do; flip talon
+        // TODO: What to do if stock and talon does not contain enough cards to flip talon?
+        return Move(MoveType.FLIP_TALON)
     }
 
     fun checkMoveToFoundation() {
-        TODO("Analyze code from other repo for data manipulation/eval   uation.")
+        TODO("Analyze code from other repo for data manipulation/evaluation.")
     }
 
     fun checkMoveToTableau() {
