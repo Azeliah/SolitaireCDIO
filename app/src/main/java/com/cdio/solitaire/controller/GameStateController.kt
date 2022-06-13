@@ -3,7 +3,7 @@ package com.cdio.solitaire.controller
 import com.cdio.solitaire.model.*
 
 class GameStateController {
-    private var gameState: GameState
+    var gameState: GameState
     private val sortedDeck = arrayOfNulls<Card>(52) // Use this to track cards in the game.
 
     /**
@@ -297,5 +297,16 @@ class GameStateController {
         val talon = gameState.talon.copyOf()
         val moves = gameState.moves.toMutableList()
         return GameState(foundations, tableaux, talon, stock, moves)
+    }
+
+    fun movesAsString(): String {
+        var resultString = ""
+        for (move in gameState.moves) resultString += move.toStringDanish()
+        return resultString
+    }
+
+    fun isGameWon(): Boolean { // Might be useful in general??
+        for (foundation in gameState.foundations) if (foundation.size != 13) return false
+        return true
     }
 }
