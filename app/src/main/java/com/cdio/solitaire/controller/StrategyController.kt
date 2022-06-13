@@ -11,15 +11,27 @@ import kotlin.Comparator
 class StrategyController {
     val gsc = GameStateController()
     val compareMoveQueue: Comparator<MoveQueue> = compareBy { 0 - it.moveSequenceValue }
-    val listOfMoves: PriorityQueue<MoveQueue> = getAllMoves(compareMoveQueue)
+    var listOfMoves: PriorityQueue<MoveQueue> = getAllMoves(compareMoveQueue)
+    var endCondition = false
     fun nextMove() {
         val move = decideMove()
-        gsc.performMove(move)
+        //gsc.performMove(move)
     }
 
-    fun decideMove(): Move {
-        //listOfMoves.poll()
-        return Move(MoveType.FLIP_TALON)
+    private fun decideMove(): Move? {
+        while(!endCondition){
+            listOfMoves.clear()
+            var moveQueue = listOfMoves.poll()
+            listOfMoves = getAllMoves(compareMoveQueue)
+            while(moveQueue!!.size>0){
+                return moveQueue.pop()
+            }
+        }
+        return null
+    }
+    fun playMove(): Move? { // Used for testing purposes, should be replaced with
+        // whatever method returns the next move to print.
+        return decideMove()
     }
 
     /**
@@ -168,7 +180,7 @@ class StrategyController {
                 gsc.gameState.talon,
                 sourceCard = gsc.gameState.talon.tail
             )
-            if (gsc.isMoveLegal(move)) {
+            if (gsc.gameState.talon.size!=0&&gsc.isMoveLegal(move)) {
                 if (checkFoundationPlusTwoRule(gsc.gameState.talon.tail!!)) {
                     moveQueue.moveSequenceValue = 49
                     moveQueue.head = move
@@ -181,7 +193,7 @@ class StrategyController {
                 targetStack = column,
                 sourceCard = gsc.gameState.talon.tail
             )
-            if (gsc.isMoveLegal(move)) {
+            if (gsc.gameState.talon.size!=0&&gsc.isMoveLegal(move)) {
                 if (gsc.gameState.talon.tail!!.rank.ordinal == 13 && isQueenOppositeColorAvailable(
                         gsc.gameState.talon.tail!!
                     )
@@ -230,10 +242,6 @@ class StrategyController {
         return moves
     }
 
-    fun playMove(): Move? { // Used for testing purposes, should be replaced with
-        // whatever method returns the next move to print.
-        return null
-    }
 
     fun isGameFinished(): Boolean { // Used for testing purposes, should be replaced with something else.
         return false
