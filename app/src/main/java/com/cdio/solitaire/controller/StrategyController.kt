@@ -76,6 +76,12 @@ class StrategyController {
                         moveQueue.head = move
                         moveQueue.moveSequenceValue = 50
                         moves.add(moveQueue)
+                    } else{
+                        if(column.hiddenCards<0){
+                            moveQueue.head = move
+                            moveQueue.moveSequenceValue = 1+column.hiddenCards
+                            moves.add(moveQueue)
+                        }
                     }
                 }
                 //Possible moves from Talon to foundation.
@@ -124,6 +130,18 @@ class StrategyController {
                     gsc.performMove(move)
                 }
             }
+        }
+        //Should make a check here to see if stock+talon is unchanged and no moves can be found.
+        if(gsc.gameState.stock.size>=3){
+            move = Move(MoveType.DRAW_STOCK)
+            moveQueue.moveSequenceValue = 9
+            moveQueue.head = move
+            moves.add(moveQueue)
+        } else{
+            move = Move(MoveType.FLIP_TALON)
+            moveQueue.moveSequenceValue = 9
+            moveQueue.head = move
+            moves.add(moveQueue)
         }
         return moves
     }
