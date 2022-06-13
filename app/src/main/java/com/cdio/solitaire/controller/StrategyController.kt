@@ -86,13 +86,13 @@ class StrategyController {
     private fun isQueenOppositeColorAvailable(king: Card): Boolean {
         if (king.suit.getColor() == Color.BLACK) {
             for (column in gsc.gameState.tableaux) {
-                if (column.getStackHighCard()!!.rank.ordinal == 12 && column.tail!!.suit.getColor() == Color.RED) {
+                if (column.getStackHighCard()!!.rank.ordinal == 12 && column.getStackHighCard()!!.suit.getColor() == Color.RED) {
                     return true
                 }
             }
         } else {
             for (column in gsc.gameState.tableaux) {
-                if (column.getStackHighCard()!!.rank.ordinal == 12 && column.tail!!.suit.getColor() == Color.BLACK) {
+                if (column.getStackHighCard()!!.rank.ordinal == 12 && column.getStackHighCard()!!.suit.getColor() == Color.BLACK) {
                     return true
                 }
             }
