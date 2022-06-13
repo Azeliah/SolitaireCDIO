@@ -62,7 +62,6 @@ class StrategyController {
             return move
 
         // Nothing else to do; flip talon
-        // TODO: What to do if stock and talon does not contain enough cards to flip talon?
         return Move(MoveType.FLIP_TALON)
     }
 
