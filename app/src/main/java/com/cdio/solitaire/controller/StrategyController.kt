@@ -1,8 +1,10 @@
 package com.cdio.solitaire.controller
 
 import com.cdio.solitaire.model.Move
+import com.cdio.solitaire.model.MoveQueue
 import com.cdio.solitaire.model.MoveType
 import java.util.*
+import kotlin.Comparator
 
 /*
  * StrategyController is used to handle the logic behind the strategy, which is then sent to
@@ -11,13 +13,16 @@ import java.util.*
 
 class StrategyController {
     val gsc = GameStateController()
-    val listOfMoves: LinkedList<Array<Move>> = getAllMoves()
+    val compareMoveQueue: Comparator<MoveQueue> = compareBy{0-it.moveSequenceValue}
+    val listOfMoves: PriorityQueue<MoveQueue> = getAllMoves(compareMoveQueue)
     fun nextMove() {
         val move = decideMove()
         gsc.performMove(move)
     }
 
     fun decideMove(): Move {
+
+        //listOfMoves.poll()
         return Move(MoveType.FLIP_TALON)
     }
 
@@ -28,7 +33,7 @@ class StrategyController {
     }
 
     fun checkMoveToFoundation() {
-        TODO("Analyze code from other repo for data manipulation/evaluation.")
+        TODO("Analyze code from other repo for data manipulation/eval   uation.")
     }
 
     fun checkMoveToTableau() {
@@ -51,36 +56,54 @@ class StrategyController {
         TODO("Analyze code from other repo for data manipulation/evaluation.")
     }
 
-    fun getAllMoves(): LinkedList<Array<Move>>{
+    fun getAllMoves(comparemoveQueue: Comparator<MoveQueue>): PriorityQueue<MoveQueue>{
         var move: Move?
-        val moves: LinkedList<Array<Move>> = LinkedList()
+        val moveQueue: MoveQueue = MoveQueue(gsc.gameState)
+        val moves: PriorityQueue<MoveQueue> = PriorityQueue<MoveQueue>(comparemoveQueue)
         for(column in gsc.gameState.tableaux){
                 //Possible moves from column to foundation.
                 move = Move(MoveType.MOVE_TO_FOUNDATION, column, sourceCard=column.tail)
                 if(gsc.isMoveLegal(move)){
-                    moves.add(arrayOf(move))
+
                 }
                 //Possible moves from Talon to foundation.
                 move = Move(MoveType.MOVE_TO_FOUNDATION,gsc.gameState.talon,sourceCard = gsc.gameState.talon.tail)
                 if(gsc.isMoveLegal(move)) {
-                    moves.add(arrayOf(move))
+                    moveQueue.head = move
+                    moves.add(moveQueue)
                 }
-                //Possible moves from talon to a column.
+                //Possible moves from talon to a column. If drawpile %3!=0
                 move = Move(MoveType.MOVE_FROM_TALON,targetStack = column,sourceCard = gsc.gameState.talon.tail)
                 if(gsc.isMoveLegal(move)){
-                    moves.add(arrayOf(move))
+                    moveQueue.head = move
+                    moves.add(moveQueue)
+
                 }
             for(targetColumn in gsc.gameState.tableaux){
                 //Possible moves between columns
                 move = Move(MoveType.MOVE_STACK,column,targetColumn, column.getStackHighCard())
                 if(gsc.isMoveLegal(move)){
-                    moves.add(arrayOf(move))
+                    moveQueue.head = move
+                    moves.add(moveQueue)
                 }
                 //Possible Conditional moves, currently waiting for Michael with ghost/dummy state for checks.
                 //TODO finish this part when Michael's code is ready.
+                val gameStateCopy = gsc.copyGameState()
                 move = Move(MoveType.MOVE_FROM_TALON, sourceCard = gsc.gameState.talon.tail, targetStack = targetColumn)
                 if(gsc.isMoveLegal(move)){
+                    gsc.performMove(move)
                     move = Move(MoveType.MOVE_STACK,)
+                }
+            }
+        }
+        //Potentielle betingede moves.
+        val gameStateCopy = gsc.copyGameState()
+        for(column in gsc.gameState.tableaux){
+            if(column.hiddenCards>0){
+                move = Move(MoveType.MOVE_FROM_TALON,sourceCard = gameStateCopy.talon.tail,targetStack = column)
+                if(gsc.isMoveLegal(move)){
+                    //Now perform the move.
+                    gsc.performMove(move)
                 }
             }
         }

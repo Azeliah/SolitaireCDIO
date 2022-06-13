@@ -298,4 +298,37 @@ class GameStateController {
         val moves = gameState.moves.toMutableList()
         return GameState(foundations, tableaux, talon, stock, moves)
     }
+    fun getLowestBlackFoundation(): Int{
+        var blackCounter: Int = 0
+        var lowestFoundation: Int = 0
+        for(foundation in gameState.foundations){
+            if(foundation.tail!!.suit.getColor()==Color.BLACK){
+                if(-foundation.tail!!.rank.ordinal<-lowestFoundation){lowestFoundation = foundation.tail!!.rank.ordinal
+                }
+                blackCounter++
+            }
+        }
+        return if(blackCounter == 0||blackCounter == 1 ){
+            0
+        } else{
+            lowestFoundation
+
+        }
+    }
+    fun getLowestRedFoundation(): Int{
+        var redCounter: Int = 0
+        var lowestFoundation: Int = 0
+        for(foundation in gameState.foundations){
+            if(foundation.tail!!.suit.getColor()==Color.BLACK){
+                if(-foundation.tail!!.rank.ordinal<-lowestFoundation){lowestFoundation = foundation.tail!!.rank.ordinal
+                }
+                redCounter++
+            }
+        }
+        return if(redCounter == 0||redCounter == 1 ){
+            0
+        } else{
+            lowestFoundation
+        }
+    }
 }
