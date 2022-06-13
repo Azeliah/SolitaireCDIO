@@ -109,14 +109,16 @@ class StrategyController {
                         moves.add(moveQueue)
                     }
                 }
-                //Possible moves from talon to a column. If drawpile %3!=0
+                //Possible moves from talon to a column.
                 move = Move(MoveType.MOVE_FROM_TALON,targetStack = column,sourceCard = gsc.gameState.talon.tail)
                 if(gsc.isMoveLegal(move)){
-                    if(gsc.gameState.talon.size+gsc.gameState.stock.size%3==0){
+                    if(gsc.gameState.talon.tail!!.rank.ordinal==13&&isQueenOppositeColorAvailable(gsc.gameState.talon.tail!!)){
+                        moveQueue.moveSequenceValue = 43
+                    } else if(gsc.gameState.talon.size+gsc.gameState.stock.size%3==0){
                         moveQueue.moveSequenceValue = 10
-                        moveQueue.head = move
-                        moves.add(moveQueue)
                     }
+                    moveQueue.head = move
+                    moves.add(moveQueue)
                 }
             for(targetColumn in gsc.gameState.tableaux){
                 //Possible moves between columns
@@ -125,7 +127,7 @@ class StrategyController {
                     //If the card is a king
                     if(column.getStackHighCard()!!.rank.ordinal==13){
                         if(isQueenOppositeColorAvailable(column.getStackHighCard()!!)){
-                            moveQueue.moveSequenceValue = 43
+                            moveQueue.moveSequenceValue = 44
                         } else if(!isQueenOppositeColorAvailable(column.getStackHighCard()!!)){
                             moveQueue.moveSequenceValue = 8
                             }
