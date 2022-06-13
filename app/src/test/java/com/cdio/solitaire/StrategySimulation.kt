@@ -71,47 +71,58 @@ class DataSource {
 class StrategySimulation {
     @Test
     fun simulateGame() {
-        // TODO: Make an iteration loop with accounting for statistics.
-        val dataSource = DataSource()
-        val strategyController = StrategyController()
-        val gameTableaux = strategyController.gsc.gameState.tableaux
-        val cards = dataSource.updateFirstLayer()
-        for (i in cards.indices) {
-            gameTableaux[i].tail!!.rank = cards[i]!!.rank
-            gameTableaux[i].tail!!.suit = cards[i]!!.suit
-        }
-        var gameFinished = false
-        var rounds = 1000
-        while (!gameFinished && rounds != 0) {
-            rounds--
-            val moveToPlay = strategyController.playMove()
+        val iterations = 10000
 
-            // Output move to screen
-
-            when (moveToPlay!!.moveType) {
-                MoveType.MOVE_FROM_TALON -> dataSource.talon.popCard()
-                MoveType.DRAW_STOCK -> dataSource.drawStock()
-                MoveType.FLIP_TALON -> dataSource.flipTalon()
-                else -> {}
+        var gamesWon = 0
+        var movesMade = 0 // in winning games this is incremented
+        repeat(iterations) {
+            val dataSource = DataSource()
+            val strategyController = StrategyController()
+            val gameTableaux = strategyController.gsc.gameState.tableaux
+            val cards = dataSource.updateFirstLayer()
+            for (i in cards.indices) {
+                gameTableaux[i].tail!!.rank = cards[i]!!.rank
+                gameTableaux[i].tail!!.suit = cards[i]!!.suit
             }
+            var gameFinished = false
+            var rounds = 1000
+            while (!gameFinished && rounds != 0) {
+                rounds--
+                val moveToPlay = strategyController.playMove()
 
-            // Is a card discovered? Get its values.
-            if (moveToPlay.cardToUpdate != null) {
-                val discoveredCard = dataSource.discoverCard(moveToPlay.cardToUpdate!!.stackID)
-                moveToPlay.cardToUpdate!!.rank = discoveredCard.rank
-                moveToPlay.cardToUpdate!!.suit = discoveredCard.suit
+                // Output move to screen
+
+                when (moveToPlay!!.moveType) {
+                    MoveType.MOVE_FROM_TALON -> dataSource.talon.popCard()
+                    MoveType.DRAW_STOCK -> dataSource.drawStock()
+                    MoveType.FLIP_TALON -> dataSource.flipTalon()
+                    else -> {}
+                }
+
+                // Is a card discovered? Get its values.
+                if (moveToPlay.cardToUpdate != null) {
+                    val discoveredCard = dataSource.discoverCard(moveToPlay.cardToUpdate!!.stackID)
+                    moveToPlay.cardToUpdate!!.rank = discoveredCard.rank
+                    moveToPlay.cardToUpdate!!.suit = discoveredCard.suit
+                }
+
+                gameFinished =
+                    strategyController.isGameFinished() // TODO: Replace this when merging with strategy.
             }
-
-            gameFinished = strategyController.isGameFinished() // TODO: Replace this when merging with strategy.
+            if (strategyController.gsc.isGameWon()) {
+                gamesWon++
+                movesMade += 1000 - rounds
+                var deckString = ""
+                for (i in dataSource.shuffledDeck.indices) deckString += dataSource.shuffledDeck[51 - i].toStringDanish() + ","
+                deckString += "\b"
+                println("Deck used:")
+                println(deckString)
+                println("Moves made:")
+                println(strategyController.gsc.movesAsString() + "\b")
+            }
         }
-        if (strategyController.gsc.isGameWon()) {
-            var deckString = ""
-            for (i in dataSource.shuffledDeck.indices) deckString += dataSource.shuffledDeck[51 - i].toStringDanish() + ","
-            deckString += "\b"
-            println("Deck used:")
-            println(deckString)
-            println("Moves made:")
-            println(strategyController.gsc.movesAsString() + "\b")
-        }
+        println("Games won: $gamesWon")
+        println("Win percentage: " + (gamesWon/100).toString())
+        println("Average moves made: " + (movesMade/gamesWon).toString())
     }
 }
