@@ -115,7 +115,10 @@ class StrategyController {
             ) {
                 for (conditionalColumn in gsc.gameState.tableaux) {
                     val conditionalCard = conditionalColumn.getStackHighCard()!!
-                    if (conditionalCard.rank.ordinal + 1 == talonCard.rank.ordinal) {
+                    if (conditionalCard.rank.ordinal + 1 == talonCard.rank.ordinal && conditionalCard.suit.offSuit(
+                            talonCard.suit
+                        )
+                    ) {
                         val move1: Move = Move(
                             MoveType.MOVE_FROM_TALON,
                             targetStack = column,
