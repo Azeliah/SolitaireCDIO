@@ -144,8 +144,6 @@ public class SolitaireAnalysisModel {
                 // Extract card icon containing suit and rank from the top left corner of the card, followed by a resize to 40x100 pixels
                 Mat icon = extractIcon(warp);
                 Mat resize = resizeIcon(icon);
-                // Todo remove extractRank
-                //resize = extractRank(resize);
 
                 // Add ContentNode containing a card position and a Mat image of the icon crop to array
                 matArr[i] = new ContentNode(resize,nodeArr[i].center);
@@ -221,16 +219,5 @@ public class SolitaireAnalysisModel {
         Size sz = new Size(40,100);
         Imgproc.resize( src, src, sz );
         return src;
-    }
-
-    // Todo remove from here and place in ML classes
-    public static Mat extractRank(Mat src) {
-        Mat original = src.clone();
-        Rect rect_min = new Rect();
-        rect_min.x = 1;
-        rect_min.y = 0;
-        rect_min.width = 13;
-        rect_min.height = 25;
-        return original.submat(rect_min);
     }
 }

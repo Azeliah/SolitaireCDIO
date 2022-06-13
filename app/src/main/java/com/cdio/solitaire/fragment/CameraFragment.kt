@@ -277,12 +277,12 @@ class CameraFragment : Fragment(), SensorEventListener {
             Utils.bitmapToMat(bitmap, mat)
             val solitaireAnalysis = SolitaireAnalysisModel()
             val bitmapArr = solitaireAnalysis.extractSolitaire(mat)
-            val model = RankModel()
 
             // Todo add code for ML and GameMoves
 
-            // Todo remove when no longer needed or make debug only
             if (bitmapArr != null) {
+                // Todo remove when no longer needed or make debug only
+                /*
                 Log.d(TAG, "Success. A complete solitaire game was found!")
                 val date = System.currentTimeMillis().toString()
                 for (i in bitmapArr.indices) {
@@ -292,6 +292,7 @@ class CameraFragment : Fragment(), SensorEventListener {
                         saveToStorage(date, i , bitmapArr[i], rank)
                     }
                 }
+                 */
             } else {
                 Log.d(TAG, "Failure. No complete solitaire game was found!")
             }
