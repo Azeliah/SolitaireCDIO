@@ -319,7 +319,7 @@ class GameStateController {
         var redCounter: Int = 0
         var lowestFoundation: Int = 0
         for(foundation in gameState.foundations){
-            if(foundation.tail!!.suit.getColor()==Color.BLACK){
+            if(foundation.tail!!.suit.getColor()==Color.RED){
                 if(-foundation.tail!!.rank.ordinal<-lowestFoundation){lowestFoundation = foundation.tail!!.rank.ordinal
                 }
                 redCounter++
