@@ -16,7 +16,6 @@ class Move(val moveType: MoveType,val sourceStack: CardStack? =null,var targetSt
     var cardToUpdate: Card?= null
     var prev:Move?=null
     var next:Move?=null
-    // TODO: Make toString() method and pictureNeeded() method
     fun toStringDanish(): String {
         return when (moveType) {
             MoveType.MOVE_STACK, MoveType.MOVE_FROM_TALON, MoveType.MOVE_FROM_FOUNDATION -> sourceCard!!.toStringDanish() + "-" + targetStack!!.stackID + ","

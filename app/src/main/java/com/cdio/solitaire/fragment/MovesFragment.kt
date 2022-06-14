@@ -10,6 +10,7 @@ import android.widget.TextView
 import androidx.core.view.isVisible
 import androidx.navigation.Navigation
 import com.cdio.solitaire.R
+import com.cdio.solitaire.controller.GameStateController
 import com.google.android.material.textfield.TextInputLayout
 
 class MovesFragment : Fragment() {
@@ -60,9 +61,9 @@ class MovesFragment : Fragment() {
 
     private fun getNextMove(view: View) {
         val nextMove = GameStateController.getLastMove()
-        changeNextMoveText(nextMove.toString())
+        changeNextMoveText(nextMove.toStringDanish())
 
-        if (nextMove.NewPictureNeeded) {
+        if (nextMove.cardToUpdate == null) {
             flipButton(view)
         }
     }
