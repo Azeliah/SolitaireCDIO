@@ -72,16 +72,8 @@ class GameStateController {
     // TODO: Consider legal move check.
     private fun drawFromStock(): Card? {
         if (gameState.stock.size < 3) throw Exception("EmptyStackPop: Not enough cards in stock to draw to talon.")
-        // Cannot use gsc.moveStack here, because we want to check talon.tail, not stock.tail.
-        gameState.talon.pushStack(gameState.stock.popStack(3))
-        var hiddenCardsMoved = 0
-        var cardToCheck = gameState.talon.tail
-        for (i in 0..2) {
-            if (cardToCheck!!.rank.ordinal == 0) hiddenCardsMoved++
-            cardToCheck = cardToCheck.prev
-        }
-        gameState.talon.hiddenCards += hiddenCardsMoved
-        gameState.stock.hiddenCards -= hiddenCardsMoved
+        // Cannot use gsc.moveStack here, because we want to check talon.tail, not stock.tail - and move cards one at a time.
+        repeat(3) { gameState.talon.pushCard(gameState.stock.popCard()) }
         return cardToUpdate(gameState.talon)
     }
 
@@ -130,7 +122,10 @@ class GameStateController {
             MoveType.MOVE_TO_FOUNDATION -> cardToUpdate =
                 moveCard(move.sourceStack!!, move.targetStack!!)
             MoveType.FLIP_TALON -> flipTalon()
-            MoveType.DRAW_STOCK -> cardToUpdate = drawFromStock()
+            MoveType.DRAW_STOCK -> {
+                drawFromStock()
+                cardToUpdate = cardToUpdate(gameState.talon)
+            }
             MoveType.DEAL_CARDS -> throw Exception("DEAL_CARDS is not for use here.")
         }
         move.cardToUpdate = cardToUpdate
@@ -213,7 +208,7 @@ class GameStateController {
     /**
      * Gets the foundation which has been used for the suit. If none exist, return the first empty foundation.
      */
-    private fun getFoundation(suit: Suit): CardStack? {
+    private fun getFoundation(suit: Suit): CardStack {
         var foundation: CardStack? = null
         for (stack in gameState.foundations) {
             println("in getfoundation")
@@ -229,8 +224,9 @@ class GameStateController {
             } else if (stack.tail!!.suit == suit) {
                 foundation = stack
                 break
-            } else throw Exception("Foundation not found. This shouldn't happen. Ever. Good job.")
+            }
         }
+        if (foundation == null) throw Exception("Foundation not found. This shouldn't happen. Ever. Good job.")
         return foundation
     }
 
@@ -241,14 +237,14 @@ class GameStateController {
         println(move.sourceCard!!.rank)
         println(move.sourceCard.suit)
         return if (move.sourceStack!!.tail != move.sourceCard) false
-        else when (move.sourceCard!!.rank.ordinal) {
+        else when (move.sourceCard.rank.ordinal) {
             1 -> {
                 move.targetStack = getFoundation(move.sourceCard.suit)
                 true
             }
             in 2..13 -> {
                 val targetStack = getFoundation(move.sourceCard.suit)
-                if (targetStack!!.tail == null) {
+                if (targetStack.tail == null) {
                     false
                 } else if (move.sourceCard.rank.ordinal - targetStack.tail!!.rank.ordinal == 1) {
                     move.targetStack = targetStack
@@ -311,8 +307,8 @@ class GameStateController {
         return GameState(foundations, tableaux, talon, stock, moves)
     }
     fun getLowestBlackFoundation(): Int{
-        var blackCounter: Int = 0
-        var lowestFoundation: Int = 0
+        var blackCounter = 0
+        var lowestFoundation = 0
         for(foundation in gameState.foundations){
             if(foundation.tail!=null&&foundation.tail!!.suit.getColor()==Color.BLACK){
                 if(-foundation.tail!!.rank.ordinal<-lowestFoundation){lowestFoundation = foundation.tail!!.rank.ordinal
@@ -328,8 +324,8 @@ class GameStateController {
         }
     }
     fun getLowestRedFoundation(): Int{
-        var redCounter: Int = 0
-        var lowestFoundation: Int = 0
+        var redCounter = 0
+        var lowestFoundation = 0
         for(foundation in gameState.foundations){
             if(foundation.tail!=null&&foundation.tail!!.suit.getColor()==Color.RED){
                 if(-foundation.tail!!.rank.ordinal<-lowestFoundation){lowestFoundation = foundation.tail!!.rank.ordinal

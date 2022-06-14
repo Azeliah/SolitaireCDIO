@@ -53,7 +53,7 @@ class DataSource {
     }
 
     fun drawStock() {
-        talon.pushStack(stock.popStack(3))
+        repeat(3) { talon.pushCard(stock.popCard()) }
     }
 
     fun flipTalon() {
@@ -92,8 +92,8 @@ class StrategySimulation {
                 //println(moveToPlay!!.toStringDanish() + "\b")
 
                 // Output move to screen
-                System.out.println(moveToPlay!!.moveType.toString())
-                when (moveToPlay!!.moveType) {
+                System.out.println(moveToPlay.moveType.toString())
+                when (moveToPlay.moveType) {
                     MoveType.MOVE_FROM_TALON -> dataSource.talon.popCard()
                     MoveType.DRAW_STOCK -> dataSource.drawStock()
                     MoveType.FLIP_TALON -> dataSource.flipTalon()

@@ -47,6 +47,7 @@ class CardStack(val stackID: Int) {
                 size--
             }
         }
+        if (poppedCard.rank.ordinal == 0) hiddenCards--
         poppedCard.stackID = -1
         return poppedCard
     }
@@ -171,7 +172,7 @@ class CardStack(val stackID: Int) {
 
     override fun toString(): String {
         var ret = "["
-        var cursor = head;
+        var cursor = head
         while (cursor != null) {
             ret += cursor.toString()
             if (cursor.next != null)
