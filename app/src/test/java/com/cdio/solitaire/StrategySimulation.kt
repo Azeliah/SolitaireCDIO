@@ -85,14 +85,13 @@ class StrategySimulation {
                 strategyController.gsc.gameState.tableaux[i].hiddenCards--
             }
             var gameFinished = false
-            var rounds = 25
+            var rounds = 500
             while (!gameFinished && rounds != 0) {
                 rounds--
                 val moveToPlay = strategyController.nextMove()
                 //println(moveToPlay!!.toStringDanish() + "\b")
 
                 // Output move to screen
-                System.out.println(moveToPlay.moveType.toString())
                 when (moveToPlay.moveType) {
                     MoveType.MOVE_FROM_TALON -> dataSource.talon.popCard()
                     MoveType.DRAW_STOCK -> dataSource.drawStock()
@@ -105,7 +104,7 @@ class StrategySimulation {
                     val discoveredCard = dataSource.discoverCard(moveToPlay.cardToUpdate!!.stackID)
                     moveToPlay.cardToUpdate!!.rank = discoveredCard.rank
                     moveToPlay.cardToUpdate!!.suit = discoveredCard.suit
-                    println("New card is $discoveredCard")
+                    // println("New card is $discoveredCard")
                 }
 
                 gameFinished =
@@ -123,8 +122,10 @@ class StrategySimulation {
                 println(strategyController.gsc.movesAsString() + "\b")
             }
         }
-        println("Games won: $gamesWon")
-        println("Win percentage: " + (gamesWon/100).toString())
-        println("Average moves made: " + (movesMade/gamesWon).toString())
+        if (gamesWon != 0) {
+            println("Games won: $gamesWon")
+            println("Win percentage: " + (gamesWon / 100).toString())
+            println("Average moves made: " + (movesMade / gamesWon).toString())
+        }
     }
 }

@@ -19,14 +19,16 @@ class StrategyController {
 
     fun nextMove(): Move {
         val move = decideMove()
-        println("Performing move: "+move.sourceCard!!.toStringDanish())
+        //println("Performing move: "+move.sourceCard!!.toStringDanish())
+        //if (move.moveType == MoveType.MOVE_TO_FOUNDATION)
+        //    println(move.moveType)
         gsc.performMove(move)
         return move
     }
 
     fun decideMove(): Move {
         stockDiscovered = gsc.gameState.stock.hiddenCards + gsc.gameState.talon.hiddenCards == 0
-        var stockMove: Move? = null
+        // var stockMove: Move? = null
 
         if (!stockDiscovered) {
             if ((gsc.gameState.stock.size + gsc.gameState.talon.size) % 3 != 0)
@@ -42,7 +44,7 @@ class StrategyController {
         }
 
         if (currentMoveQueue == null||currentMoveQueue!!.size==0){
-            val temp = getAllMoves(compareMoveQueue)
+            // val temp = getAllMoves(compareMoveQueue)
             currentMoveQueue = MoveQueue(gsc.gameState)
             val tempMove = getAllMoves(compareMoveQueue).poll()?.pop()
             if (tempMove != null) {
@@ -61,7 +63,7 @@ class StrategyController {
         }
     }
 
-    fun playMove(): Move? { // Used for testing purposes, should be replaced with
+    fun playMove(): Move { // Used for testing purposes, should be replaced with
         // whatever method returns the next move to print.
         return decideMove()
     }
@@ -80,8 +82,8 @@ class StrategyController {
     private fun discoverStock(): Move {
         println("discoverStock called")
 
-        val stock = gsc.gameState.stock
-        val talon = gsc.gameState.talon
+        // val stock = gsc.gameState.stock
+        // val talon = gsc.gameState.talon
 
         // Try to draw from stock
         val move = Move(MoveType.DRAW_STOCK)
@@ -181,10 +183,11 @@ class StrategyController {
      */
     private fun getAllMoves(comparemoveQueue: Comparator<MoveQueue>): PriorityQueue<MoveQueue> {
         var move: Move?
-        var moveQueue: MoveQueue = MoveQueue(gsc.gameState)
+        var moveQueue: MoveQueue
         val moves: PriorityQueue<MoveQueue> = PriorityQueue<MoveQueue>(comparemoveQueue)
         for (column in gsc.gameState.tableaux) {
             //Possible moves from column to foundation.
+            if (column.size == 0) continue
             move = Move(MoveType.MOVE_TO_FOUNDATION, sourceStack = column, sourceCard = column.tail)
             moveQueue = MoveQueue(gsc.gameState)
             if (gsc.isMoveLegal(move)) {
@@ -223,6 +226,7 @@ class StrategyController {
                 MoveType.MOVE_FROM_TALON,
                 targetStack = column,
                 sourceCard = gsc.gameState.talon.tail,
+                sourceStack = gsc.gameState.talon
             )
             if (gsc.gameState.talon.size != 0 && gsc.isMoveLegal(move)) {
                 if (gsc.gameState.talon.tail!!.rank.ordinal == 13 && isQueenOppositeColorAvailable(
