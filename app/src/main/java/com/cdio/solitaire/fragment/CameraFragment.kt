@@ -292,7 +292,7 @@ class CameraFragment : Fragment(), SensorEventListener {
                 }
                  */
             } else {
-                Log.d(TAG, "Failure. No complete solitaire game was found!")
+                Log.e(TAG, "Failure. No complete solitaire game was found!")
             }
             mat.release()
 

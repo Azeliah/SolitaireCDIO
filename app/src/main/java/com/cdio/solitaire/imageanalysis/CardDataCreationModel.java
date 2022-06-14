@@ -1,6 +1,7 @@
 package com.cdio.solitaire.imageanalysis;
 
 import android.graphics.Bitmap;
+import android.util.Log;
 
 import com.google.android.gms.common.util.ArrayUtils;
 
@@ -12,10 +13,7 @@ import java.util.Arrays;
 
 public class CardDataCreationModel {
 
-    // Load in OpenCV library
-    static {
-        System.loadLibrary("opencv_java4");
-    }
+    private final String TAG = "CardDataCreationModel";
 
     /** Method for extracting the icons of 14 cards and two card backside (16 cards).
      *  This method is used for extracting image icons for the ML dataset.
@@ -57,7 +55,7 @@ public class CardDataCreationModel {
             return bitmapArr;
         } else {
             src.release();
-            System.out.println("No complete suit of cards was found!");
+            Log.e(TAG,"No complete suit of cards was found!");
             return null;
         }
     }

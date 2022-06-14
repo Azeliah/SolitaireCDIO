@@ -6,6 +6,7 @@ import static java.lang.Double.max;
 import static java.lang.Double.min;
 
 import android.graphics.Bitmap;
+import android.util.Log;
 
 import org.opencv.android.Utils;
 import org.opencv.core.Core;
@@ -25,10 +26,7 @@ import java.util.List;
 
 public class SolitaireAnalysisModel {
 
-    // Load in OpenCV library
-    static {
-        System.loadLibrary("opencv_java4");
-    }
+    private final String TAG = "SolitaireAnalysisModel";
 
     /** Method for extracting suit and rank icon from every card in a Solitaire game image as Bitmaps */
     public Bitmap[] extractSolitaire(Mat src) {
@@ -64,7 +62,7 @@ public class SolitaireAnalysisModel {
             return bitmapArr;
         } else {
             src.release();
-            System.out.println("No suitable game was found!");
+            Log.e(TAG,"No suitable game was found!");
             return null;
         }
     }
@@ -79,7 +77,6 @@ public class SolitaireAnalysisModel {
         List<MatOfPoint> points = new ArrayList<>();
         Mat contours = new Mat();
         Imgproc.findContours(edge,points,contours,Imgproc.RETR_EXTERNAL,Imgproc.CHAIN_APPROX_SIMPLE);
-        System.out.println(points.size());
 
         // If less than n points/contours where found, return null
         if (points.size() < n) {
@@ -156,8 +153,7 @@ public class SolitaireAnalysisModel {
                 src.release();
                 edge.release();
                 contours.release();
-                System.out.println("Card " + i + "was not valid!");
-                System.out.println("Width: " + rect.size.width + " ,height: " + rect.size.height);
+                Log.e(TAG,"Card " + i + " was not valid: " + "Width: " + rect.size.width + " ,height: " + rect.size.height);
                 return null;
             }
         }
