@@ -198,7 +198,7 @@ public class SolitaireAnalysisModel {
     }
 
     /** Method for extracting card icon from upper left corner containing suit and rank */
-    public static Mat extractIcon(Mat src) {
+    public Mat extractIcon(Mat src) {
         Mat original = src.clone();
         Rect rect_min = new Rect();
         rect_min.x = 0;
@@ -209,11 +209,21 @@ public class SolitaireAnalysisModel {
     }
 
     /** Method for converting card icon to binary colors and resizing to 40x100 pixels */
-    public static Mat resizeIcon(Mat src) {
+    public Mat resizeIcon(Mat src) {
         Imgproc.cvtColor(src,src,Imgproc.COLOR_RGB2GRAY);
         Imgproc.adaptiveThreshold(src,src, 255, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY, 15, 9);
         Size sz = new Size(40,100);
         Imgproc.resize( src, src, sz );
         return src;
+    }
+
+    /** Method for cropping an array og Bitmaps to a specific offset and size */
+    public Bitmap[] cropIcon(Bitmap[] bitMapArr, int xOffset, int yOffset, int width, int height) {
+        int length = bitMapArr.length;
+        Bitmap[] newBitMap = new Bitmap[length];
+        for (int i = 0; i < length; i++) {
+            newBitMap[i] = Bitmap.createBitmap(bitMapArr[i],xOffset,yOffset,width,height);
+        }
+        return  newBitMap;
     }
 }
