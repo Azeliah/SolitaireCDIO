@@ -25,7 +25,6 @@ class CardStack(val stackID: Int) {
             }
         }
         size++
-        if (card.rank == Rank.NA) hiddenCards++
         card.stackID = stackID
     }
 
@@ -38,7 +37,9 @@ class CardStack(val stackID: Int) {
             0 -> throw Exception("Empty stack pop.")
             1 -> {
                 poppedCard!!.prev = null
-                resetCardStack()
+                head = null
+                tail = null
+                size--
             }
             else -> {
                 tail = poppedCard!!.prev
@@ -47,7 +48,6 @@ class CardStack(val stackID: Int) {
                 size--
             }
         }
-        if (poppedCard.rank.ordinal == 0) hiddenCards--
         poppedCard.stackID = -1
         return poppedCard
     }
@@ -59,6 +59,7 @@ class CardStack(val stackID: Int) {
         head = null
         tail = null
         size = 0
+        hiddenCards = 0
     }
 
     /**
@@ -140,6 +141,7 @@ class CardStack(val stackID: Int) {
             head = reversedStack.head
             size += reversedStack.size
         }
+        hiddenCards += stack.hiddenCards
         stack.resetCardStack()
     }
 
@@ -162,7 +164,8 @@ class CardStack(val stackID: Int) {
             else -> {
                 var card = tail
                 while (true) {
-                    if (card!!.prev!!.suit == Suit.NA) break
+                    if (card!!.prev == null) break
+                    else if (card.prev!!.suit == Suit.NA) break
                     else card = card.prev
                 }
                 card

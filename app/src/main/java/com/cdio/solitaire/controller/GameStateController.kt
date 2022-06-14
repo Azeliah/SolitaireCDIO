@@ -62,8 +62,6 @@ class GameStateController {
      */
     private fun flipTalon() {
         gameState.stock.pushStackToHead(gameState.talon)
-        gameState.stock.hiddenCards += gameState.talon.hiddenCards
-        gameState.talon.hiddenCards = 0
     }
 
     /**
@@ -73,7 +71,14 @@ class GameStateController {
     private fun drawFromStock(): Card? {
         if (gameState.stock.size < 3) throw Exception("EmptyStackPop: Not enough cards in stock to draw to talon.")
         // Cannot use gsc.moveStack here, because we want to check talon.tail, not stock.tail - and move cards one at a time.
-        repeat(3) { gameState.talon.pushCard(gameState.stock.popCard()) }
+        repeat(3) {
+            val cardToPush = gameState.stock.popCard()
+            gameState.talon.pushCard(cardToPush)
+            if (cardToPush.rank == Rank.NA) {
+                gameState.talon.hiddenCards++
+                gameState.stock.hiddenCards--
+            }
+        }
         return cardToUpdate(gameState.talon)
     }
 
@@ -83,7 +88,6 @@ class GameStateController {
     private fun cardToUpdate(stack: CardStack): Card? {
         return if (stack.tail == null) null
         else if (stack.tail!!.rank == Rank.NA) {
-            stack.hiddenCards--
             stack.tail
         } else null
     }

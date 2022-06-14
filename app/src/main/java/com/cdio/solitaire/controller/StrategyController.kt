@@ -80,7 +80,7 @@ class StrategyController {
      * @return Move necessary for discovering more of stock.
      */
     private fun discoverStock(): Move {
-        println("discoverStock called")
+        // println("discoverStock called")
 
         // val stock = gsc.gameState.stock
         // val talon = gsc.gameState.talon
@@ -141,12 +141,14 @@ class StrategyController {
             val moveQueue = MoveQueue(gsc.gameState)
             val talonCard = gsc.gameState.talon.tail!!
             for (column in gsc.gameState.tableaux) {
+                if (column.size == 0) continue
                 val columnCard = column.tail!!
                 if (talonCard.rank.ordinal + 1 == columnCard.rank.ordinal && talonCard.suit.offSuit(
                         columnCard.suit
                     )
                 ) {
                     for (conditionalColumn in gsc.gameState.tableaux) {
+                        if (conditionalColumn.size == 0) continue
                         val conditionalCard = conditionalColumn.getStackHighCard()!!
                         if (conditionalCard.rank.ordinal + 1 == talonCard.rank.ordinal && conditionalCard.suit.offSuit(
                                 talonCard.suit
@@ -155,7 +157,8 @@ class StrategyController {
                             val move1 = Move(
                                 MoveType.MOVE_FROM_TALON,
                                 targetStack = column,
-                                sourceCard = talonCard
+                                sourceCard = talonCard,
+                                sourceStack = gsc.gameState.talon
                             )
                             val move2 =
                                 Move(
