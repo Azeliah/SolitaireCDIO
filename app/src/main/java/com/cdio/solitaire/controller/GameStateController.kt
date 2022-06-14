@@ -40,7 +40,7 @@ class GameStateController {
      */
     private fun createNullCardStack(cardCount: Int, stackID: Int): CardStack {
         val cardStack = CardStack(stackID)
-        for (i in 0..cardCount) cardStack.pushCard(Card(stackID))
+        for (i in 0 until cardCount) cardStack.pushCard(Card(stackID))
         return cardStack
     }
 
@@ -90,7 +90,10 @@ class GameStateController {
      */
     private fun cardToUpdate(stack: CardStack): Card? {
         return if (stack.tail == null) null
-        else if (stack.tail!!.rank.ordinal == 0) stack.tail
+        else if (stack.tail!!.rank == Rank.NA) {
+            stack.hiddenCards--
+            stack.tail
+        }
         else null
     }
 
@@ -177,9 +180,9 @@ class GameStateController {
      * Assesses whether a stack move is legal.
      */
     private fun verifyMoveStack(move: Move): Boolean =
-        if (move.sourceStack == null || move.targetStack == null) {
-            throw Exception("IllegalMoveError: You need to specify a sourceStack and targetStack.")
-        } else tableauOrdering(move.sourceCard!!, move.targetStack!!)
+        if (move.moveType == MoveType.MOVE_FROM_TALON||move.sourceStack != null && move.targetStack != null) {
+            tableauOrdering(move.sourceCard!!, move.targetStack!!)
+        } else throw Exception("IllegalMoveError: You need to specify a sourceStack and targetStack.")
 
     /**
      * Assesses whether a move from foundation is legal.
@@ -213,6 +216,13 @@ class GameStateController {
     private fun getFoundation(suit: Suit): CardStack? {
         var foundation: CardStack? = null
         for (stack in gameState.foundations) {
+            println("in getfoundation")
+            println(stack.size)
+            if(stack.tail != null) {
+                println(stack.tail!!.suit)
+                //println(suit)
+                println(stack.tail!!.rank)
+            }
             if (stack.tail == null) {
                 foundation = stack
                 break
@@ -228,6 +238,8 @@ class GameStateController {
      * Assesses whether a move to foundation is legal.
      */
     private fun verifyMoveToFoundation(move: Move): Boolean {
+        println(move.sourceCard!!.rank)
+        println(move.sourceCard.suit)
         return if (move.sourceStack!!.tail != move.sourceCard) false
         else when (move.sourceCard!!.rank.ordinal) {
             1 -> {
@@ -302,7 +314,7 @@ class GameStateController {
         var blackCounter: Int = 0
         var lowestFoundation: Int = 0
         for(foundation in gameState.foundations){
-            if(foundation.tail!!.suit.getColor()==Color.BLACK){
+            if(foundation.tail!=null&&foundation.tail!!.suit.getColor()==Color.BLACK){
                 if(-foundation.tail!!.rank.ordinal<-lowestFoundation){lowestFoundation = foundation.tail!!.rank.ordinal
                 }
                 blackCounter++
@@ -319,7 +331,7 @@ class GameStateController {
         var redCounter: Int = 0
         var lowestFoundation: Int = 0
         for(foundation in gameState.foundations){
-            if(foundation.tail!!.suit.getColor()==Color.RED){
+            if(foundation.tail!=null&&foundation.tail!!.suit.getColor()==Color.RED){
                 if(-foundation.tail!!.rank.ordinal<-lowestFoundation){lowestFoundation = foundation.tail!!.rank.ordinal
                 }
                 redCounter++

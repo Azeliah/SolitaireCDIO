@@ -1,7 +1,5 @@
 package com.cdio.solitaire.model
 
-import android.util.Log
-
 // TODO: Consider adding nullable suit var for foundations
 // TODO: Consider adding isEmpty method for code brevity
 
@@ -119,19 +117,28 @@ class CardStack(val stackID: Int) {
         if (stack.size == 0) {
             throw Exception("Trying to push empty stack, stackID: " + stack.stackID.toString())
         }
-        if (size == 0) {
-            pushStack(stack)
-            return
-        }
-        var card = stack.head
-        for (i in 1..stack.size) {
+
+        val reversedStack = CardStack(-1)
+        while (stack.size > 0)
+            reversedStack.pushCard(stack.popCard())
+
+        var card = reversedStack.head
+        for (i in 1..reversedStack.size) {
             card!!.stackID = stackID
             card = card.next
         }
-        head!!.prev = stack.tail
-        stack.tail!!.next = head
-        head = stack.head
-        size += stack.size
+
+        if (size == 0) {
+            head = reversedStack.head
+            tail = reversedStack.tail
+            size = reversedStack.size
+
+        } else {
+            head!!.prev = reversedStack.tail
+            reversedStack.tail!!.next = head
+            head = reversedStack.head
+            size += reversedStack.size
+        }
         stack.resetCardStack()
     }
 
@@ -162,4 +169,17 @@ class CardStack(val stackID: Int) {
         }
     }
 
+    override fun toString(): String {
+        var ret = "["
+        var cursor = head;
+        while (cursor != null) {
+            ret += cursor.toString()
+            if (cursor.next != null)
+                ret += ", "
+            cursor = cursor.next
+        }
+        ret += "]"
+
+        return ret
+    }
 }

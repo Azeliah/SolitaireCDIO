@@ -40,4 +40,10 @@ class MoveQueue(var gameState: GameState) {
         size--
         return poppedMove
     }
+
+    fun clearMoveQueue() {
+        head = null
+        tail = null
+        moveSequenceValue = 0
+    }
 }

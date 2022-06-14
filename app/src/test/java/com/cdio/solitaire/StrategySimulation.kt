@@ -1,5 +1,6 @@
 package com.cdio.solitaire
 
+import android.util.Log
 import com.cdio.solitaire.controller.StrategyController
 import com.cdio.solitaire.model.*
 import org.junit.Test
@@ -71,27 +72,27 @@ class DataSource {
 class StrategySimulation {
     @Test
     fun simulateGame() {
-        val iterations = 10000
-
+        val iterations = 1
         var gamesWon = 0
         var movesMade = 0 // in winning games this is incremented
         repeat(iterations) {
             val dataSource = DataSource()
             val strategyController = StrategyController()
-            val gameTableaux = strategyController.gsc.gameState.tableaux
             val cards = dataSource.updateFirstLayer()
             for (i in cards.indices) {
-                gameTableaux[i].tail!!.rank = cards[i]!!.rank
-                gameTableaux[i].tail!!.suit = cards[i]!!.suit
+                strategyController.gsc.gameState.tableaux[i].tail!!.rank = cards[i]!!.rank
+                strategyController.gsc.gameState.tableaux[i].tail!!.suit = cards[i]!!.suit
+                strategyController.gsc.gameState.tableaux[i].hiddenCards--
             }
             var gameFinished = false
-            var rounds = 1000
+            var rounds = 25
             while (!gameFinished && rounds != 0) {
                 rounds--
-                val moveToPlay = strategyController.playMove()
+                val moveToPlay = strategyController.nextMove()
+                //println(moveToPlay!!.toStringDanish() + "\b")
 
                 // Output move to screen
-
+                System.out.println(moveToPlay!!.moveType.toString())
                 when (moveToPlay!!.moveType) {
                     MoveType.MOVE_FROM_TALON -> dataSource.talon.popCard()
                     MoveType.DRAW_STOCK -> dataSource.drawStock()
@@ -104,6 +105,7 @@ class StrategySimulation {
                     val discoveredCard = dataSource.discoverCard(moveToPlay.cardToUpdate!!.stackID)
                     moveToPlay.cardToUpdate!!.rank = discoveredCard.rank
                     moveToPlay.cardToUpdate!!.suit = discoveredCard.suit
+                    println("New card is $discoveredCard")
                 }
 
                 gameFinished =
