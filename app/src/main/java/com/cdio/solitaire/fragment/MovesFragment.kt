@@ -16,7 +16,11 @@ class MovesFragment : Fragment() {
 
     private var moveText: TextView? = null
 
-    private var button: Button? = null
+    private var revealedCardText: TextView? = null
+
+    private var nextButton: Button? = null
+
+    private var wrongCardButton: Button? = null
 
     private var inputField: TextInputLayout? = null
 
@@ -32,17 +36,21 @@ class MovesFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         moveText = view.findViewById(R.id.move_text)
+        revealedCardText = view.findViewById(R.id.revealed_card_text)
         
         inputField = view.findViewById(R.id.input_field)
         inputField?.isVisible = false
 
-        button = view.findViewById(R.id.open_camera_button)
-        button?.setOnClickListener { (navigateToCamera(view)) }
+        nextButton = view.findViewById(R.id.open_camera_button)
+        nextButton?.setOnClickListener { (navigateToCamera(view)) }
+
+        wrongCardButton = view.findViewById(R.id.wrong_card_button)
+        wrongCardButton?.setOnClickListener { getCardInput(view)}
     }
 
     private fun navigateToCamera(view: View) {
-        button?.text = getString(R.string.next_move)
-        button?.setOnClickListener { getNextMove(view) }
+        nextButton?.text = getString(R.string.next_move)
+        nextButton?.setOnClickListener { getNextMove(view) }
         Navigation.findNavController(view).navigate(R.id.action_moves_to_camera)
     }
 
@@ -51,38 +59,39 @@ class MovesFragment : Fragment() {
     }
 
     private fun getNextMove(view: View) {
-        val nextMove = GameController.getLastMove()
+        val nextMove = GameStateController.getLastMove()
         changeNextMoveText(nextMove.toString())
+
         if(nextMove.NewPictureNeeded){
             flipButton(view)
         }
     }
 
     private fun flipButton(view: View){
-        button?.text = getString(R.string.open_camera)
-        button?.setOnClickListener { navigateToCamera(view)}
+        nextButton?.text = getString(R.string.open_camera)
+        nextButton?.setOnClickListener { navigateToCamera(view)}
     }
 
     // If a card can't be recognized, make the user input the card
-    private fun getCardInput(str: String, view: View){
-        changeNextMoveText(str)
+    private fun getCardInput(view: View){
 
-        button?.text = getString(R.string.ok)
+        nextButton?.text = getString(R.string.ok)
 
         inputField?.isVisible = true
 
-        button?.setOnClickListener {
+        nextButton?.setOnClickListener {
             val card = inputField?.editText?.text.toString()
 
             if(card != ""){
 
                 //TODO: Do something with the card
+                revealedCardText?.text = card
 
                 inputField?.isVisible = false
-                button?.text = getString(R.string.next_move)
+                nextButton?.text = getString(R.string.next_move)
 
                 // Since card input will only happen after taking a photo, get the next move
-                button?.setOnClickListener {
+                nextButton?.setOnClickListener {
                     getNextMove(view)
                 }
             }

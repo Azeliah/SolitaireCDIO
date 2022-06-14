@@ -6,4 +6,7 @@
     <string name="deal_cards">Deal Cards</string>
     <string name="input_field_hint">Eks: &quot;3H&quot;, &quot;AS&quot;</string>
     <string name="ok">OK</string>
+    <string name="revealed_card">Last revealed card</string>
+    <string name="wrong_card">Change</string>
+    <string name="NA">NA</string>
 </resources>
