@@ -3,13 +3,15 @@ package com.cdio.solitaire.controller
 import com.cdio.solitaire.model.*
 import java.util.*
 import kotlin.Comparator
+import com.cdio.solitaire.controller.GameStateController
+
 
 /*
  * StrategyController is used to handle the logic behind the strategy, which is then sent to
  * GameStateController as a Move using performMove, where GSC will then update the data accordingly.
  */
 class StrategyController {
-    val gsc = GameStateController()
+    val gsc = GameStateController
     val compareMoveQueue: Comparator<MoveQueue> = compareBy { 0 - it.moveSequenceValue }
     var listOfMoves: PriorityQueue<MoveQueue> = getAllMoves(compareMoveQueue)
     var endCondition = false
