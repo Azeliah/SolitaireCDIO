@@ -27,6 +27,7 @@ import androidx.fragment.app.Fragment
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.cdio.solitaire.R
 import com.cdio.solitaire.databinding.FragmentCameraBinding
+import com.cdio.solitaire.imageanalysis.CardDataCreationModel
 import com.cdio.solitaire.imageanalysis.SolitaireAnalysisModel
 import com.cdio.solitaire.ml.RankModel
 import org.opencv.android.Utils
@@ -281,16 +282,13 @@ class CameraFragment : Fragment(), SensorEventListener {
             // Todo add code for ML and GameMoves
 
             if (bitmapArr != null) {
+                Log.d(TAG, "Success. A complete solitaire game was found!")
+
                 // Todo remove when no longer needed or make debug only
                 /*
-                Log.d(TAG, "Success. A complete solitaire game was found!")
                 val date = System.currentTimeMillis().toString()
                 for (i in bitmapArr.indices) {
-                    if (bitmapArr[i] != null) {
-                        val rank = model.predict(bitmapArr[i], context)
-                        Log.d(TAG,   i.toString() + "_rank: " + rank)
-                        saveToStorage(date, i , bitmapArr[i], rank)
-                    }
+                    saveToStorage(date, i , bitmapArr[i])
                 }
                  */
             } else {
@@ -307,12 +305,12 @@ class CameraFragment : Fragment(), SensorEventListener {
          * <p> This is supposed to be used for debugging only; the bitmap should be passed
          * to our ML model in the future.
          */
-        fun saveToStorage(dirName: String, index: Int, bitmapImage: Bitmap, rank: Int) {
-            val directory = File(Environment.DIRECTORY_PICTURES + "/" + dirName)
+        fun saveToStorage(timeStamp: String, index: Int, bitmapImage: Bitmap) {
+            val directory = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).absolutePath + "/solitare_" + timeStamp)
             if (!directory.exists()) {
                 directory.mkdir()
             }
-            val file = File(directory, index.toString() + "_rank_" + rank + ".jpeg")
+            val file = File(directory, timeStamp + "_" + index.toString() + ".jpeg")
             if (!file.exists()) {
                 file.createNewFile();
             }

@@ -215,7 +215,7 @@ public class SolitaireAnalysisModel {
     /** Method for converting card icon to binary colors and resizing to 40x100 pixels */
     public static Mat resizeIcon(Mat src) {
         Imgproc.cvtColor(src,src,Imgproc.COLOR_RGB2GRAY);
-        Imgproc.adaptiveThreshold(src,src, 255, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY, 15, 10);
+        Imgproc.adaptiveThreshold(src,src, 255, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY, 15, 9);
         Size sz = new Size(40,100);
         Imgproc.resize( src, src, sz );
         return src;
