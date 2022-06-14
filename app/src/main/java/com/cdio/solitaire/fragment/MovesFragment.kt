@@ -37,7 +37,7 @@ class MovesFragment : Fragment() {
 
         moveText = view.findViewById(R.id.move_text)
         revealedCardText = view.findViewById(R.id.revealed_card_text)
-        
+
         inputField = view.findViewById(R.id.input_field)
         inputField?.isVisible = false
 
@@ -45,7 +45,7 @@ class MovesFragment : Fragment() {
         nextButton?.setOnClickListener { (navigateToCamera(view)) }
 
         wrongCardButton = view.findViewById(R.id.wrong_card_button)
-        wrongCardButton?.setOnClickListener { getCardInput(view)}
+        wrongCardButton?.setOnClickListener { getCardInput(view) }
     }
 
     private fun navigateToCamera(view: View) {
@@ -54,7 +54,7 @@ class MovesFragment : Fragment() {
         Navigation.findNavController(view).navigate(R.id.action_moves_to_camera)
     }
 
-    private fun changeNextMoveText(str : String){
+    private fun changeNextMoveText(str: String) {
         moveText?.text = str
     }
 
@@ -62,18 +62,18 @@ class MovesFragment : Fragment() {
         val nextMove = GameStateController.getLastMove()
         changeNextMoveText(nextMove.toString())
 
-        if(nextMove.NewPictureNeeded){
+        if (nextMove.NewPictureNeeded) {
             flipButton(view)
         }
     }
 
-    private fun flipButton(view: View){
+    private fun flipButton(view: View) {
         nextButton?.text = getString(R.string.open_camera)
-        nextButton?.setOnClickListener { navigateToCamera(view)}
+        nextButton?.setOnClickListener { navigateToCamera(view) }
     }
 
     // If a card can't be recognized, make the user input the card
-    private fun getCardInput(view: View){
+    private fun getCardInput(view: View) {
 
         nextButton?.text = getString(R.string.ok)
 
@@ -82,7 +82,8 @@ class MovesFragment : Fragment() {
         nextButton?.setOnClickListener {
             val card = inputField?.editText?.text.toString()
 
-            if(card != ""){
+            // If nothing has been input, do nothing
+            if (card != "") {
 
                 //TODO: Do something with the card
                 revealedCardText?.text = card
