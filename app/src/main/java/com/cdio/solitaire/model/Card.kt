@@ -1,6 +1,6 @@
 package com.cdio.solitaire.model
 
-enum class Color{
+enum class Color {
     NA, RED, BLACK
 }
 
@@ -32,7 +32,7 @@ enum class Suit {
         return this.getColor() != suitToCompare.getColor()
     }
 
-    fun getColor(): Color{
+    fun getColor(): Color {
         return when (this) {
             NA -> Color.NA
             CLUBS, SPADES -> Color.BLACK
@@ -70,5 +70,9 @@ class Card(var stackID: Int, var rank: Rank = Rank.NA, var suit: Suit = Suit.NA)
 
     fun toStringDanish(): String {
         return suit.shortDanish() + rank.ordinal.toString()
+    }
+
+    override fun toString(): String {
+        return rank.ordinal.toString() + suit.short()
     }
 }
