@@ -71,7 +71,7 @@ class DataSource {
 class StrategySimulation {
     @Test
     fun simulateGame() {
-        val iterations = 1000
+        val iterations = 100
         var gamesWon = 0
         var movesMade = 0 // in winning games this is incremented
         repeat(iterations) {
@@ -119,7 +119,7 @@ class StrategySimulation {
                     gameFinished = true
                 }
             }
-            if (strategyController.gameIsWon) {
+            if (strategyController.gameIsWon) { //strategyController.gameIsWon
                 gamesWon++
                 movesMade += 1000 - rounds
                 var deckString = ""

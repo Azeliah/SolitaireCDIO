@@ -211,7 +211,7 @@ class GameStateController {
     /**
      * Gets the foundation which has been used for the suit. If none exist, return the first empty foundation.
      */
-    private fun getFoundation(suit: Suit): CardStack {
+    fun getFoundation(suit: Suit): CardStack {
         var foundation: CardStack? = null
         for (stack in gameState.foundations) {
             if (stack.tail == null) {
@@ -324,7 +324,8 @@ class GameStateController {
 
         }
     }
-    fun getLowestRedFoundation(): Int{
+
+    fun getLowestRedFoundation(): Int {
         var redCounter = 0
         var lowestFoundation = 0
         for (foundation in gameState.foundations) {
@@ -341,6 +342,7 @@ class GameStateController {
             lowestFoundation
         }
     }
+
 
     fun movesAsString(): String {
         var resultString = ""
