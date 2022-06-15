@@ -16,15 +16,15 @@ import com.google.android.material.textfield.TextInputLayout
 
 class MovesFragment : Fragment() {
 
-    private var moveText: TextView? = null
+    private lateinit var moveText: TextView
 
-    private var revealedCardText: TextView? = null
+    private lateinit var revealedCardText: TextView
 
-    private var nextButton: Button? = null
+    private lateinit var nextButton: Button
 
-    private var wrongCardButton: Button? = null
+    private lateinit var wrongCardButton: Button
 
-    private var inputField: TextInputLayout? = null
+    private lateinit var inputField: TextInputLayout
 
     // List used for testing
     //private lateinit var moveList: MutableList<Move>
@@ -48,17 +48,19 @@ class MovesFragment : Fragment() {
 
         moveText = view.findViewById(R.id.move_text)
         revealedCardText = view.findViewById(R.id.revealed_card_text)
+        revealedCardText.isVisible = false
 
         inputField = view.findViewById(R.id.input_field)
-        inputField?.isVisible = false
+        inputField.isVisible = false
 
         nextButton = view.findViewById(R.id.open_camera_button)
-        nextButton?.setOnClickListener { getNextMove(view) }
+        nextButton.setOnClickListener { getNextMove(view) }
 
         getNextMove(view)
 
         wrongCardButton = view.findViewById(R.id.wrong_card_button)
-        wrongCardButton?.setOnClickListener { getCardInput(view) }
+        wrongCardButton.isVisible = false
+        wrongCardButton.setOnClickListener { getCardInput(view) }
     }
 
     private fun navigateToCamera(view: View) {
@@ -66,7 +68,7 @@ class MovesFragment : Fragment() {
     }
 
     private fun changeNextMoveText(str: String) {
-        moveText?.text = str
+        moveText.text = str
     }
 
     /**
@@ -90,8 +92,8 @@ class MovesFragment : Fragment() {
      * Change button to navigate to the camera, when there are no more moves to display
      */
     private fun flipButton(view: View) {
-        nextButton?.text = getString(R.string.open_camera)
-        nextButton?.setOnClickListener { navigateToCamera(view) }
+        nextButton.text = getString(R.string.open_camera)
+        nextButton.setOnClickListener { navigateToCamera(view) }
     }
 
     /**
@@ -99,24 +101,24 @@ class MovesFragment : Fragment() {
      */
     private fun getCardInput(view: View) {
 
-        nextButton?.text = getString(R.string.ok)
+        nextButton.text = getString(R.string.ok)
 
-        inputField?.isVisible = true
+        inputField.isVisible = true
 
-        nextButton?.setOnClickListener {
-            val card = inputField?.editText?.text.toString()
+        nextButton.setOnClickListener {
+            val card = inputField.editText?.text.toString()
 
             // If nothing has been input, do nothing
             if (card != "") {
 
                 //TODO: Do something with the card
-                revealedCardText?.text = card
+                revealedCardText.text = card
 
-                inputField?.isVisible = false
-                nextButton?.text = getString(R.string.next_move)
+                inputField.isVisible = false
+                nextButton.text = getString(R.string.next_move)
 
                 // Since card input will only happen after taking a photo, get the next move
-                nextButton?.setOnClickListener {
+                nextButton.setOnClickListener {
                     getNextMove(view)
                 }
             }
@@ -124,6 +126,8 @@ class MovesFragment : Fragment() {
     }
 
     fun changeLastRevealedCard(card: String){
-        revealedCardText?.text = card
+        wrongCardButton.isVisible = true
+        revealedCardText.isVisible = true
+        revealedCardText.text = card
     }
 }
