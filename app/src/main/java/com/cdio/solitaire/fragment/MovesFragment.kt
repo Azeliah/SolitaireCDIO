@@ -126,6 +126,7 @@ class MovesFragment : Fragment() {
     }
 
     fun changeLastRevealedCard(card: String){
+        //TODO: Find out how to check what card has been revealed(Maybe variable in GameStateController)
         wrongCardButton.isVisible = true
         revealedCardText.isVisible = true
         revealedCardText.text = card
