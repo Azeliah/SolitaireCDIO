@@ -11,6 +11,7 @@ import androidx.core.view.isVisible
 import androidx.navigation.Navigation
 import com.cdio.solitaire.R
 import com.cdio.solitaire.controller.GameStateController
+import com.cdio.solitaire.model.*
 import com.google.android.material.textfield.TextInputLayout
 
 class MovesFragment : Fragment() {
@@ -25,6 +26,9 @@ class MovesFragment : Fragment() {
 
     private var inputField: TextInputLayout? = null
 
+    // List used for testing
+    //private lateinit var moveList: MutableList<Move>
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -34,6 +38,12 @@ class MovesFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+
+        // Add moves to test list
+//        moveList = mutableListOf(Move(MoveType.MOVE_FROM_FOUNDATION, GameStateController.gameState.tableaux[0], GameStateController.gameState.tableaux[5], Card(1, Rank.FOUR, Suit.CLUBS)))
+//        moveList.add(Move(MoveType.MOVE_FROM_FOUNDATION, GameStateController.gameState.tableaux[1], GameStateController.gameState.tableaux[3], Card(2, Rank.ACE, Suit.DIAMONDS)))
+//        moveList.add(Move(MoveType.MOVE_FROM_FOUNDATION, GameStateController.gameState.tableaux[3], GameStateController.gameState.tableaux[1], Card(3, Rank.TEN, Suit.HEARTS), Card(3, Rank.TEN, Suit.HEARTS)))
+
         super.onViewCreated(view, savedInstanceState)
 
         moveText = view.findViewById(R.id.move_text)
@@ -43,15 +53,15 @@ class MovesFragment : Fragment() {
         inputField?.isVisible = false
 
         nextButton = view.findViewById(R.id.open_camera_button)
-        nextButton?.setOnClickListener { (navigateToCamera(view)) }
+        nextButton?.setOnClickListener { getNextMove(view) }
+
+        getNextMove(view)
 
         wrongCardButton = view.findViewById(R.id.wrong_card_button)
         wrongCardButton?.setOnClickListener { getCardInput(view) }
     }
 
     private fun navigateToCamera(view: View) {
-        nextButton?.text = getString(R.string.next_move)
-        nextButton?.setOnClickListener { getNextMove(view) }
         Navigation.findNavController(view).navigate(R.id.action_moves_to_camera)
     }
 
@@ -59,21 +69,34 @@ class MovesFragment : Fragment() {
         moveText?.text = str
     }
 
+    /**
+     * Get next move from moveQueue, and display it. If camera is needed, change button function
+     */
     private fun getNextMove(view: View) {
         val nextMove = GameStateController.getLastMove()
-        changeNextMoveText(nextMove.toStringDanish())
 
-        if (nextMove.cardToUpdate == null) {
+        // Use this when testing
+//        val nextMove = moveList[0]
+//        moveList.removeAt(0)
+
+        changeNextMoveText(nextMove.toString())
+
+        if (nextMove.cardToUpdate != null || nextMove.moveType == MoveType.DEAL_CARDS) {
             flipButton(view)
         }
     }
 
+    /**
+     * Change button to navigate to the camera, when there are no more moves to display
+     */
     private fun flipButton(view: View) {
         nextButton?.text = getString(R.string.open_camera)
         nextButton?.setOnClickListener { navigateToCamera(view) }
     }
 
-    // If a card can't be recognized, make the user input the card
+    /**
+     * Get user input, to change a card
+     */
     private fun getCardInput(view: View) {
 
         nextButton?.text = getString(R.string.ok)
@@ -98,5 +121,9 @@ class MovesFragment : Fragment() {
                 }
             }
         }
+    }
+
+    fun changeLastRevealedCard(card: String){
+        revealedCardText?.text = card
     }
 }
