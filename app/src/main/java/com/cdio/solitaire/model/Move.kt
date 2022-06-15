@@ -36,7 +36,7 @@ class Move(
             MoveType.MOVE_STACK, MoveType.MOVE_FROM_TALON, MoveType.MOVE_FROM_FOUNDATION -> "Move " + sourceCard!!.toString() + " to " + getCardStackName(
                 targetStack!!.stackID
             ) + targetStack!!.stackID
-            MoveType.MOVE_TO_FOUNDATION -> "Move " + sourceCard!!.toString() + "to foundation"
+            MoveType.MOVE_TO_FOUNDATION -> "Move " + sourceCard!!.toString() + " to foundation"
             MoveType.DRAW_STOCK -> "Draw cards from stock"
             MoveType.FLIP_TALON -> "Flip talon"
             MoveType.DEAL_CARDS -> "Deal Cards"
