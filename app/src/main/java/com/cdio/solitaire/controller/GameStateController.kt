@@ -211,13 +211,6 @@ class GameStateController {
     private fun getFoundation(suit: Suit): CardStack {
         var foundation: CardStack? = null
         for (stack in gameState.foundations) {
-            println("in getfoundation")
-            println(stack.size)
-            if(stack.tail != null) {
-                println(stack.tail!!.suit)
-                //println(suit)
-                println(stack.tail!!.rank)
-            }
             if (stack.tail == null) {
                 foundation = stack
                 break
@@ -234,10 +227,9 @@ class GameStateController {
      * Assesses whether a move to foundation is legal.
      */
     private fun verifyMoveToFoundation(move: Move): Boolean {
-        println(move.sourceCard!!.rank)
-        println(move.sourceCard.suit)
+
         return if (move.sourceStack!!.tail != move.sourceCard) false
-        else when (move.sourceCard.rank.ordinal) {
+        else when (move.sourceCard!!.rank.ordinal) {
             1 -> {
                 move.targetStack = getFoundation(move.sourceCard.suit)
                 true
@@ -285,6 +277,8 @@ class GameStateController {
             MoveType.FLIP_TALON -> verifyFlipTalon()
             MoveType.DRAW_STOCK -> verifyDrawStock()
             MoveType.DEAL_CARDS -> throw Exception("DEAL_CARDS is reserved for initialization.")
+            MoveType.GAME_LOST -> true
+            MoveType.GAME_WON -> true
         }
     }
 

@@ -44,6 +44,13 @@ class MoveQueue(var gameState: GameState) {
     fun clearMoveQueue() {
         head = null
         tail = null
+        size = 0
         moveSequenceValue = 0
+    }
+    fun isEmpty(): Boolean {
+        if(this.size==0){
+            true
+        }
+        return false
     }
 }

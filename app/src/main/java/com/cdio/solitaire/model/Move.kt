@@ -8,7 +8,9 @@ enum class MoveType {
     MOVE_FROM_FOUNDATION,
     MOVE_FROM_TALON,
     FLIP_TALON,
-    DRAW_STOCK
+    DRAW_STOCK,
+    GAME_WON,
+    GAME_LOST
 }
 
 

@@ -169,6 +169,17 @@ class CardStack(val stackID: Int) {
             }
         }
     }
+    fun checkHiddenCards(): Int{
+        var hiddenCardsInStack = 0
+        var temp = this.head
+        while(temp!=null){
+            if(temp.rank==Rank.NA||temp.suit==Suit.NA){
+                hiddenCardsInStack++
+            }
+        temp=temp.next
+        }
+        return hiddenCardsInStack
+    }
 
     override fun toString(): String {
         var ret = "["
