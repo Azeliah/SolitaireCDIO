@@ -73,7 +73,7 @@ class StrategyController {
         }
     }
 
-    fun playMove(): Move? { // Used for testing purposes, should be replaced with
+    fun playMove(): Move { // Used for testing purposes, should be replaced with
         // whatever method returns the next move to print.
         return decideMove()
     }
@@ -90,10 +90,10 @@ class StrategyController {
      * @return Move necessary for discovering more of stock.
      */
     private fun discoverStock(): Move {
-        println("discoverStock called")
+        // println("discoverStock called")
 
-        val stock = gsc.gameState.stock
-        val talon = gsc.gameState.talon
+        // val stock = gsc.gameState.stock
+        // val talon = gsc.gameState.talon
 
         // Try to draw from stock
         val move = Move(MoveType.DRAW_STOCK)
@@ -244,7 +244,6 @@ class StrategyController {
                 }
             }
             //Possible moves from talon to a column.
-
             moveQueue = MoveQueue(gsc.gameState)
             move = Move(
                 MoveType.MOVE_FROM_TALON,
@@ -295,7 +294,6 @@ class StrategyController {
                 }
             }
         }
-
 
         val conditionalMoveQueue = checkConditionalMoveFromTalon()
         if (conditionalMoveQueue != null) {

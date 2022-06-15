@@ -1,6 +1,5 @@
 package com.cdio.solitaire
 
-import android.util.Log
 import com.cdio.solitaire.controller.StrategyController
 import com.cdio.solitaire.model.*
 import org.junit.Test
@@ -61,7 +60,7 @@ class DataSource {
     }
 
     fun updateFirstLayer(): Array<Card?> {
-        val cards = Array<Card?>(7) { _ -> null}
+        val cards = Array<Card?>(7) { _ -> null }
         for (i in tableaux.indices) {
             cards[i] = tableaux[i].popCard()
         }
@@ -85,7 +84,8 @@ class StrategySimulation {
                 strategyController.gsc.gameState.tableaux[i].hiddenCards--
             }
             var gameFinished = false
-            var rounds = 800
+            var rounds = 500
+            val moveCounter = Array(MoveType.values().size) { _ -> 0 }
             while (!gameFinished && rounds != 0) {
                 rounds--
                 val moveToPlay = strategyController.nextMove()
@@ -101,12 +101,15 @@ class StrategySimulation {
                     else -> {}
                 }
 
+                moveCounter[moveToPlay.moveType.ordinal]++
+
                 // Is a card discovered? Get its values.
                 if (moveToPlay.cardToUpdate != null) {
                     val discoveredCard = dataSource.discoverCard(moveToPlay.cardToUpdate!!.stackID)
                     moveToPlay.cardToUpdate!!.rank = discoveredCard.rank
                     moveToPlay.cardToUpdate!!.suit = discoveredCard.suit
-                    println("New card is $discoveredCard")
+                    // println("New card is $discoveredCard")
+                    strategyController.gsc.gameState.talon.hiddenCards--
                 }
 
                 if(moveToPlay.moveType==MoveType.GAME_WON){
