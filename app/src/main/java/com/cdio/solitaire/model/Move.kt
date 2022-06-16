@@ -33,21 +33,11 @@ class Move(
 
     override fun toString(): String {
         return when (moveType) {
-            MoveType.MOVE_STACK, MoveType.MOVE_FROM_TALON, MoveType.MOVE_FROM_FOUNDATION -> "Move " + sourceCard!!.toString() + " to " + getCardStackName(
-                targetStack!!.stackID
-            ) + targetStack!!.stackID
+            MoveType.MOVE_STACK, MoveType.MOVE_FROM_TALON, MoveType.MOVE_FROM_FOUNDATION -> "Move " + sourceCard!!.toString() + " to tableaux_" + targetStack!!.stackID
             MoveType.MOVE_TO_FOUNDATION -> "Move " + sourceCard!!.toString() + " to foundation"
             MoveType.DRAW_STOCK -> "Draw cards from stock"
             MoveType.FLIP_TALON -> "Flip talon"
             MoveType.DEAL_CARDS -> "Deal Cards"
-        }
-    }
-
-    private fun getCardStackName(id: Int): String {
-        return when (id) {
-            in 1..7 -> "Tableaux"
-            in 8..11 -> "Foundation"
-            else -> ""
         }
     }
 }
