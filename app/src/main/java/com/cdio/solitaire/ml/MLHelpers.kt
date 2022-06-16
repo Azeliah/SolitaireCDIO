@@ -9,10 +9,9 @@ import android.graphics.drawable.Drawable
 import android.util.Log
 import com.cdio.solitaire.R
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
-import org.tensorflow.lite.support.common.ops.NormalizeOp
 
 
-class MLHelpers{
+class MLHelpers {
 
     //private val models = ModelPredictions()
     // TODO: The min confidence should be at least 90-95,
@@ -20,12 +19,24 @@ class MLHelpers{
     private val minConfidence = 0.85
 
     /**
+     * Used to calculated confidences.
+     */
+    fun softMax(outputValues: FloatArray): Array<Float> {
+        val exponentiatedValues = Array(outputValues.size) { i -> kotlin.math.exp(outputValues[i]) }
+        var sum = 0.0.toFloat()
+        for (float in exponentiatedValues)
+            sum += float
+        for (index in exponentiatedValues.indices)
+            exponentiatedValues[index] = exponentiatedValues[index] / sum
+        return  exponentiatedValues
+    }
+
+    /**
      * Returns -1 if the confidence is NOT high enough
      * Else returns the index of the card.
      */
-    fun getMaxIndex(tensorBufferOutput: TensorBuffer) : Int{
-        //val normalizeOp = NormalizeOp()
-        val confidences = tensorBufferOutput.floatArray
+    fun getMaxIndex(tensorBufferOutput: TensorBuffer): Int {
+        val confidences = softMax(tensorBufferOutput.floatArray)
         var maxIndex = -1
         var maxConfidence = 0.0.toFloat()
 
