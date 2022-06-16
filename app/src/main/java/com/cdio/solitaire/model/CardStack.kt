@@ -7,7 +7,6 @@ class CardStack(val stackID: Int) {
     var head: Card? = null
     var tail: Card? = null
     var size: Int = 0
-    var hiddenCards: Int = 0
 
     /**
      * Standard push, pushing an element to the tail of the stack
@@ -59,7 +58,6 @@ class CardStack(val stackID: Int) {
         head = null
         tail = null
         size = 0
-        hiddenCards = 0
     }
 
     /**
@@ -141,7 +139,6 @@ class CardStack(val stackID: Int) {
             head = reversedStack.head
             size += reversedStack.size
         }
-        hiddenCards += stack.hiddenCards
         stack.resetCardStack()
     }
 
@@ -159,7 +156,7 @@ class CardStack(val stackID: Int) {
      * Gets the first instance of a revealed card in a stack.
      */
     fun getStackHighCard(): Card? {
-        return when (hiddenCards) {
+        return when (hiddenCards()) {
             0 -> head // Can be null
             else -> {
                 var card = tail
@@ -172,15 +169,17 @@ class CardStack(val stackID: Int) {
             }
         }
     }
-    fun checkHiddenCards(): Int{
+
+    fun hiddenCards(): Int {
         var hiddenCardsInStack = 0
-        var temp = this.head
-        while(temp!=null){
-            if(temp.rank==Rank.NA||temp.suit==Suit.NA){
+
+        var cursor = this.head
+        while (cursor != null) {
+            if (cursor.rank == Rank.NA || cursor.suit == Suit.NA)
                 hiddenCardsInStack++
-            }
-        temp=temp.next
+            cursor = cursor.next
         }
+
         return hiddenCardsInStack
     }
 

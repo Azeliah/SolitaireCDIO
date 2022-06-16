@@ -1,7 +1,6 @@
 package com.cdio.solitaire.controller
 
 import com.cdio.solitaire.model.*
-import java.lang.Exception
 import java.util.*
 import kotlin.Comparator
 
@@ -35,7 +34,7 @@ class StrategyController {
 
     fun decideMove(): Move {
         stockDiscovered =
-            gsc.gameState.stock.checkHiddenCards() + gsc.gameState.talon.checkHiddenCards() == 0
+            gsc.gameState.stock.hiddenCards() + gsc.gameState.talon.hiddenCards() == 0
         var stockMove: Move? = null
 
         if (!stockDiscovered) {
@@ -150,7 +149,7 @@ class StrategyController {
         for (column in gsc.gameState.tableaux) {
             if (column.size == 0) {
                 emptyColumnAndKingCounter++
-            } else if (column.checkHiddenCards() == 0 && column.getStackHighCard()!!.rank.ordinal == 13) {
+            } else if (column.hiddenCards() == 0 && column.getStackHighCard()!!.rank.ordinal == 13) {
                 emptyColumnAndKingCounter++
             }
         }
@@ -194,7 +193,7 @@ class StrategyController {
                                     conditionalCard
                                 )
                             val moveQueue = MoveQueue(gsc.gameState)
-                            moveQueue.moveSequenceValue = 23 + conditionalColumn.checkHiddenCards()
+                            moveQueue.moveSequenceValue = 23 + conditionalColumn.hiddenCards()
                             moveQueue.push(move1)
                             moveQueue.push(move2)
                             return moveQueue
@@ -287,9 +286,9 @@ class StrategyController {
                         moves.add(moveQueue)
                         //moveQueue.clearMoveQueue()
                     } else {
-                        if (column.checkHiddenCards() > 0) {
+                        if (column.hiddenCards() > 0) {
                             val moveQueue = MoveQueue(gsc.gameState)
-                            moveQueue.moveSequenceValue = 1 + column.checkHiddenCards()
+                            moveQueue.moveSequenceValue = 1 + column.hiddenCards()
                             moveQueue.push(move)
                             moves.add(moveQueue)
                             //moveQueue.clearMoveQueue()
@@ -327,7 +326,7 @@ class StrategyController {
             }
             for (targetColumn in gsc.gameState.tableaux) {
                 //Possible moves between columns
-                if ((column.size != 0 && column.checkHiddenCards() > 0) || (column.size == 1 && column.getStackHighCard()!!.rank != Rank.KING)) {
+                if ((column.size != 0 && column.hiddenCards() > 0) || (column.size == 1 && column.getStackHighCard()!!.rank != Rank.KING)) {
                     val move =
                         Move(MoveType.MOVE_STACK, column, targetColumn, column.getStackHighCard())
                     if (gsc.isMoveLegal(move)) {
@@ -343,7 +342,7 @@ class StrategyController {
                             moves.add(moveQueue)
                         } else if (column.getStackHighCard()!!.rank.ordinal != 13) { // We do not want to move a king here.
                             val moveQueue = MoveQueue(gsc.gameState)
-                            moveQueue.moveSequenceValue = 30 + 2 * column.checkHiddenCards() //30-42
+                            moveQueue.moveSequenceValue = 30 + 2 * column.hiddenCards() //30-42
                             moveQueue.push(move)
                             moves.add(moveQueue)
                         }

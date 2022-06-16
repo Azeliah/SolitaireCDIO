@@ -30,7 +30,6 @@ class DataSource {
             for (j in i..6) tableaux[j].pushCard(deck.popCard())
         }
         stock.pushStack(deck)
-        stock.hiddenCards = stock.size
     }
 
     private fun createOrderedDeck(): Array<Card> {
@@ -81,7 +80,6 @@ class StrategySimulation {
             for (i in cards.indices) {
                 strategyController.gsc.gameState.tableaux[i].tail!!.rank = cards[i]!!.rank
                 strategyController.gsc.gameState.tableaux[i].tail!!.suit = cards[i]!!.suit
-                strategyController.gsc.gameState.tableaux[i].hiddenCards--
             }
             var gameFinished = false
             var rounds = 500
@@ -109,13 +107,12 @@ class StrategySimulation {
                     moveToPlay.cardToUpdate!!.rank = discoveredCard.rank
                     moveToPlay.cardToUpdate!!.suit = discoveredCard.suit
                     // println("New card is $discoveredCard")
-                    strategyController.gsc.gameState.talon.hiddenCards--
                 }
 
-                if(moveToPlay.moveType==MoveType.GAME_WON){
+                if (moveToPlay.moveType == MoveType.GAME_WON) {
                     strategyController.gameIsWon = true
                     gameFinished = true
-                } else if(moveToPlay.moveType == MoveType.GAME_LOST){
+                } else if (moveToPlay.moveType == MoveType.GAME_LOST) {
                     gameFinished = true
                 }
             }
@@ -131,10 +128,11 @@ class StrategySimulation {
                 println(strategyController.gsc.movesAsString() + "\b")
             }
         }
-        if(gamesWon>0){
-            println("Games won: $gamesWon")
-            println("Win percentage: " + ((gamesWon.toFloat()/iterations.toFloat())*100))
-            println("Average moves made: " + (movesMade/gamesWon).toString())
+
+        println("Games won: $gamesWon")
+        if (gamesWon > 0) {
+            println("Win percentage: " + ((gamesWon.toFloat() / iterations.toFloat()) * 100))
+            println("Average moves made: " + (movesMade / gamesWon).toString())
         }
 
     }

@@ -32,7 +32,6 @@ class GameStateController {
             for (j in i..6) tableaux[j].pushCard(deck.popCard())
         }
         stock.pushStack(deck)
-        stock.hiddenCards = stock.size
     }
 
     /**
@@ -74,10 +73,6 @@ class GameStateController {
         repeat(3) {
             val cardToPush = gameState.stock.popCard()
             gameState.talon.pushCard(cardToPush)
-            if (cardToPush.rank == Rank.NA) {
-                gameState.talon.hiddenCards++
-                gameState.stock.hiddenCards--
-            }
         }
         return cardToUpdate(gameState.talon)
     }
