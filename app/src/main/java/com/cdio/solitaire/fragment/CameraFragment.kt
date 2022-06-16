@@ -300,8 +300,8 @@ class CameraFragment : Fragment(), SensorEventListener {
                 val suitArr = solitaireAnalysis.cropIcon(bitmapArr, 5,58,30,37)
                 val date = System.currentTimeMillis().toString()
                 for (i in bitmapArr.indices) {
-                    val rank = modelPredict.predictRank(rankArr[i],context)
-                    val suit = modelPredict.predictSuit(suitArr[i],context)
+                    val rank = modelPredict.predictRank(rankArr[i],context) // Index value corresponds to Rank enum
+                    val suit = modelPredict.predictSuit(suitArr[i],context) // Index value corresponds to Suit enum
 
                     // Todo remove when no longer needed or make debug only
                     saveToStorage(date, i , bitmapArr[i], rank, suit)
@@ -327,7 +327,7 @@ class CameraFragment : Fragment(), SensorEventListener {
             }
             val file = File(directory, timeStamp + "_" + index + "_" + suit + "_" + rank + ".jpeg")
             if (!file.exists()) {
-                file.createNewFile();
+                file.createNewFile()
             }
             var fos: FileOutputStream? = null
             try {
