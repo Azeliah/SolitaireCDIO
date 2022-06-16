@@ -173,7 +173,9 @@ class GameStateController {
      * Assesses whether a stack move is legal.
      */
     private fun verifyMoveStack(move: Move): Boolean =
-        if (move.moveType == MoveType.MOVE_FROM_TALON || move.sourceStack != null && move.targetStack != null) {
+        if (move.sourceStack == move.targetStack) {
+            false
+        } else if (move.moveType == MoveType.MOVE_FROM_TALON || move.sourceStack != null && move.targetStack != null) {
             tableauOrdering(move.sourceCard!!, move.targetStack!!)
         } else throw Exception("IllegalMoveError: You need to specify a sourceStack and targetStack.")
 
@@ -346,6 +348,12 @@ class GameStateController {
     }
 
     fun isGameWon(): Boolean { // Might be useful in general??
+        for(foundation in gameState.foundations){
+            foundation.tail?.let {
+                print("${it.suit}: ")
+            }
+            println("${foundation.size}")
+        }
         for (foundation in gameState.foundations) if (foundation.size != 13) return false
         return true
     }

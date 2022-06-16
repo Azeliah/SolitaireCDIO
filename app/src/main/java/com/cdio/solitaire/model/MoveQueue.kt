@@ -47,10 +47,10 @@ class MoveQueue(var gameState: GameState) {
         size = 0
         moveSequenceValue = 0
     }
+
     fun isEmpty(): Boolean {
-        if(this.size==0){
-            true
-        }
-        return false
+        if (this.size < 0)
+            throw Exception("Size is less than zero")
+        return this.size == 0
     }
 }
