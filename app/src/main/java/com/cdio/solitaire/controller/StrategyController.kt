@@ -33,6 +33,7 @@ class StrategyController {
         return move
     }
 
+
     fun decideMove(): Move {
         stockDiscovered =
             gsc.gameState.stock.checkHiddenCards() + gsc.gameState.talon.checkHiddenCards() == 0
@@ -145,7 +146,11 @@ class StrategyController {
         }
         return false
     }
-    fun getEmptyColumnsPlusColumnsWithKings(): Int {
+    /**
+     * gets the total of empty columns plus columns where a king is bottom card in the stack ( No hidden cards).
+     * @return Int , amount of empty columns+king columns.
+     */
+    private fun getEmptyColumnsPlusColumnsWithKings(): Int {
         var emptyColumnAndKingCounter = 0
         for (column in gsc.gameState.tableaux) {
             if (column.size == 0) {
