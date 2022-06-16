@@ -56,8 +56,6 @@ class MovesFragment : Fragment() {
         nextButton = view.findViewById(R.id.open_camera_button)
         nextButton.setOnClickListener { getNextMove(view) }
 
-        getNextMove(view)
-
         wrongCardButton = view.findViewById(R.id.wrong_card_button)
         wrongCardButton.isVisible = false
         wrongCardButton.setOnClickListener { getCardInput(view) }
@@ -77,7 +75,7 @@ class MovesFragment : Fragment() {
     private fun getNextMove(view: View) {
         val nextMove = GameStateController.getLastMove()
 
-        wrongCardButton.isVisible = true
+        wrongCardButton.isVisible = false
 
         // Use this when testing
 //        val nextMove = moveList[0]

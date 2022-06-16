@@ -17,8 +17,9 @@ class Move(
     val sourceStack: CardStack? = null,
     var targetStack: CardStack? = null,
     val sourceCard: Card? = null,
+    val cardToUpdateParam: Card? = null
 ) { // Needed for toString() method, and for checking validity
-    var cardToUpdate: Card? = null
+    var cardToUpdate: Card? = cardToUpdateParam
     var prev: Move? = null
     var next: Move? = null
     fun toStringDanish(): String {
