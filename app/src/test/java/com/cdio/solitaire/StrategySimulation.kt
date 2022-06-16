@@ -70,7 +70,7 @@ class DataSource {
 class StrategySimulation {
     @Test
     fun simulateGame() {
-        val iterations = 100
+        val iterations = 10
         var gamesWon = 0
         var movesMade = 0 // in winning games this is incremented
         repeat(iterations) {
@@ -82,7 +82,7 @@ class StrategySimulation {
                 strategyController.gsc.gameState.tableaux[i].tail!!.suit = cards[i]!!.suit
             }
             var gameFinished = false
-            var rounds = 500
+            var rounds = 200
             val moveCounter = Array(MoveType.values().size) { _ -> 0 }
             while (!gameFinished && rounds != 0) {
                 rounds--
@@ -96,6 +96,10 @@ class StrategySimulation {
                     MoveType.MOVE_FROM_TALON -> dataSource.talon.popCard()
                     MoveType.DRAW_STOCK -> dataSource.drawStock()
                     MoveType.FLIP_TALON -> dataSource.flipTalon()
+                    MoveType.MOVE_TO_FOUNDATION -> {
+                        if (moveToPlay.sourceStack!!.stackID == 0)
+                            dataSource.talon.popCard()
+                    }
                     else -> {}
                 }
 

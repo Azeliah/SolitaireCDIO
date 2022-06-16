@@ -19,6 +19,11 @@ class Move(val moveType: MoveType,val sourceStack: CardStack? =null,var targetSt
     var prev:Move?=null
     var next:Move?=null
     // TODO: Make toString() method and pictureNeeded() method
+
+    override fun toString(): String {
+        return "{ moveType: ${moveType.toString()}, sourceStack: ${sourceStack.toString()}, targetStack: ${targetStack.toString()}, sourceCard: ${sourceCard.toString()}, cardToUpdate: ${cardToUpdate.toString()}}"
+    }
+
     fun toStringDanish(): String {
         return when (moveType) {
             MoveType.MOVE_STACK, MoveType.MOVE_FROM_TALON, MoveType.MOVE_FROM_FOUNDATION -> sourceCard!!.toStringDanish() + "-" + targetStack!!.stackID + ","

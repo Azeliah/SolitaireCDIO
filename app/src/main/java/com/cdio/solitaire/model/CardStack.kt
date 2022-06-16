@@ -38,15 +38,14 @@ class CardStack(val stackID: Int) {
                 poppedCard!!.prev = null
                 head = null
                 tail = null
-                size--
             }
             else -> {
                 tail = poppedCard!!.prev
                 tail!!.next = null
                 poppedCard.prev = null
-                size--
             }
         }
+        size--
         poppedCard.stackID = -1
         return poppedCard
     }

@@ -1,6 +1,7 @@
 package com.cdio.solitaire.controller
 
 import com.cdio.solitaire.model.*
+import java.lang.Exception
 import java.util.*
 import kotlin.Comparator
 
@@ -11,15 +12,14 @@ import kotlin.Comparator
 class StrategyController {
     val gsc = GameStateController()
     private val compareMoveQueue: Comparator<MoveQueue> = compareBy { 0 - it.moveSequenceValue }
-    private lateinit var listOfMoves: PriorityQueue<MoveQueue>
-    private var currentMoveQueue: MoveQueue? = null
+    private var currentMoveQueue: MoveQueue? = null;
     var gameIsWon = false
-    private var stockDiscovered = false
-    private var talonCounter: Int = 0
 
     fun nextMove(): Move {
 
         val move = decideMove()
+        println(move)
+
         //if (move.sourceCard != null && move.targetStack != null) {
         //    println("Moving Card: " + move.sourceCard!!.toStringDanish() + " to " + move.targetStack!!.tail!!.toStringDanish() + " with the movetype: " + move.moveType)
         //} else {
@@ -33,49 +33,29 @@ class StrategyController {
     }
 
 
-    fun decideMove(): Move {
-        stockDiscovered =
-            gsc.gameState.stock.hiddenCards() + gsc.gameState.talon.hiddenCards() == 0
-        var stockMove: Move? = null
+    private fun decideMove(): Move {
+        if (gsc.isGameWon())
+            return Move(MoveType.GAME_WON)
 
-        if (!stockDiscovered) {
-            if ((gsc.gameState.stock.size + gsc.gameState.talon.size) % 3 != 0)
+        if ((gsc.gameState.talon.hiddenCards() + gsc.gameState.stock.hiddenCards()) > 0 && currentMoveQueue != null && currentMoveQueue!!.size <= 0) {
+            if ((gsc.gameState.talon.size + gsc.gameState.stock.size) % 3 != 0)
                 return discoverStock()
         }
 
-        var cardsInFoundation = 0
-        for (foundation in gsc.gameState.foundations) {
-            cardsInFoundation += foundation.size
-        }
-        println("Currently " + cardsInFoundation + " cards in foundation.")
-        if (cardsInFoundation == 51) {
-            gameIsWon = true
-            return Move(MoveType.GAME_WON)
-        }
-
-        if (currentMoveQueue == null || currentMoveQueue!!.size == 0) {
-            //val temp = getAllMoves(compareMoveQueue)
-            currentMoveQueue = MoveQueue(gsc.gameState)
-            val tempMove = getAllMoves(compareMoveQueue).poll()?.pop()
-            if (tempMove != null) {
-                currentMoveQueue!!.push(tempMove)
+        if (currentMoveQueue == null || currentMoveQueue!!.isEmpty()) {
+            val moves = getAllMoves()
+            if(moves.isEmpty()){
+                return Move(MoveType.GAME_LOST)
             }
+            print("Generating new moves: ")
+            for (foo in moves)
+                print("(size: ${foo.size}, value: ${foo.moveSequenceValue}) ")
+            println()
+
+            currentMoveQueue = moves.poll()
         }
 
-        if (currentMoveQueue!!.size > 0) {
-            //listOfMoves.clear()
-            listOfMoves = getAllMoves(compareMoveQueue)
-            currentMoveQueue = listOfMoves.poll()
-            //listOfMoves.clear()
-            return currentMoveQueue!!.pop()
-        } else {
-            return Move(MoveType.GAME_LOST)
-        }
-    }
-
-    fun playMove(): Move { // Used for testing purposes, should be replaced with
-        // whatever method returns the next move to print.
-        return decideMove()
+        return currentMoveQueue!!.pop()
     }
 
     /**
@@ -145,6 +125,7 @@ class StrategyController {
         }
         return false
     }
+
     /**
      * gets the total of empty columns plus columns where a king is bottom card in the stack ( No hidden cards).
      * @return Int , amount of empty columns+king columns.
@@ -210,6 +191,7 @@ class StrategyController {
         }
         return null
     }
+
     fun getAGoodMoveQueueFromTalonAndStock() {
         var foundAGoodMoveInTalon = false
         var distanceFromHeadTalon = 0
@@ -230,7 +212,7 @@ class StrategyController {
                     //TempTalon to Foundation is now a good move.
                 }
                 tempTalonCard = tempTalonCard.next
-                distanceFromHeadTalon ++
+                distanceFromHeadTalon++
             }
         }
         if (!foundAGoodMoveInTalon) {
@@ -246,7 +228,7 @@ class StrategyController {
                         break
                     }
                     tempStockCard = tempStockCard.next
-                    distanceFromHeadStock ++
+                    distanceFromHeadStock++
                 }
             }
         }
@@ -256,10 +238,10 @@ class StrategyController {
      *This puts a sequence of moves into a MoveQueue, and then into a PriorityQueue and compares them by moveSequenceValue.
      * Note that it is possible for a MoveQueue to only have one element.
      */
-    private fun getAllMoves(comparemoveQueue: Comparator<MoveQueue>): PriorityQueue<MoveQueue> {
+    private fun getAllMoves(): PriorityQueue<MoveQueue> {
         //var move: Move?
         //var moveQueue: MoveQueue
-        val moves: PriorityQueue<MoveQueue> = PriorityQueue<MoveQueue>(comparemoveQueue)
+        val moves: PriorityQueue<MoveQueue> = PriorityQueue<MoveQueue>(compareMoveQueue)
         //Possible moves from Talon to foundation.
         val move = Move(
             MoveType.MOVE_TO_FOUNDATION,
@@ -272,7 +254,13 @@ class StrategyController {
                 moveQueue.moveSequenceValue = 49
                 moveQueue.push(move)
                 moves.add(moveQueue)
-                //moveQueue.clearMoveQueue()
+
+            } else {
+                val moveQueue = MoveQueue(gsc.gameState)
+                moveQueue.moveSequenceValue = 10
+                moveQueue.push(move)
+                moves.add(moveQueue)
+
             }
         }
         for (column in gsc.gameState.tableaux) {
@@ -293,7 +281,7 @@ class StrategyController {
                     } else {
                         if (column.hiddenCards() > 0) {
                             val moveQueue = MoveQueue(gsc.gameState)
-                            moveQueue.moveSequenceValue = 1 + column.hiddenCards()
+                            moveQueue.moveSequenceValue = 7 + column.hiddenCards()
                             moveQueue.push(move)
                             moves.add(moveQueue)
                             //moveQueue.clearMoveQueue()
@@ -319,14 +307,15 @@ class StrategyController {
                     moves.add(moveQueue)
                 } else if (gsc.gameState.talon.tail!!.rank != Rank.KING) { //(gsc.gameState.talon.size + gsc.gameState.stock.size) % 3 == 0
                     val moveQueue = MoveQueue(gsc.gameState)
-                    moveQueue.moveSequenceValue = 7
+                    moveQueue.moveSequenceValue = 12
                     moveQueue.push(move)
                     moves.add(moveQueue)
-                }// else {
-                //    moveQueue.moveSequenceValue = 10
-                //    moveQueue.push(move)
-                //    moves.add(moveQueue)
-                //}
+                } else {
+                    val moveQueue = MoveQueue(gsc.gameState)
+                    moveQueue.moveSequenceValue = 10
+                    moveQueue.push(move)
+                    moves.add(moveQueue)
+                }
                 //moveQueue.clearMoveQueue()
             }
             for (targetColumn in gsc.gameState.tableaux) {
@@ -345,7 +334,7 @@ class StrategyController {
                             moveQueue.moveSequenceValue = 44
                             moveQueue.push(move)
                             moves.add(moveQueue)
-                        } else if (column.getStackHighCard()!!.rank.ordinal != 13) { // We do not want to move a king here.
+                        } else if (column.getStackHighCard()!!.rank != Rank.KING) { // We do not want to move a king here.
                             val moveQueue = MoveQueue(gsc.gameState)
                             moveQueue.moveSequenceValue = 30 + 2 * column.hiddenCards() //30-42
                             moveQueue.push(move)
