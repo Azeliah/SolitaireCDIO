@@ -77,6 +77,8 @@ class MovesFragment : Fragment() {
     private fun getNextMove(view: View) {
         val nextMove = GameStateController.getLastMove()
 
+        wrongCardButton.isVisible = true
+
         // Use this when testing
 //        val nextMove = moveList[0]
 //        moveList.removeAt(0)
