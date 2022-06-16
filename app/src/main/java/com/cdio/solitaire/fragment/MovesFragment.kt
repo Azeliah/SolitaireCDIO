@@ -40,9 +40,9 @@ class MovesFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 
         // Add moves to test list
-//        moveList = mutableListOf(Move(MoveType.MOVE_FROM_FOUNDATION, GameStateController.gameState.tableaux[0], GameStateController.gameState.tableaux[5], Card(1, Rank.FOUR, Suit.CLUBS)))
-//        moveList.add(Move(MoveType.MOVE_FROM_FOUNDATION, GameStateController.gameState.tableaux[1], GameStateController.gameState.tableaux[3], Card(2, Rank.ACE, Suit.DIAMONDS)))
-//        moveList.add(Move(MoveType.MOVE_FROM_FOUNDATION, GameStateController.gameState.tableaux[3], GameStateController.gameState.tableaux[1], Card(3, Rank.TEN, Suit.HEARTS), Card(3, Rank.TEN, Suit.HEARTS)))
+//        moveList = mutableListOf(Move(MoveType.MOVE_FROM_TALON, GameStateController.gameState.talon, GameStateController.gameState.tableaux[5], Card(1, Rank.FOUR, Suit.CLUBS)))
+//        moveList.add(Move(MoveType.MOVE_STACK, GameStateController.gameState.tableaux[1], GameStateController.gameState.tableaux[3], Card(2, Rank.ACE, Suit.DIAMONDS)))
+//        moveList.add(Move(MoveType.MOVE_STACK, GameStateController.gameState.tableaux[3], GameStateController.gameState.tableaux[1], Card(3, Rank.TEN, Suit.HEARTS), Card(3, Rank.TEN, Suit.HEARTS)))
 
         super.onViewCreated(view, savedInstanceState)
 
