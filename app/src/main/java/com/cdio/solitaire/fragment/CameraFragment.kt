@@ -295,8 +295,6 @@ class CameraFragment : Fragment(), SensorEventListener {
                 Log.d(TAG, "Success. A complete solitaire game was found!")
 
                 // Todo add code for ML and GameMoves
-
-                // Todo remove when no longer needed or make debug only
                 val modelPredict = ModelPredictions()
                 val rankArr = solitaireAnalysis.cropIcon(bitmapArr, 5,5,30,58)
                 val suitArr = solitaireAnalysis.cropIcon(bitmapArr, 5,58,30,37)
@@ -304,6 +302,8 @@ class CameraFragment : Fragment(), SensorEventListener {
                 for (i in bitmapArr.indices) {
                     val rank = modelPredict.predictRank(rankArr[i],context)
                     val suit = modelPredict.predictSuit(suitArr[i],context)
+
+                    // Todo remove when no longer needed or make debug only
                     saveToStorage(date, i , bitmapArr[i], rank, suit)
                 }
             } else {
@@ -325,7 +325,7 @@ class CameraFragment : Fragment(), SensorEventListener {
             if (!directory.exists()) {
                 directory.mkdir()
             }
-            val file = File(directory, timeStamp + "_" + suit + "_" + rank + ".jpeg")
+            val file = File(directory, timeStamp + "_" + index + "_" + suit + "_" + rank + ".jpeg")
             if (!file.exists()) {
                 file.createNewFile();
             }

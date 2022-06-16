@@ -16,7 +16,7 @@ class MLHelpers {
     //private val models = ModelPredictions()
     // TODO: The min confidence should be at least 90-95,
     //  however its 85 currently so it can be used for test, since the model is not fine tuned yet.
-    private val minConfidence = 0.85
+    private val minConfidence = 0.98
 
     /**
      * Used to calculated confidences.
