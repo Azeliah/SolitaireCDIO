@@ -1,14 +1,11 @@
 package com.cdio.solitaire.fragment
 
-import android.app.ActionBar
-import android.content.Context
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
-import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.navigation.Navigation
 import com.cdio.solitaire.R

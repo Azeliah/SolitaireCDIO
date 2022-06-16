@@ -21,6 +21,9 @@ class MainActivity : AppCompatActivity() {
         // Set always day mode
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
 
+        // Load in OpenCV library
+        System.loadLibrary("opencv_java4");
+
         if (!allPermissionsGranted()) {
             ActivityCompat.requestPermissions(
                 this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS

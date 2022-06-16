@@ -13,11 +13,12 @@ import android.media.Image
 import android.os.Bundle
 import android.os.Environment
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.Button
+import android.util.Size
+import android.view.*
+import android.view.Surface.ROTATION_90
 import android.widget.TextView
+import android.widget.Button
+import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.*
 import androidx.camera.core.Camera
 import androidx.camera.lifecycle.ProcessCameraProvider
@@ -26,7 +27,9 @@ import androidx.fragment.app.Fragment
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.cdio.solitaire.R
 import com.cdio.solitaire.databinding.FragmentCameraBinding
-import com.cdio.solitaire.imageanalysis.CardExtraction
+import com.cdio.solitaire.imageanalysis.CardDataCreationModel
+import com.cdio.solitaire.imageanalysis.SolitaireAnalysisModel
+import com.cdio.solitaire.ml.RankModel
 import org.opencv.android.Utils
 import org.opencv.core.Mat
 import java.io.ByteArrayOutputStream
@@ -59,8 +62,10 @@ class CameraFragment : Fragment(), SensorEventListener {
     /** Blocking camera operations are performed using this executor */
     private lateinit var cameraExecutor: ExecutorService
 
-    // For showing rotation on camera fragment
-    private lateinit var rotationTextView: TextView
+    // For showing rotation and status message on camera fragment
+    private lateinit var xRotationTextView: TextView
+    private lateinit var yRotationTextView: TextView
+    private lateinit var statusMessageTextView: TextView
     private lateinit var sensorManager: SensorManager
     private lateinit var sensor: Sensor
 
@@ -68,7 +73,11 @@ class CameraFragment : Fragment(), SensorEventListener {
         _fragmentCameraBinding = null
         super.onDestroyView()
 
-        activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        // Exit fullscreen mode
+        activity?.let {
+            it.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+            it.window.clearFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)
+        }
 
         // Stop listening to rotation changes
         sensorManager.unregisterListener(this)
@@ -90,29 +99,35 @@ class CameraFragment : Fragment(), SensorEventListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+        // Go into fullscreen mode
+        activity?.let {
+            it.window.addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)
+            (it as AppCompatActivity).supportActionBar?.hide()
+        }
 
         // Initialize our background executor
         cameraExecutor = Executors.newSingleThreadExecutor()
 
         broadcastManager = LocalBroadcastManager.getInstance(view.context)
 
-        rotationTextView = view.findViewById(R.id.rotation_indicator)
+        xRotationTextView = view.findViewById(R.id.rotation_indicator_x)
+        yRotationTextView = view.findViewById(R.id.rotation_indicator_y)
+        statusMessageTextView = view.findViewById(R.id.status_message)
 
         sensorManager = requireActivity().getSystemService(Context.SENSOR_SERVICE) as SensorManager
 
         sensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)
 
         sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_UI)
-        view.findViewById<Button?>(R.id.back_button)
-            .setOnClickListener() { requireActivity().onBackPressed() }
 
-        // Wait for the views to be properly laid out
-        fragmentCameraBinding.viewFinder.post {
-
-            // Set up the camera and its use cases
-            setUpCamera()
+        view.findViewById<Button?>(R.id.back_button).setOnClickListener {
+            requireActivity().onBackPressed()
         }
+
+        // Set up the camera and its use cases
+        setUpCamera()
+
+        activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
     }
 
     /**
@@ -134,20 +149,41 @@ class CameraFragment : Fragment(), SensorEventListener {
         event?.let {
             val xAxis = it.values[0]
             val yAxis = it.values[1]
-            val zAxis = it.values[2]
 
-            rotationTextView.text = getString(R.string.rotation_indicator_text, xAxis, yAxis, zAxis)
+            var statusMessage = R.string.hold_still
+            var xStatusColor = R.color.white
+            var yStatusColor = R.color.white
+
+            if (xAxis > ROTATION_THRESHOLD) {
+                statusMessage = R.string.tilt_right
+                xStatusColor = R.color.red
+            } else if (xAxis < -ROTATION_THRESHOLD) {
+                statusMessage = R.string.tilt_left
+                xStatusColor = R.color.red
+            }
+
+            if (yAxis > ROTATION_THRESHOLD) {
+                statusMessage = R.string.tilt_up
+                yStatusColor = R.color.red
+            } else if (yAxis < -ROTATION_THRESHOLD) {
+                statusMessage = R.string.tilt_down
+                yStatusColor = R.color.red
+            }
+
+            statusMessageTextView.text = getString(statusMessage)
+            xRotationTextView.text = getString(R.string.rotation_indicator_text, "x", xAxis)
+            yRotationTextView.text = getString(R.string.rotation_indicator_text, " y", yAxis)
+
+            xRotationTextView.setTextColor(ContextCompat.getColor(thisContext, xStatusColor))
+            yRotationTextView.setTextColor(ContextCompat.getColor(thisContext, yStatusColor))
         }
     }
 
-    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
-        Log.i(TAG, "Accuracy changed to $accuracy")
-        // TODO: Should we do something here?
-    }
+    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
 
     /** Initialize CameraX, and prepare to bind the camera use cases  */
     private fun setUpCamera() {
-        val cameraProviderFuture = ProcessCameraProvider.getInstance(requireContext())
+        val cameraProviderFuture = ProcessCameraProvider.getInstance(thisContext)
         cameraProviderFuture.addListener({
 
             // CameraProvider
@@ -155,7 +191,7 @@ class CameraFragment : Fragment(), SensorEventListener {
 
             // Build and bind the camera use cases
             bindCameraUseCases()
-        }, ContextCompat.getMainExecutor(requireContext()))
+        }, ContextCompat.getMainExecutor(thisContext))
     }
 
     /** Declare and bind preview, capture and analysis use cases */
@@ -172,20 +208,18 @@ class CameraFragment : Fragment(), SensorEventListener {
         preview = Preview.Builder()
             // We request aspect ratio but no resolution
             .setTargetAspectRatio(AspectRatio.RATIO_16_9)
-            // TODO: Set camera rotation to landscape
-            // .setTargetRotation(rotation)
+            .setTargetRotation(ROTATION_90)
             .build()
 
         // ImageAnalysis
         imageAnalyzer = ImageAnalysis.Builder()
-            // We request aspect ratio but no resolution
-            .setTargetAspectRatio(AspectRatio.RATIO_16_9)
-            // TODO: Set camera rotation to landscape
-            // .setTargetRotation(rotation)
+            // We request a specific resolution
+            .setTargetResolution(Size(4032,1816))
+            .setTargetRotation(ROTATION_90)
             .build()
             // The analyzer can then be assigned to the instance
             .also {
-                it.setAnalyzer(cameraExecutor, CardAnalyzer {
+                it.setAnalyzer(cameraExecutor, CardAnalyzer(thisContext) {
                     Log.d(TAG, "CardAnalyzerListener called")
                 })
             }
@@ -213,7 +247,8 @@ class CameraFragment : Fragment(), SensorEventListener {
      * Analyzes the image for valid cards and tries to construct information about the current deck.
      * The deck is returned to any potential listeners added in constructor or with onFrameAnalyzed.
      */
-    private class CardAnalyzer(listener: CardAnalyzerListener? = null) : ImageAnalysis.Analyzer {
+    private class CardAnalyzer(context: Context, listener: CardAnalyzerListener? = null) : ImageAnalysis.Analyzer {
+        private val context = context
         private val listeners =
             ArrayList<CardAnalyzerListener>().apply { listener?.let { add(it) } }
 
@@ -248,22 +283,28 @@ class CameraFragment : Fragment(), SensorEventListener {
                 return
             }
 
+            // Convert Camerax ImageProxy to a Mat object and extract card icons in the image
             val javaImage: Image? = image.image
             val bitmap = javaImage?.toBitmap()
             val mat = Mat()
             Utils.bitmapToMat(bitmap, mat)
-            val matCrop = CardExtraction.extractCard(mat)
-            if (matCrop == null) {
-                Log.d(TAG, "No card was found!")
-            } else {
-                Log.d(TAG, "There was a card!")
-                val newBitmap =
-                    Bitmap.createBitmap(matCrop.cols(), matCrop.rows(), Bitmap.Config.ARGB_8888)
-                Utils.matToBitmap(matCrop, newBitmap)
-                if (bitmap != null) {
-                    saveToStorage(newBitmap)
+            val solitaireAnalysis = SolitaireAnalysisModel()
+            val bitmapArr = solitaireAnalysis.extractSolitaire(mat)
+
+            // Todo add code for ML and GameMoves
+
+            if (bitmapArr != null) {
+                Log.d(TAG, "Success. A complete solitaire game was found!")
+
+                // Todo remove when no longer needed or make debug only
+                /*
+                val date = System.currentTimeMillis().toString()
+                for (i in bitmapArr.indices) {
+                    saveToStorage(date, i , bitmapArr[i])
                 }
-                matCrop.release()
+                 */
+            } else {
+                Log.e(TAG, "Failure. No complete solitaire game was found!")
             }
             mat.release()
 
@@ -276,13 +317,18 @@ class CameraFragment : Fragment(), SensorEventListener {
          * <p> This is supposed to be used for debugging only; the bitmap should be passed
          * to our ML model in the future.
          */
-        fun saveToStorage(bitmapImage: Bitmap): String? {
-            val directory =
-                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
-            val mypath = File(directory, "imageCrop.jpeg")
+        fun saveToStorage(timeStamp: String, index: Int, bitmapImage: Bitmap) {
+            val directory = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).absolutePath + "/solitare_" + timeStamp)
+            if (!directory.exists()) {
+                directory.mkdir()
+            }
+            val file = File(directory, timeStamp + "_" + index.toString() + ".jpeg")
+            if (!file.exists()) {
+                file.createNewFile();
+            }
             var fos: FileOutputStream? = null
             try {
-                fos = FileOutputStream(mypath)
+                fos = FileOutputStream(file)
                 bitmapImage.compress(Bitmap.CompressFormat.JPEG, 100, fos)
                 fos.fd.sync()
                 fos.flush()
@@ -295,12 +341,10 @@ class CameraFragment : Fragment(), SensorEventListener {
                     e.printStackTrace()
                 }
             }
-            return directory.absolutePath
         }
 
         /**
          * Extension method to convert Image-object to bitmap
-         *
          * <p> Source: https://stackoverflow.com/questions/56772967/converting-imageproxy-to-bitmap
          */
         fun Image.toBitmap(): Bitmap {
@@ -313,7 +357,7 @@ class CameraFragment : Fragment(), SensorEventListener {
             vuBuffer.get(nv21, ySize, vuSize)
             val yuvImage = YuvImage(nv21, ImageFormat.NV21, this.width, this.height, null)
             val out = ByteArrayOutputStream()
-            yuvImage.compressToJpeg(Rect(0, 0, yuvImage.width, yuvImage.height), 50, out)
+            yuvImage.compressToJpeg(Rect(0, 0, yuvImage.width, yuvImage.height), 100, out)
             val imageBytes = out.toByteArray()
             return BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
         }
@@ -321,5 +365,6 @@ class CameraFragment : Fragment(), SensorEventListener {
 
     companion object {
         private const val TAG = "CameraFragment"
+        private const val ROTATION_THRESHOLD = 0.1
     }
 }
