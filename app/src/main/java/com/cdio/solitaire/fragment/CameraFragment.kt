@@ -29,7 +29,7 @@ import com.cdio.solitaire.R
 import com.cdio.solitaire.databinding.FragmentCameraBinding
 import com.cdio.solitaire.imageanalysis.CardDataCreationModel
 import com.cdio.solitaire.imageanalysis.SolitaireAnalysisModel
-import com.cdio.solitaire.ml.RankModel
+import com.cdio.solitaire.ml.ModelPredictions
 import org.opencv.android.Utils
 import org.opencv.core.Mat
 import java.io.ByteArrayOutputStream
@@ -291,18 +291,21 @@ class CameraFragment : Fragment(), SensorEventListener {
             val solitaireAnalysis = SolitaireAnalysisModel()
             val bitmapArr = solitaireAnalysis.extractSolitaire(mat)
 
-            // Todo add code for ML and GameMoves
-
             if (bitmapArr != null) {
                 Log.d(TAG, "Success. A complete solitaire game was found!")
 
+                // Todo add code for ML and GameMoves
+
                 // Todo remove when no longer needed or make debug only
-                /*
+                val modelPredict = ModelPredictions()
+                val rankArr = solitaireAnalysis.cropIcon(bitmapArr, 5,5,30,58)
+                val suitArr = solitaireAnalysis.cropIcon(bitmapArr, 5,58,30,37)
                 val date = System.currentTimeMillis().toString()
                 for (i in bitmapArr.indices) {
-                    saveToStorage(date, i , bitmapArr[i])
+                    val rank = modelPredict.predictRank(rankArr[i],context)
+                    val suit = modelPredict.predictSuit(suitArr[i],context)
+                    saveToStorage(date, i , bitmapArr[i], rank, suit)
                 }
-                 */
             } else {
                 Log.e(TAG, "Failure. No complete solitaire game was found!")
             }
@@ -317,12 +320,12 @@ class CameraFragment : Fragment(), SensorEventListener {
          * <p> This is supposed to be used for debugging only; the bitmap should be passed
          * to our ML model in the future.
          */
-        fun saveToStorage(timeStamp: String, index: Int, bitmapImage: Bitmap) {
+        fun saveToStorage(timeStamp: String, index: Int, bitmapImage: Bitmap, rank: Int, suit: Int) {
             val directory = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).absolutePath + "/solitare_" + timeStamp)
             if (!directory.exists()) {
                 directory.mkdir()
             }
-            val file = File(directory, timeStamp + "_" + index.toString() + ".jpeg")
+            val file = File(directory, timeStamp + "_" + suit + "_" + rank + ".jpeg")
             if (!file.exists()) {
                 file.createNewFile();
             }

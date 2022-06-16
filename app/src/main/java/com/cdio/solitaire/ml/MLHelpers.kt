@@ -9,19 +9,22 @@ import android.graphics.drawable.Drawable
 import android.util.Log
 import com.cdio.solitaire.R
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
+import org.tensorflow.lite.support.common.ops.NormalizeOp
+
 
 class MLHelpers{
 
-    private val models = ModelPredictions()
+    //private val models = ModelPredictions()
     // TODO: The min confidence should be at least 90-95,
     //  however its 85 currently so it can be used for test, since the model is not fine tuned yet.
-    private val minConfidence = 85
+    private val minConfidence = 0.85
 
     /**
      * Returns -1 if the confidence is NOT high enough
      * Else returns the index of the card.
      */
     fun getMaxIndex(tensorBufferOutput: TensorBuffer) : Int{
+        //val normalizeOp = NormalizeOp()
         val confidences = tensorBufferOutput.floatArray
         var maxIndex = -1
         var maxConfidence = 0.0.toFloat()
@@ -70,7 +73,7 @@ class MLHelpers{
         drawable.draw(canvas)
         return bitmap
     }
-
+/*
     /**
      * Testing for prediction
      */
@@ -89,4 +92,6 @@ class MLHelpers{
         val aceBitmap = drawableToBitmap(context.resources.getDrawable(R.drawable.ace, context.theme))
         Log.d("Model prediction for suit", models.predictSuit(aceBitmap!!, context).toString())
     }
+
+ */
 }
