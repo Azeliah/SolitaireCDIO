@@ -103,8 +103,6 @@ class MovesFragment : Fragment() {
 
             // If nothing has been input, do nothing
             if (card != "") {
-
-                //TODO: Do something with the card
                 val words = card.split(" ")
 
                 var cardIndex = 0
