@@ -76,13 +76,11 @@ class MovesFragment : Fragment() {
 
         changeNextMoveText(nextMove.toString())
 
-        if(nextMove.moveType == MoveType.GAME_WON || nextMove.moveType == MoveType.GAME_LOST){
+        if (nextMove.moveType == MoveType.GAME_WON || nextMove.moveType == MoveType.GAME_LOST) {
             StrategyController.gsc.resetGameState()
             nextButton.text = getString(R.string.play_again)
             nextButton.setOnClickListener { navigateToCamera(view) }
-        }
-
-        if (nextMove.cardToUpdate != null || nextMove.moveType == MoveType.DEAL_CARDS) {
+        } else if (nextMove.cardToUpdate != null || nextMove.moveType == MoveType.DEAL_CARDS) {
             flipButton(view)
         }
     }
