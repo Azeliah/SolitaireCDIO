@@ -68,9 +68,9 @@ class Card(var stackID: Int, var rank: Rank = Rank.NA, var suit: Suit = Suit.NA)
         return Card(-1, this.rank, this.suit)
     }
 
-    override fun toString(): String {
-        return "${suit.short()}/${rank.short()}"
-    }
+//    override fun toString(): String {
+//        return "${suit.short()}/${rank.short()}"
+//    }
 
     fun toStringDanish(): String {
         return suit.shortDanish() + rank.ordinal.toString()

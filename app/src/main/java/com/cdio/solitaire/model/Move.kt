@@ -40,6 +40,12 @@ class Move(
             MoveType.DRAW_STOCK -> "Draw cards from stock"
             MoveType.FLIP_TALON -> "Flip talon"
             MoveType.DEAL_CARDS -> "Deal Cards"
+            MoveType.GAME_WON -> "YOU WON"
+            MoveType.GAME_LOST -> "YOU LOST"
         }
     }
+
+//    override fun toString(): String {
+//        return "{ moveType: ${moveType.toString()}, sourceStack: ${sourceStack.toString()}, targetStack: ${targetStack.toString()}, sourceCard: ${sourceCard.toString()}, cardToUpdate: ${cardToUpdate.toString()}}"
+//    }
 }
