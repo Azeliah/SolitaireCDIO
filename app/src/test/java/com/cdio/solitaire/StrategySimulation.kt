@@ -84,8 +84,8 @@ class DataSource (random: Boolean) {
 class StrategySimulation {
     @Test
     fun simulateGame() {
-        val randomSimulation = false
-        val iterations = if (randomSimulation) 100 else 1
+        val randomSimulation = true
+        val iterations = if (randomSimulation) 1000 else 1
         var gamesWon = 0
         var movesMade = 0 // in winning games this is incremented
         repeat(iterations) {
@@ -97,7 +97,8 @@ class StrategySimulation {
                 strategyController.gsc.gameState.tableaux[i].tail!!.suit = cards[i]!!.suit
             }
             var gameFinished = false
-            var rounds = 200
+            var rounds = 400
+            var roundsMax = 400
             val moveCounter = Array(MoveType.values().size) { _ -> 0 }
             while (!gameFinished && rounds != 0) {
                 rounds--
@@ -135,9 +136,9 @@ class StrategySimulation {
                     gameFinished = true
                 }
             }
-            if (true) { //strategyController.gameIsWon
+            if (strategyController.gameIsWon) { //strategyController.gameIsWon
                 gamesWon++
-                movesMade += 1000 - rounds
+                movesMade += roundsMax-rounds
                 var deckString = ""
                 for (i in dataSource.shuffledDeck.indices) deckString += dataSource.shuffledDeck[51 - i].toStringDanish() + ","
                 deckString += "\b"
