@@ -9,4 +9,5 @@
     <string name="revealed_card">Last revealed card</string>
     <string name="wrong_card">Change</string>
     <string name="NA">NA</string>
+    <string name="play_again">Play Again</string>
 </resources>
