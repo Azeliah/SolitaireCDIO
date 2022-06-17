@@ -9,7 +9,7 @@ import kotlin.Comparator
  * StrategyController is used to handle the logic behind the strategy, which is then sent to
  * GameStateController as a Move using performMove, where GSC will then update the data accordingly.
  */
-class StrategyController {
+object StrategyController {
     val gsc = GameStateController()
     private val compareMoveQueue: Comparator<MoveQueue> = compareBy { 0 - it.moveSequenceValue }
     private var currentMoveQueue: MoveQueue? = null;
