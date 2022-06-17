@@ -29,9 +29,6 @@ class MovesFragment : Fragment() {
 
     private var revealedCards: MutableList<Card> = mutableListOf()
 
-    // List used for testing
-    //private lateinit var moveList: MutableList<Move>
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -41,11 +38,6 @@ class MovesFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-
-        // Add moves to test list
-//        moveList = mutableListOf(Move(MoveType.MOVE_FROM_TALON, GameStateController.gameState.talon, GameStateController.gameState.tableaux[5], Card(1, Rank.FOUR, Suit.CLUBS)))
-//        moveList.add(Move(MoveType.MOVE_STACK, GameStateController.gameState.tableaux[1], GameStateController.gameState.tableaux[3], Card(2, Rank.ACE, Suit.DIAMONDS)))
-//        moveList.add(Move(MoveType.MOVE_STACK, GameStateController.gameState.tableaux[3], GameStateController.gameState.tableaux[1], Card(3, Rank.TEN, Suit.HEARTS), Card(3, Rank.TEN, Suit.HEARTS)))
 
         super.onViewCreated(view, savedInstanceState)
 
@@ -82,10 +74,6 @@ class MovesFragment : Fragment() {
 
         wrongCardButton.isVisible = false
 
-        // Use this when testing
-//        val nextMove = moveList[0]
-//        moveList.removeAt(0)
-
         changeNextMoveText(nextMove.toString())
 
         if (nextMove.cardToUpdate != null || nextMove.moveType == MoveType.DEAL_CARDS) {
@@ -121,26 +109,26 @@ class MovesFragment : Fragment() {
 
                 var cardIndex = 0
 
-                val rank = words[words.size-1].dropLast(1).toIntOrNull()
-                val suit = words[words.size-1][words[words.size-1].lastIndex].toString()
+                val rank = words[words.size - 1].dropLast(1).toIntOrNull()
+                val suit = words[words.size - 1][words[words.size - 1].lastIndex].toString()
 
                 // Check the input, and do nothing if it's invalid
-                if(words.size == 2){
-                    if(words[0].toIntOrNull() == null || words[0].toInt() < 1 || words[0].toInt() > 7){
+                if (words.size == 2) {
+                    if (words[0].toIntOrNull() == null || words[0].toInt() < 1 || words[0].toInt() > 7) {
                         // Exit function
                         return@setOnClickListener
                     }
                     // If user specified which card to update, change which cardIndex is being updated
-                    cardIndex = words[0].toInt()-1
+                    cardIndex = words[0].toInt() - 1
                 }
-                if(rank == null || rank < 1 || rank > 13 || suit !in "HSDC"){
+                if (rank == null || rank < 1 || rank > 13 || suit !in "HSDC") {
                     // Exit function
                     return@setOnClickListener
                 }
 
                 val newRank: Rank = Rank.values()[rank]
 
-                val newSuit = when(suit){
+                val newSuit = when (suit) {
                     "C" -> 1
                     "D" -> 2
                     "H" -> 3
@@ -164,26 +152,26 @@ class MovesFragment : Fragment() {
         }
     }
 
-    private fun changeLastRevealedCard(){
+    private fun changeLastRevealedCard() {
         revealedCards.clear()
 
         // If it's the first scan of cards, all all new 7 cards, else only add newest card revealed
-        if(StrategyController.gsc.getLastMove().moveType == MoveType.DEAL_CARDS){
-            for(i in StrategyController.gsc.gameState.tableaux){
+        if (StrategyController.gsc.getLastMove().moveType == MoveType.DEAL_CARDS) {
+            for (i in StrategyController.gsc.gameState.tableaux) {
                 revealedCards.add(i.tail!!)
             }
-        }else{
+        } else {
             revealedCards.add(StrategyController.gsc.getLastMove().cardToUpdate!!)
         }
 
-        if(revealedCards.size > 0){
+        if (revealedCards.size > 0) {
             wrongCardButton.isVisible = true
             revealedCardText.isVisible = true
         }
 
         var newText = ""
 
-        for (card: Card in revealedCards){
+        for (card: Card in revealedCards) {
             newText += "$card - "
         }
 
