@@ -91,6 +91,8 @@ class MovesFragment : Fragment() {
 
     /**
      * Get user input, to change a card
+     * Format for changing card: [cardIndex(1-7)] [cardRank(1-13)][cardSuit("H", "C"...)]
+     * The cardIndex is only needed if it's the first 7 seven card, for others, just put rank/suit
      */
     private fun getCardInput(view: View) {
 
