@@ -44,7 +44,7 @@ class StrategyController {
 
         if (currentMoveQueue == null || currentMoveQueue!!.isEmpty()) {
             val moves = getAllMoves()
-            if(moves.isEmpty()){
+            if (moves.isEmpty()) {
                 return Move(MoveType.GAME_LOST)
             }
             print("Generating new moves: ")
@@ -144,6 +144,23 @@ class StrategyController {
     }
 
     /**
+     * Gets the total of kings without its own column, I.E a King that has hidden cards under itself.
+     * @return Int , amount of kings with hidden cards.
+     */
+    private fun getKingsWithHiddenCardsInPlay(): Int {
+        var kingsWithHiddenCardsInPlay = 0
+        for (column in gsc.gameState.tableaux) {
+            if (column.size >1) {
+                if (column.getStackHighCard()!!.rank == Rank.KING) {
+                    kingsWithHiddenCardsInPlay++
+                }
+            }
+        }
+
+        return kingsWithHiddenCardsInPlay
+    }
+
+    /**
      *checks if there is a conditional move from talon.
      * @return MoveQueue , returns the first instance of a movequeue with 2 moves in the case of a conditional move, else returns null.
      */
@@ -161,33 +178,39 @@ class StrategyController {
                     for (conditionalColumn in gsc.gameState.tableaux) {
                         if (conditionalColumn.size == 0) continue
                         val conditionalCard = conditionalColumn.getStackHighCard()!!
-                        if (conditionalCard.rank.ordinal + 1 == talonCard.rank.ordinal && conditionalCard.suit.offSuit(
-                                talonCard.suit
-                            )
-                        ) {
-                            val move1 = Move(
-                                MoveType.MOVE_FROM_TALON,
-                                targetStack = column,
-                                sourceCard = talonCard,
-                                sourceStack = gsc.gameState.talon
-                            )
-                            val move2 =
-                                Move(
-                                    MoveType.MOVE_STACK,
-                                    conditionalColumn,
-                                    column,
-                                    conditionalCard
+                        if (conditionalColumn.size == 1 && getKingsWithHiddenCardsInPlay() > 0) {
+                            if (conditionalColumn.size != 1 && conditionalCard.rank.ordinal + 1 == talonCard.rank.ordinal && conditionalCard.suit.offSuit(
+                                    talonCard.suit
                                 )
-                            val moveQueue = MoveQueue(gsc.gameState)
-                            moveQueue.moveSequenceValue = 23 + conditionalColumn.hiddenCards()
-                            moveQueue.push(move1)
-                            moveQueue.push(move2)
-                            return moveQueue
-                            //Move is possible
+                                || (conditionalColumn.size == 1 && getKingsWithHiddenCardsInPlay() > 0) && conditionalCard.rank.ordinal + 1 == talonCard.rank.ordinal && conditionalCard.suit.offSuit(
+                                    talonCard.suit
+                                )
+                            ) {
+                                val move1 = Move(
+                                    MoveType.MOVE_FROM_TALON,
+                                    targetStack = column,
+                                    sourceCard = talonCard,
+                                    sourceStack = gsc.gameState.talon
+                                )
+                                val move2 =
+                                    Move(
+                                        MoveType.MOVE_STACK,
+                                        conditionalColumn,
+                                        column,
+                                        conditionalCard
+                                    )
+                                val moveQueue = MoveQueue(gsc.gameState)
+                                moveQueue.moveSequenceValue = 23 + conditionalColumn.hiddenCards()
+                                moveQueue.push(move1)
+                                moveQueue.push(move2)
+                                return moveQueue
+                                //Move is possible
+                            }
                         }
                     }
                 }
             }
+
         }
         return null
     }
@@ -257,7 +280,7 @@ class StrategyController {
 
             } else {
                 val moveQueue = MoveQueue(gsc.gameState)
-                moveQueue.moveSequenceValue = 10
+                moveQueue.moveSequenceValue = 12
                 moveQueue.push(move)
                 moves.add(moveQueue)
 
@@ -281,7 +304,7 @@ class StrategyController {
                     } else {
                         if (column.hiddenCards() > 0) {
                             val moveQueue = MoveQueue(gsc.gameState)
-                            moveQueue.moveSequenceValue = 7 + column.hiddenCards()
+                            moveQueue.moveSequenceValue = 6 + column.hiddenCards()
                             moveQueue.push(move)
                             moves.add(moveQueue)
                             //moveQueue.clearMoveQueue()
@@ -311,8 +334,9 @@ class StrategyController {
                     moveQueue.push(move)
                     moves.add(moveQueue)
                 } else {
+                    //It is a king
                     val moveQueue = MoveQueue(gsc.gameState)
-                    moveQueue.moveSequenceValue = 10
+                    moveQueue.moveSequenceValue = 5
                     moveQueue.push(move)
                     moves.add(moveQueue)
                 }
@@ -322,7 +346,12 @@ class StrategyController {
                 //Possible moves between columns
                 if ((column.size != 0 && column.hiddenCards() > 0) || (column.size == 1 && column.getStackHighCard()!!.rank != Rank.KING)) {
                     val move =
-                        Move(MoveType.MOVE_STACK, column, targetColumn, column.getStackHighCard())
+                        Move(
+                            MoveType.MOVE_STACK,
+                            column,
+                            targetColumn,
+                            column.getStackHighCard()
+                        )
                     if (gsc.isMoveLegal(move)) {
                         //If the card is a king
                         if (column.getStackHighCard()!!.rank == Rank.KING && isQueenOppositeColorAvailable(
@@ -374,7 +403,7 @@ class StrategyController {
                 MoveType.DRAW_STOCK
             )
             val moveQueue = MoveQueue(gsc.gameState)
-            moveQueue.moveSequenceValue = 9
+            moveQueue.moveSequenceValue = 60
             moveQueue.push(move1)
             moveQueue.push(move2)
             moves.add(moveQueue)
@@ -382,7 +411,7 @@ class StrategyController {
             println("Doing STOCK_DRAW  stockSize: " + gsc.gameState.stock.size + " talonSize: " + gsc.gameState.talon.size)
             val move = Move(MoveType.DRAW_STOCK)
             val moveQueue = MoveQueue(gsc.gameState)
-            moveQueue.moveSequenceValue = 9
+            moveQueue.moveSequenceValue = 60
             moveQueue.push(move)
             moves.add(moveQueue)
         }

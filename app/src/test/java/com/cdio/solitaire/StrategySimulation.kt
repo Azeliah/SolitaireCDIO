@@ -135,7 +135,7 @@ class StrategySimulation {
                     gameFinished = true
                 }
             }
-            if (strategyController.gameIsWon) { //strategyController.gameIsWon
+            if (true) { //strategyController.gameIsWon
                 gamesWon++
                 movesMade += 1000 - rounds
                 var deckString = ""
