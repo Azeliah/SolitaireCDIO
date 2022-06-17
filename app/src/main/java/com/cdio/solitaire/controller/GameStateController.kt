@@ -32,7 +32,6 @@ object GameStateController {
             for (j in i..6) tableaux[j].pushCard(deck.popCard())
         }
         stock.pushStack(deck)
-        stock.hiddenCards = stock.size
     }
 
     /**
@@ -40,7 +39,7 @@ object GameStateController {
      */
     private fun createNullCardStack(cardCount: Int, stackID: Int): CardStack {
         val cardStack = CardStack(stackID)
-        for (i in 0..cardCount) cardStack.pushCard(Card(stackID))
+        for (i in 0 until cardCount) cardStack.pushCard(Card(stackID))
         return cardStack
     }
 
@@ -62,8 +61,6 @@ object GameStateController {
      */
     private fun flipTalon() {
         gameState.stock.pushStackToHead(gameState.talon)
-        gameState.stock.hiddenCards += gameState.talon.hiddenCards
-        gameState.talon.hiddenCards = 0
     }
 
     /**
@@ -72,16 +69,11 @@ object GameStateController {
     // TODO: Consider legal move check.
     private fun drawFromStock(): Card? {
         if (gameState.stock.size < 3) throw Exception("EmptyStackPop: Not enough cards in stock to draw to talon.")
-        // Cannot use gsc.moveStack here, because we want to check talon.tail, not stock.tail.
-        gameState.talon.pushStack(gameState.stock.popStack(3))
-        var hiddenCardsMoved = 0
-        var cardToCheck = gameState.talon.tail
-        for (i in 0..2) {
-            if (cardToCheck!!.rank.ordinal == 0) hiddenCardsMoved++
-            cardToCheck = cardToCheck.prev
+        // Cannot use gsc.moveStack here, because we want to check talon.tail, not stock.tail - and move cards one at a time.
+        repeat(3) {
+            val cardToPush = gameState.stock.popCard()
+            gameState.talon.pushCard(cardToPush)
         }
-        gameState.talon.hiddenCards += hiddenCardsMoved
-        gameState.stock.hiddenCards -= hiddenCardsMoved
         return cardToUpdate(gameState.talon)
     }
 
@@ -90,8 +82,9 @@ object GameStateController {
      */
     private fun cardToUpdate(stack: CardStack): Card? {
         return if (stack.tail == null) null
-        else if (stack.tail!!.rank.ordinal == 0) stack.tail
-        else null
+        else if (stack.tail!!.rank == Rank.NA) {
+            stack.tail
+        } else null
     }
 
     /**
@@ -127,7 +120,10 @@ object GameStateController {
             MoveType.MOVE_TO_FOUNDATION -> cardToUpdate =
                 moveCard(move.sourceStack!!, move.targetStack!!)
             MoveType.FLIP_TALON -> flipTalon()
-            MoveType.DRAW_STOCK -> cardToUpdate = drawFromStock()
+            MoveType.DRAW_STOCK -> {
+                drawFromStock()
+                cardToUpdate = cardToUpdate(gameState.talon)
+            }
             MoveType.DEAL_CARDS -> throw Exception("DEAL_CARDS is not for use here.")
         }
         move.cardToUpdate = cardToUpdate
@@ -177,9 +173,11 @@ object GameStateController {
      * Assesses whether a stack move is legal.
      */
     private fun verifyMoveStack(move: Move): Boolean =
-        if (move.sourceStack == null || move.targetStack == null) {
-            throw Exception("IllegalMoveError: You need to specify a sourceStack and targetStack.")
-        } else tableauOrdering(move.sourceCard!!, move.targetStack!!)
+        if (move.sourceStack == move.targetStack) {
+            false
+        } else if (move.moveType == MoveType.MOVE_FROM_TALON || move.sourceStack != null && move.targetStack != null) {
+            tableauOrdering(move.sourceCard!!, move.targetStack!!)
+        } else throw Exception("IllegalMoveError: You need to specify a sourceStack and targetStack.")
 
     /**
      * Assesses whether a move from foundation is legal.
@@ -210,7 +208,7 @@ object GameStateController {
     /**
      * Gets the foundation which has been used for the suit. If none exist, return the first empty foundation.
      */
-    private fun getFoundation(suit: Suit): CardStack? {
+    fun getFoundation(suit: Suit): CardStack {
         var foundation: CardStack? = null
         for (stack in gameState.foundations) {
             if (stack.tail == null) {
@@ -219,8 +217,9 @@ object GameStateController {
             } else if (stack.tail!!.suit == suit) {
                 foundation = stack
                 break
-            } else throw Exception("Foundation not found. This shouldn't happen. Ever. Good job.")
+            }
         }
+        if (foundation == null) throw Exception("Foundation not found. This shouldn't happen. Ever. Good job.")
         return foundation
     }
 
@@ -228,6 +227,7 @@ object GameStateController {
      * Assesses whether a move to foundation is legal.
      */
     private fun verifyMoveToFoundation(move: Move): Boolean {
+
         return if (move.sourceStack!!.tail != move.sourceCard) false
         else when (move.sourceCard!!.rank.ordinal) {
             1 -> {
@@ -236,7 +236,7 @@ object GameStateController {
             }
             in 2..13 -> {
                 val targetStack = getFoundation(move.sourceCard.suit)
-                if (targetStack!!.tail == null) {
+                if (targetStack.tail == null) {
                     false
                 } else if (move.sourceCard.rank.ordinal - targetStack.tail!!.rank.ordinal == 1) {
                     move.targetStack = targetStack
@@ -277,6 +277,8 @@ object GameStateController {
             MoveType.FLIP_TALON -> verifyFlipTalon()
             MoveType.DRAW_STOCK -> verifyDrawStock()
             MoveType.DEAL_CARDS -> throw Exception("DEAL_CARDS is reserved for initialization.")
+            MoveType.GAME_LOST -> true
+            MoveType.GAME_WON -> true
         }
     }
 
@@ -291,46 +293,53 @@ object GameStateController {
     }
 
     fun copyGameState(): GameState {
-        val tableaux = Array<CardStack>(gameState.tableaux.size) { i -> gameState.tableaux[i].copyOf() }
-        val foundations = Array<CardStack>(gameState.foundations.size) { i -> gameState.foundations[i].copyOf() }
+        val tableaux =
+            Array<CardStack>(gameState.tableaux.size) { i -> gameState.tableaux[i].copyOf() }
+        val foundations =
+            Array<CardStack>(gameState.foundations.size) { i -> gameState.foundations[i].copyOf() }
         val stock = gameState.stock.copyOf()
         val talon = gameState.talon.copyOf()
         val moves = gameState.moves.toMutableList()
         return GameState(foundations, tableaux, talon, stock, moves)
     }
-    fun getLowestBlackFoundation(): Int{
-        var blackCounter: Int = 0
-        var lowestFoundation: Int = 0
-        for(foundation in gameState.foundations){
-            if(foundation.tail!!.suit.getColor()==Color.BLACK){
-                if(-foundation.tail!!.rank.ordinal<-lowestFoundation){lowestFoundation = foundation.tail!!.rank.ordinal
+
+    fun getLowestBlackFoundation(): Int {
+        var blackCounter = 0
+        var lowestFoundation = 0
+        for (foundation in gameState.foundations) {
+            if (foundation.tail != null && foundation.tail!!.suit.getColor() == Color.BLACK) {
+                if (-foundation.tail!!.rank.ordinal < -lowestFoundation) {
+                    lowestFoundation = foundation.tail!!.rank.ordinal
                 }
                 blackCounter++
             }
         }
-        return if(blackCounter == 0||blackCounter == 1 ){
+        return if (blackCounter == 0 || blackCounter == 1) {
             0
-        } else{
+        } else {
             lowestFoundation
 
         }
     }
-    fun getLowestRedFoundation(): Int{
-        var redCounter: Int = 0
-        var lowestFoundation: Int = 0
-        for(foundation in gameState.foundations){
-            if(foundation.tail!!.suit.getColor()==Color.RED){
-                if(-foundation.tail!!.rank.ordinal<-lowestFoundation){lowestFoundation = foundation.tail!!.rank.ordinal
+
+    fun getLowestRedFoundation(): Int {
+        var redCounter = 0
+        var lowestFoundation = 0
+        for (foundation in gameState.foundations) {
+            if (foundation.tail != null && foundation.tail!!.suit.getColor() == Color.RED) {
+                if (-foundation.tail!!.rank.ordinal < -lowestFoundation) {
+                    lowestFoundation = foundation.tail!!.rank.ordinal
                 }
                 redCounter++
             }
         }
-        return if(redCounter == 0||redCounter == 1 ){
+        return if (redCounter == 0 || redCounter == 1) {
             0
-        } else{
+        } else {
             lowestFoundation
         }
     }
+
 
     fun movesAsString(): String {
         var resultString = ""
@@ -339,6 +348,12 @@ object GameStateController {
     }
 
     fun isGameWon(): Boolean { // Might be useful in general??
+        for(foundation in gameState.foundations){
+            foundation.tail?.let {
+                print("${it.suit}: ")
+            }
+            println("${foundation.size}")
+        }
         for (foundation in gameState.foundations) if (foundation.size != 13) return false
         return true
     }

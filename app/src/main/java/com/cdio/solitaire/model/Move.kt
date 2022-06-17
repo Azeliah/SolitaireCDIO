@@ -8,9 +8,10 @@ enum class MoveType {
     MOVE_FROM_FOUNDATION,
     MOVE_FROM_TALON,
     FLIP_TALON,
-    DRAW_STOCK
+    DRAW_STOCK,
+    GAME_WON,
+    GAME_LOST
 }
-
 
 class Move(
     val moveType: MoveType,
@@ -21,6 +22,7 @@ class Move(
     var cardToUpdate: Card? = null
     var prev: Move? = null
     var next: Move? = null
+
     fun toStringDanish(): String {
         return when (moveType) {
             MoveType.MOVE_STACK, MoveType.MOVE_FROM_TALON, MoveType.MOVE_FROM_FOUNDATION -> sourceCard!!.toStringDanish() + "-" + targetStack!!.stackID + ","

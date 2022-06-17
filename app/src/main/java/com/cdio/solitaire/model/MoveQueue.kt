@@ -40,4 +40,17 @@ class MoveQueue(var gameState: GameState) {
         size--
         return poppedMove
     }
+
+    fun clearMoveQueue() {
+        head = null
+        tail = null
+        size = 0
+        moveSequenceValue = 0
+    }
+
+    fun isEmpty(): Boolean {
+        if (this.size < 0)
+            throw Exception("Size is less than zero")
+        return this.size == 0
+    }
 }
