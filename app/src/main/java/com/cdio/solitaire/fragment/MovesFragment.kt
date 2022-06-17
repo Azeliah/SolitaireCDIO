@@ -11,6 +11,7 @@ import androidx.core.view.isVisible
 import androidx.navigation.Navigation
 import com.cdio.solitaire.R
 import com.cdio.solitaire.controller.GameStateController
+import com.cdio.solitaire.controller.StrategyController
 import com.cdio.solitaire.model.*
 import com.google.android.material.textfield.TextInputLayout
 
@@ -25,6 +26,8 @@ class MovesFragment : Fragment() {
     private lateinit var wrongCardButton: Button
 
     private lateinit var inputField: TextInputLayout
+
+    private var revealedCards: MutableList<Card> = mutableListOf()
 
     // List used for testing
     //private lateinit var moveList: MutableList<Move>
@@ -59,6 +62,8 @@ class MovesFragment : Fragment() {
         wrongCardButton = view.findViewById(R.id.wrong_card_button)
         wrongCardButton.isVisible = false
         wrongCardButton.setOnClickListener { getCardInput(view) }
+
+        changeLastRevealedCard()
     }
 
     private fun navigateToCamera(view: View) {
@@ -73,7 +78,7 @@ class MovesFragment : Fragment() {
      * Get next move from moveQueue, and display it. If camera is needed, change button function
      */
     private fun getNextMove(view: View) {
-        val nextMove = GameStateController.getLastMove()
+        val nextMove = StrategyController.nextMove()
 
         wrongCardButton.isVisible = false
 
@@ -106,13 +111,47 @@ class MovesFragment : Fragment() {
         inputField.isVisible = true
 
         nextButton.setOnClickListener {
-            val card = inputField.editText?.text.toString()
+            val card = inputField.editText?.text.toString().uppercase()
 
             // If nothing has been input, do nothing
             if (card != "") {
 
                 //TODO: Do something with the card
-                revealedCardText.text = card
+                val words = card.split(" ")
+
+                var cardIndex = 0
+
+                val rank = words[words.size-1].dropLast(1).toIntOrNull()
+                val suit = words[words.size-1][words[words.size-1].lastIndex].toString()
+
+                // Check the input, and do nothing if it's invalid
+                if(words.size == 2){
+                    if(words[0].toIntOrNull() == null || words[0].toInt() < 1 || words[0].toInt() > 7){
+                        // Exit function
+                        return@setOnClickListener
+                    }
+                    // If user specified which card to update, change which cardIndex is being updated
+                    cardIndex = words[0].toInt()-1
+                }
+                if(rank == null || rank < 1 || rank > 13 || suit !in "HSDC"){
+                    // Exit function
+                    return@setOnClickListener
+                }
+
+                val newRank: Rank = Rank.values()[rank]
+
+                val newSuit = when(suit){
+                    "C" -> 1
+                    "D" -> 2
+                    "H" -> 3
+                    "S" -> 4
+                    else -> 0
+                }
+
+                revealedCards[cardIndex].rank = newRank
+                revealedCards[cardIndex].suit = Suit.values()[newSuit]
+
+                changeLastRevealedCard()
 
                 inputField.isVisible = false
                 nextButton.text = getString(R.string.next_move)
@@ -125,10 +164,29 @@ class MovesFragment : Fragment() {
         }
     }
 
-    fun changeLastRevealedCard(card: String){
-        //TODO: Find out how to check what card has been revealed(Maybe variable in GameStateController)
-        wrongCardButton.isVisible = true
-        revealedCardText.isVisible = true
-        revealedCardText.text = card
+    private fun changeLastRevealedCard(){
+        revealedCards.clear()
+
+        // If it's the first scan of cards, all all new 7 cards, else only add newest card revealed
+        if(StrategyController.gsc.getLastMove().moveType == MoveType.DEAL_CARDS){
+            for(i in StrategyController.gsc.gameState.tableaux){
+                revealedCards.add(i.tail!!)
+            }
+        }else{
+            revealedCards.add(StrategyController.gsc.getLastMove().cardToUpdate!!)
+        }
+
+        if(revealedCards.size > 0){
+            wrongCardButton.isVisible = true
+            revealedCardText.isVisible = true
+        }
+
+        var newText = ""
+
+        for (card: Card in revealedCards){
+            newText += "$card - "
+        }
+
+        revealedCardText.text = newText.dropLast(3)
     }
 }
