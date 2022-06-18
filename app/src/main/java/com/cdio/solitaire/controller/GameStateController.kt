@@ -99,6 +99,10 @@ class GameStateController {
         return cardToUpdate(sourceStack)
     }
 
+    private fun moveToFoundation(sourceStack: CardStack, sourceCard: Card): Card? {
+        return moveCard(sourceStack, getFoundation(sourceCard.suit))
+    }
+
     private fun moveCard(sourceStack: CardStack, targetStack: CardStack): Card? {
         return moveStack(sourceStack, 1, targetStack)
     }
@@ -118,13 +122,14 @@ class GameStateController {
             MoveType.MOVE_FROM_FOUNDATION,
             MoveType.MOVE_FROM_TALON,
             MoveType.MOVE_TO_FOUNDATION -> cardToUpdate =
-                moveCard(move.sourceStack!!, move.targetStack!!)
+                moveToFoundation(move.sourceStack!!, move.sourceCard!!)
             MoveType.FLIP_TALON -> flipTalon()
             MoveType.DRAW_STOCK -> {
                 drawFromStock()
                 cardToUpdate = cardToUpdate(gameState.talon)
             }
             MoveType.DEAL_CARDS -> throw Exception("DEAL_CARDS is not for use here.")
+            else -> { println(move.moveType) }
         }
         move.cardToUpdate = cardToUpdate
         gameState.moves.add(move)
@@ -350,9 +355,9 @@ class GameStateController {
     fun isGameWon(): Boolean { // Might be useful in general??
         for(foundation in gameState.foundations){
             foundation.tail?.let {
-                print("${it.suit}: ")
+                //print("${it.suit}: ")
             }
-            println("${foundation.size}")
+            //println("${foundation.size}")
         }
         for (foundation in gameState.foundations) if (foundation.size != 13) return false
         return true
