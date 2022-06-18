@@ -4,7 +4,7 @@ import com.cdio.solitaire.model.*
 
 class GameStateController {
     var gameState: GameState
-    private val sortedDeck = arrayOfNulls<Card>(52) // Use this to track cards in the game.
+    val sortedDeck = arrayOfNulls<Card>(52) // Use this to track cards in the game.
 
     /**
      * Creates the initial gameState. Refer to this for cardStack IDs.
