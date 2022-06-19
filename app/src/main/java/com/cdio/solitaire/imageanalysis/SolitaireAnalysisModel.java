@@ -67,7 +67,8 @@ public class SolitaireAnalysisModel {
         }
     }
 
-    /** Method for extracting a specific number of card suit and rank icons in an image */
+    /** Method for extracting a specific number of card suit and rank icons in an image
+     * Inspiration: https://github.com/geaxgx/playing-card-detection/blob/master/creating_playing_cards_dataset.ipynb */
     public ContentNode[] extractCards(Mat src, int n) {
 
         // Detection of edges using Canny edge detection
@@ -87,6 +88,7 @@ public class SolitaireAnalysisModel {
         }
 
         // Find all contours in the image and store them in a ContourNode array
+        // Inspiration: https://stackoverflow.com/questions/38759925/how-to-find-largest-contour-in-java-opencv
         ContourNode[] nodeArr = new ContourNode[points.size()];
         for (int contourId = 0; contourId < points.size(); contourId++) {
             MatOfPoint2f cnt = new MatOfPoint2f();
@@ -118,6 +120,7 @@ public class SolitaireAnalysisModel {
                 int height = 87 * 4;
 
                 // Reference points to fit output format
+                // Inspiration: https://stackoverflow.com/questions/40688491/opencv-getperspectivetransform-and-warpperspective-java
                 MatOfPoint2f reference = new MatOfPoint2f(
                         new Point(0, 0),
                         new Point(width, 0),
@@ -181,6 +184,7 @@ public class SolitaireAnalysisModel {
         Imgproc.cvtColor(bilateral, gray, Imgproc.COLOR_RGB2GRAY);
 
         // Upper and lower thresholds using median of grayscale image
+        // Inspiration: https://stackoverflow.com/questions/41893029/opencv-canny-edge-detection-not-working-properly
         double median = gray.get(0, 0)[0];
         double s = 0.33;
         double upper = min(255, (1.0 + s) * median);
@@ -200,12 +204,12 @@ public class SolitaireAnalysisModel {
     /** Method for extracting card icon from upper left corner containing suit and rank */
     public Mat extractIcon(Mat src) {
         Mat original = src.clone();
-        Rect rect_min = new Rect();
-        rect_min.x = 0;
-        rect_min.y = 0;
-        rect_min.width = 40;
-        rect_min.height = 100;
-        return original.submat(rect_min);
+        Rect rect = new Rect();
+        rect.x = 0;
+        rect.y = 0;
+        rect.width = 40;
+        rect.height = 100;
+        return original.submat(rect);
     }
 
     /** Method for converting card icon to binary colors and resizing to 40x100 pixels */
