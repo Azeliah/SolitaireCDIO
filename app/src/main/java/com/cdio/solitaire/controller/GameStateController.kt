@@ -357,9 +357,9 @@ class GameStateController {
     fun isGameWon(): Boolean { // Might be useful in general??
         for(foundation in gameState.foundations){
             foundation.tail?.let {
-                //print("${it.suit}: ")
+                print("${it.suit}: ")
             }
-            //println("${foundation.size}")
+            println("${foundation.size}")
         }
         for (foundation in gameState.foundations) if (foundation.size != 13) return false
         return true
