@@ -120,7 +120,7 @@ class GameStateController {
                 move.targetStack!!
             )
             MoveType.MOVE_FROM_FOUNDATION,
-            MoveType.MOVE_FROM_TALON,
+            MoveType.MOVE_FROM_TALON -> moveCard(move.sourceStack!!, move.targetStack!!)
             MoveType.MOVE_TO_FOUNDATION -> cardToUpdate =
                 moveToFoundation(move.sourceStack!!, move.sourceCard!!)
             MoveType.FLIP_TALON -> flipTalon()
@@ -129,7 +129,9 @@ class GameStateController {
                 cardToUpdate = cardToUpdate(gameState.talon)
             }
             MoveType.DEAL_CARDS -> throw Exception("DEAL_CARDS is not for use here.")
-            else -> { println(move.moveType) }
+            else -> {
+            // println(move.moveType)
+            }
         }
         move.cardToUpdate = cardToUpdate
         gameState.moves.add(move)
