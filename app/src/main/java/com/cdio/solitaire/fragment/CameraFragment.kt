@@ -295,19 +295,17 @@ class CameraFragment : Fragment(), SensorEventListener {
             if (bitmapArr != null) {
                 Log.d(TAG, "Success. A complete solitaire game was found!")
 
-                // Todo add code for ML and GameMoves
                 val modelPredict = ModelPredictions()
                 val rankArr = solitaireAnalysis.cropIcon(bitmapArr, 5, 5, 30, 58)
                 val suitArr = solitaireAnalysis.cropIcon(bitmapArr, 5, 58, 30, 37)
-                val cardData = CardData
                 for ( i in bitmapArr.indices) {
                     // predict return value corresponds to Rank and Suit enum
-                    cardData.rankPredictions[i].add(modelPredict.predictRank(rankArr[i], context))
-                    cardData.suitPredictions[i].add(modelPredict.predictSuit(suitArr[i], context))
+                    CardData.rankPredictions[i].add(modelPredict.predictRank(rankArr[i], context))
+                    CardData.suitPredictions[i].add(modelPredict.predictSuit(suitArr[i], context))
                 }
                 // This might belong elsewhere.
-                if (cardData.limitReached()) {
-                    if (cardData.isDataConsistent()) {
+                if (CardData.limitReached()) {
+                    if (CardData.isDataConsistent()) {
                         TODO("kill CameraFragment somehow")
                     }
                 }

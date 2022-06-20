@@ -65,7 +65,7 @@ object CardData {
         for (i in rankPredictions.indices) {
             rankPredictions[i].clear()
             suitPredictions[i].clear()
-            predictionOutput.clear()
         }
+        predictionOutput.clear()
     }
 }
