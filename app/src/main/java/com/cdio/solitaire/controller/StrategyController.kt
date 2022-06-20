@@ -618,6 +618,12 @@ object StrategyController {
         return moves
     }
 
+    fun reset() {
+        gsc.resetGameState()
+        currentMoveQueue = null
+        gameIsWon = false
+    }
+
 
 //fun isGameFinished(): Boolean { // Used for testing purposes, should be replaced with something else.
 //    return endCondition

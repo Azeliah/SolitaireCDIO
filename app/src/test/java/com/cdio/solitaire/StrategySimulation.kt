@@ -86,12 +86,13 @@ class StrategySimulation {
     @Test
     fun simulateGame() {
         val randomSimulation = true
-        val iterations = if (randomSimulation) 1000 else 1
+        val iterations = if (randomSimulation) 3 else 1
+        val strategyController = StrategyController
         var gamesWon = 0
         var movesMade = 0 // in winning games this is incremented
         repeat(iterations) {
+            strategyController.reset()
             val dataSource = DataSource(randomSimulation) // Use false for the handed in deck sorting
-            //val strategyController = StrategyController
             val cards = dataSource.updateFirstLayer()
             for (i in cards.indices) {
                 StrategyController.gsc.gameState.tableaux[i].tail!!.rank = cards[i]!!.rank
@@ -99,7 +100,7 @@ class StrategySimulation {
             }
             var gameFinished = false
             var rounds = 400
-            var roundsMax = 400
+            val roundsMax = rounds
             val moveCounter = Array(MoveType.values().size) { _ -> 0 }
             while (!gameFinished && rounds != 0) {
                 rounds--
