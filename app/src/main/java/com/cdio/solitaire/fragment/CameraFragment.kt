@@ -16,8 +16,8 @@ import android.util.Log
 import android.util.Size
 import android.view.*
 import android.view.Surface.ROTATION_90
-import android.widget.TextView
 import android.widget.Button
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.*
 import androidx.camera.core.Camera
@@ -26,8 +26,8 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.cdio.solitaire.R
+import com.cdio.solitaire.data.CardData
 import com.cdio.solitaire.databinding.FragmentCameraBinding
-import com.cdio.solitaire.imageanalysis.CardDataCreationModel
 import com.cdio.solitaire.imageanalysis.SolitaireAnalysisModel
 import com.cdio.solitaire.ml.ModelPredictions
 import org.opencv.android.Utils
@@ -214,7 +214,7 @@ class CameraFragment : Fragment(), SensorEventListener {
         // ImageAnalysis
         imageAnalyzer = ImageAnalysis.Builder()
             // We request a specific resolution
-            .setTargetResolution(Size(4032,1816))
+            .setTargetResolution(Size(4032, 1816))
             .setTargetRotation(ROTATION_90)
             .build()
             // The analyzer can then be assigned to the instance
@@ -247,7 +247,8 @@ class CameraFragment : Fragment(), SensorEventListener {
      * Analyzes the image for valid cards and tries to construct information about the current deck.
      * The deck is returned to any potential listeners added in constructor or with onFrameAnalyzed.
      */
-    private class CardAnalyzer(context: Context, listener: CardAnalyzerListener? = null) : ImageAnalysis.Analyzer {
+    private class CardAnalyzer(context: Context, listener: CardAnalyzerListener? = null) :
+        ImageAnalysis.Analyzer {
         private val context = context
         private val listeners =
             ArrayList<CardAnalyzerListener>().apply { listener?.let { add(it) } }
@@ -296,16 +297,21 @@ class CameraFragment : Fragment(), SensorEventListener {
 
                 // Todo add code for ML and GameMoves
                 val modelPredict = ModelPredictions()
-                val rankArr = solitaireAnalysis.cropIcon(bitmapArr, 5,5,30,58)
-                val suitArr = solitaireAnalysis.cropIcon(bitmapArr, 5,58,30,37)
-                val date = System.currentTimeMillis().toString()
-                for (i in bitmapArr.indices) {
-                    val rank = modelPredict.predictRank(rankArr[i],context) // Index value corresponds to Rank enum
-                    val suit = modelPredict.predictSuit(suitArr[i],context) // Index value corresponds to Suit enum
-
-                    // Todo remove when no longer needed or make debug only
-                    saveToStorage(date, i , bitmapArr[i], rank, suit)
+                val rankArr = solitaireAnalysis.cropIcon(bitmapArr, 5, 5, 30, 58)
+                val suitArr = solitaireAnalysis.cropIcon(bitmapArr, 5, 58, 30, 37)
+                val cardData = CardData
+                for ( i in bitmapArr.indices) {
+                    // predict return value corresponds to Rank and Suit enum
+                    cardData.rankPredictions[i].add(modelPredict.predictRank(rankArr[i], context))
+                    cardData.suitPredictions[i].add(modelPredict.predictSuit(suitArr[i], context))
                 }
+                // This might belong elsewhere.
+                if (cardData.limitReached()) {
+                    if (cardData.isDataConsistent()) {
+                        TODO("kill CameraFragment somehow")
+                    }
+                }
+
             } else {
                 Log.e(TAG, "Failure. No complete solitaire game was found!")
             }
@@ -320,8 +326,15 @@ class CameraFragment : Fragment(), SensorEventListener {
          * <p> This is supposed to be used for debugging only; the bitmap should be passed
          * to our ML model in the future.
          */
-        fun saveToStorage(timeStamp: String, index: Int, bitmapImage: Bitmap, rank: Int, suit: Int) {
-            val directory = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).absolutePath + "/solitare_" + timeStamp)
+        fun saveToStorage(
+            timeStamp: String,
+            index: Int,
+            bitmapImage: Bitmap,
+            rank: Int,
+            suit: Int
+        ) {
+            val directory =
+                File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).absolutePath + "/solitare_" + timeStamp)
             if (!directory.exists()) {
                 directory.mkdir()
             }
