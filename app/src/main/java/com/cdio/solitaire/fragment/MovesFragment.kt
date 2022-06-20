@@ -76,6 +76,7 @@ class MovesFragment : Fragment() {
 
         changeNextMoveText(nextMove.toString())
 
+        // If the game is won or lost, reset the GameState to allow new game
         if (nextMove.moveType == MoveType.GAME_WON || nextMove.moveType == MoveType.GAME_LOST) {
             StrategyController.gsc.resetGameState()
             nextButton.text = getString(R.string.play_again)
@@ -114,7 +115,7 @@ class MovesFragment : Fragment() {
                 var cardIndex = 0
 
                 val rank = words[words.size - 1].dropLast(1).toIntOrNull()
-                val suit = words[words.size - 1][words[words.size - 1].lastIndex].toString()
+                val suit = words[words.size - 1].last().toString()
 
                 // Check the input, and do nothing if it's invalid
                 if (words.size == 2) {
@@ -130,8 +131,6 @@ class MovesFragment : Fragment() {
                     return@setOnClickListener
                 }
 
-                val newRank: Rank = Rank.values()[rank]
-
                 val newSuit = when (suit) {
                     "C" -> 1
                     "D" -> 2
@@ -140,7 +139,7 @@ class MovesFragment : Fragment() {
                     else -> 0
                 }
 
-                revealedCards[cardIndex].rank = newRank
+                revealedCards[cardIndex].rank = Rank.values()[rank]
                 revealedCards[cardIndex].suit = Suit.values()[newSuit]
 
                 changeLastRevealedCard()
@@ -156,6 +155,10 @@ class MovesFragment : Fragment() {
         }
     }
 
+    /**
+     * Get the last card that was revealed, to allow user to change it.
+     * On the first round, it displays all 7 cards
+     */
     private fun changeLastRevealedCard() {
         revealedCards.clear()
 
@@ -168,10 +171,8 @@ class MovesFragment : Fragment() {
             revealedCards.add(StrategyController.gsc.getLastMove().cardToUpdate!!)
         }
 
-        if (revealedCards.size > 0) {
-            wrongCardButton.isVisible = true
-            revealedCardText.isVisible = true
-        }
+        wrongCardButton.isVisible = true
+        revealedCardText.isVisible = true
 
         var newText = ""
 
@@ -179,6 +180,7 @@ class MovesFragment : Fragment() {
             newText += "$card - "
         }
 
+        // Remove the last " - " from the text
         revealedCardText.text = newText.dropLast(3)
     }
 }
