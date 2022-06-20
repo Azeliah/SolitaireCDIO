@@ -89,7 +89,7 @@ class GameStateController {
     /**
      * moveStack moves a stack and adds cardToUpdate information to the move object.
      */
-    private fun moveStack( // TODO: Does this actually need cardsToMove? See popStack comment.
+    private fun moveStack(
         sourceStack: CardStack,
         cardsToMove: Int,
         targetStack: CardStack
@@ -128,9 +128,7 @@ class GameStateController {
                 cardToUpdate = cardToUpdate(gameState.talon)
             }
             MoveType.DEAL_CARDS -> throw Exception("DEAL_CARDS is not for use here.")
-            else -> {
-                // println(move.moveType)
-            }
+            else -> {} // Do nothing for GAME_WIN and GAME_LOSS
         }
         move.cardToUpdate = cardToUpdate
         gameState.moves.add(move)

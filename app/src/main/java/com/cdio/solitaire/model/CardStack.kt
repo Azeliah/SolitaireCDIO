@@ -1,8 +1,5 @@
 package com.cdio.solitaire.model
 
-// TODO: Consider adding nullable suit var for foundations
-// TODO: Consider adding isEmpty method for code brevity
-
 class CardStack(val stackID: Int) {
     var head: Card? = null
     var tail: Card? = null
@@ -96,8 +93,6 @@ class CardStack(val stackID: Int) {
         else {
             poppedStack.tail = tail
             poppedStack.head = tail
-            // TODO: The following for loop is NOT needed if you already know the address of
-            //  poppedStack.head, changing this will make this O(1), instead of O(n)
             for (i in 1 until cardsToPop) poppedStack.head = poppedStack.head!!.prev
             tail = poppedStack.head!!.prev
             tail!!.next = null

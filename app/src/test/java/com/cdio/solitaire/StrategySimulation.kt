@@ -85,6 +85,7 @@ class StrategySimulation {
     @Test
     fun simulateGame() {
         val randomSimulation = false
+        val printSolutions = false
         val iterations = if (randomSimulation) 3 else 1
         val strategyController = StrategyController
         var gamesWon = 0
@@ -134,13 +135,15 @@ class StrategySimulation {
             if (StrategyController.gameIsWon) { //strategyController.gameIsWon
                 gamesWon++
                 movesMade += roundsMax-rounds
-                var deckString = ""
-                for (i in dataSource.shuffledDeck.indices) deckString += dataSource.shuffledDeck[51 - i].toStringDanish() + ","
-                deckString += "\b"
-                println("Deck used:")
-                println(deckString)
-                println("Moves made:")
-                println(StrategyController.gsc.movesAsString() + "\b")
+                if (printSolutions) {
+                    var deckString = ""
+                    for (i in dataSource.shuffledDeck.indices) deckString += dataSource.shuffledDeck[51 - i].toStringDanish() + ","
+                    deckString += "\b"
+                    println("Deck used:")
+                    println(deckString)
+                    println("Moves made:")
+                    println(StrategyController.gsc.movesAsString() + "\b")
+                }
             }
         }
 
