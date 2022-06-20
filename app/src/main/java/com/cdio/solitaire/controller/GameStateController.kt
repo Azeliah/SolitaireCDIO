@@ -4,7 +4,6 @@ import com.cdio.solitaire.model.*
 
 class GameStateController {
     var gameState: GameState
-    val sortedDeck = arrayOfNulls<Card>(52) // Use this to track cards in the game.
 
     /**
      * Creates the initial gameState. Refer to this for cardStack IDs.
@@ -130,7 +129,7 @@ class GameStateController {
             }
             MoveType.DEAL_CARDS -> throw Exception("DEAL_CARDS is not for use here.")
             else -> {
-            // println(move.moveType)
+                // println(move.moveType)
             }
         }
         move.cardToUpdate = cardToUpdate
@@ -157,9 +156,6 @@ class GameStateController {
         return gameState.moves.last()
     }
 
-    fun updateSortedDeck(card: Card) {
-        sortedDeck[(card.suit.ordinal - 1) * 13 + card.rank.ordinal - 1] = card
-    }
 
     /**
      * Used to ensure consistency in tableauOrdering when performing moves.
@@ -289,16 +285,6 @@ class GameStateController {
         }
     }
 
-    /**
-     * Retrieves the stackID of a card using the rank, suit pair as key to search the sorted deck.
-     */
-    fun cardStackIDFromRankSuit(rank: Int, suit: Int): Int {
-        sortedDeck[(suit - 1) * 13 + rank - 1]?.let { card ->
-            return card.stackID
-        }
-        return -1
-    }
-
     fun copyGameState(): GameState {
         val tableaux =
             Array<CardStack>(gameState.tableaux.size) { i -> gameState.tableaux[i].copyOf() }
@@ -359,7 +345,7 @@ class GameStateController {
         return true
     }
 
-    fun resetGameState(){
+    fun resetGameState() {
         val deck = createNullCardStack(52, -1)
         val foundations = Array(4) { i -> CardStack(i + 8) } // 8, 9, 10, 11
         val tableaux = Array(7) { i -> CardStack(i + 1) } // 1, 2, 3, 4, 5, 6, 7

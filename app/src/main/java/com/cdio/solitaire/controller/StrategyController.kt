@@ -122,7 +122,6 @@ object StrategyController {
                 emptyColumnAndKingCounter++
             }
         }
-        //Er det større eller lig 4.
         return emptyColumnAndKingCounter
     }
 
@@ -151,7 +150,6 @@ object StrategyController {
         talonCard: Card
     ): MoveQueue? {
         if (gsc.gameState.talon.tail != null) {
-            //val moveQueue = MoveQueue(gsc.gameState)
             for (column in gsc.gameState.tableaux) {
                 if (column.size == 0) continue
                 val columnCard = column.tail!!
