@@ -364,4 +364,15 @@ class GameStateController {
         for (foundation in gameState.foundations) if (foundation.size != 13) return false
         return true
     }
+
+    fun resetGameState(){
+        val deck = createNullCardStack(52, -1)
+        val foundations = Array(4) { i -> CardStack(i + 8) } // 8, 9, 10, 11
+        val tableaux = Array(7) { i -> CardStack(i + 1) } // 1, 2, 3, 4, 5, 6, 7
+        val stock = CardStack(12)
+        val talon = CardStack(0)
+        dealOutDeck(deck, tableaux, stock)
+        gameState =
+            GameState(foundations, tableaux, talon, stock, mutableListOf(Move(MoveType.DEAL_CARDS)))
+    }
 }

@@ -1,5 +1,20 @@
 <resources>
     <string name="app_name">Solitaire CDIO</string>
     <string name="open_camera">Open Camera</string>
+    <string name="rotation_indicator_text">%s: %f</string>
+    <string name="back">Back</string>
+    <string name="tilt_right">Tilt phone more to the right</string>
+    <string name="tilt_left">Tilt phone more to the left</string>
+    <string name="tilt_up">Tilt phone more up</string>
+    <string name="tilt_down">Tilt phone more down</string>
+    <string name="hold_still">Hold phone still</string>
     <string name="rotation_indicator_text">x: %f y: %f, z: %f</string>
+    <string name="next_move">Next Move</string>
+    <string name="deal_cards">Deal Cards</string>
+    <string name="input_field_hint">Eks: &quot;3H&quot;, &quot;AS&quot;</string>
+    <string name="ok">OK</string>
+    <string name="revealed_card">Last revealed card</string>
+    <string name="wrong_card">Change</string>
+    <string name="NA">NA</string>
+    <string name="play_again">Play Again</string>
 </resources>
