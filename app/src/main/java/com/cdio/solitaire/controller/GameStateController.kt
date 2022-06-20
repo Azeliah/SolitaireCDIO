@@ -45,13 +45,13 @@ class GameStateController {
     /**
      * Retrieve a cardStack using the ID. The numbering is in compliance with initial gameState.
      */
-    fun getCardStackFromID(stackID: Int): CardStack? { // Added for ease, might be deleted later
+    fun getCardStackFromID(stackID: Int): CardStack { // Added for ease, might be deleted later
         return when (stackID) {
             in 1..7 -> gameState.tableaux[stackID]
             in 8..11 -> gameState.foundations[stackID - 7]
             12 -> gameState.stock
             0 -> gameState.talon
-            else -> null
+            else -> throw Exception("Invalid stackID: $stackID.")
         }
     }
 
