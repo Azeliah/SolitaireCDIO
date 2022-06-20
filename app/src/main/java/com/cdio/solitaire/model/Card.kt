@@ -1,5 +1,9 @@
 package com.cdio.solitaire.model
 
+enum class Color {
+    NA, RED, BLACK
+}
+
 enum class Suit {
     NA, CLUBS, DIAMONDS, HEARTS, SPADES; // Note the order: C = 1, D = 2, H = 3, S = 4.
 
@@ -24,11 +28,15 @@ enum class Suit {
     }
 
     fun offSuit(suitToCompare: Suit): Boolean {
-        if (suitToCompare == NA) throw Exception("UndefinedSuitException: Suit is NA")
+        if (suitToCompare == NA || this == NA) throw Exception("UndefinedSuitException: Suit is NA")
+        return this.getColor() != suitToCompare.getColor()
+    }
+
+    fun getColor(): Color {
         return when (this) {
-            CLUBS, SPADES -> (suitToCompare == DIAMONDS || suitToCompare == HEARTS)
-            DIAMONDS, HEARTS -> (suitToCompare == CLUBS || suitToCompare == SPADES)
-            NA -> throw Exception("UndefinedSuitException: Suit is NA")
+            NA -> Color.NA
+            CLUBS, SPADES -> Color.BLACK
+            DIAMONDS, HEARTS -> Color.RED
         }
     }
 }
@@ -60,7 +68,15 @@ class Card(var stackID: Int, var rank: Rank = Rank.NA, var suit: Suit = Suit.NA)
         return Card(-1, this.rank, this.suit)
     }
 
+//    override fun toString(): String {
+//        return "${suit.short()}/${rank.short()}"
+//    }
+
     fun toStringDanish(): String {
         return suit.shortDanish() + rank.ordinal.toString()
+    }
+
+    override fun toString(): String {
+        return rank.ordinal.toString() + suit.short()
     }
 }

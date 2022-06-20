@@ -1,7 +1,5 @@
 package com.cdio.solitaire.model
 
-import android.util.Log
-
 // TODO: Consider adding nullable suit var for foundations
 // TODO: Consider adding isEmpty method for code brevity
 
@@ -9,7 +7,6 @@ class CardStack(val stackID: Int) {
     var head: Card? = null
     var tail: Card? = null
     var size: Int = 0
-    var hiddenCards: Int = 0
 
     /**
      * Standard push, pushing an element to the tail of the stack
@@ -27,7 +24,6 @@ class CardStack(val stackID: Int) {
             }
         }
         size++
-        if (card.rank == Rank.NA) hiddenCards++
         card.stackID = stackID
     }
 
@@ -40,15 +36,16 @@ class CardStack(val stackID: Int) {
             0 -> throw Exception("Empty stack pop.")
             1 -> {
                 poppedCard!!.prev = null
-                resetCardStack()
+                head = null
+                tail = null
             }
             else -> {
                 tail = poppedCard!!.prev
                 tail!!.next = null
                 poppedCard.prev = null
-                size--
             }
         }
+        size--
         poppedCard.stackID = -1
         return poppedCard
     }
@@ -119,19 +116,28 @@ class CardStack(val stackID: Int) {
         if (stack.size == 0) {
             throw Exception("Trying to push empty stack, stackID: " + stack.stackID.toString())
         }
-        if (size == 0) {
-            pushStack(stack)
-            return
-        }
-        var card = stack.head
-        for (i in 1..stack.size) {
+
+        val reversedStack = CardStack(-1)
+        while (stack.size > 0)
+            reversedStack.pushCard(stack.popCard())
+
+        var card = reversedStack.head
+        for (i in 1..reversedStack.size) {
             card!!.stackID = stackID
             card = card.next
         }
-        head!!.prev = stack.tail
-        stack.tail!!.next = head
-        head = stack.head
-        size += stack.size
+
+        if (size == 0) {
+            head = reversedStack.head
+            tail = reversedStack.tail
+            size = reversedStack.size
+
+        } else {
+            head!!.prev = reversedStack.tail
+            reversedStack.tail!!.next = head
+            head = reversedStack.head
+            size += reversedStack.size
+        }
         stack.resetCardStack()
     }
 
@@ -143,5 +149,50 @@ class CardStack(val stackID: Int) {
             cardToCopy = cardToCopy.next
         }
         return newStack
+    }
+
+    /**
+     * Gets the first instance of a revealed card in a stack.
+     */
+    fun getStackHighCard(): Card? {
+        return when (hiddenCards()) {
+            0 -> head // Can be null
+            else -> {
+                var card = tail
+                while (true) {
+                    if (card!!.prev == null) break
+                    else if (card.prev!!.suit == Suit.NA) break
+                    else card = card.prev
+                }
+                card
+            }
+        }
+    }
+
+    fun hiddenCards(): Int {
+        var hiddenCardsInStack = 0
+
+        var cursor = this.head
+        while (cursor != null) {
+            if (cursor.rank == Rank.NA || cursor.suit == Suit.NA)
+                hiddenCardsInStack++
+            cursor = cursor.next
+        }
+
+        return hiddenCardsInStack
+    }
+
+    override fun toString(): String {
+        var ret = "["
+        var cursor = head
+        while (cursor != null) {
+            ret += cursor.toString()
+            if (cursor.next != null)
+                ret += ", "
+            cursor = cursor.next
+        }
+        ret += "]"
+
+        return ret
     }
 }

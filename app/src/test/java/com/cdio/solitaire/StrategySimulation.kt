@@ -4,7 +4,7 @@ import com.cdio.solitaire.controller.StrategyController
 import com.cdio.solitaire.model.*
 import org.junit.Test
 
-class DataSource {
+class DataSource (random: Boolean) {
     // This essentially mimics the user actions with the physical cards that still need to be recognized
     private val sortedDeck: Array<Card>
     val shuffledDeck: Array<Card>
@@ -15,8 +15,22 @@ class DataSource {
     init {
         // Shuffle deck of cards
         sortedDeck = createOrderedDeck()
-        shuffledDeck = sortedDeck.clone()
-        shuffledDeck.shuffle()
+        if (random) {
+            shuffledDeck = sortedDeck.clone()
+            shuffledDeck.shuffle()
+        } else {
+            shuffledDeck = arrayOf(
+                sortedDeck[25], sortedDeck[35], sortedDeck[21], sortedDeck[32], sortedDeck[29], sortedDeck[1],
+                sortedDeck[4], sortedDeck[31], sortedDeck[37], sortedDeck[47], sortedDeck[12], sortedDeck[26],
+                sortedDeck[22], sortedDeck[13], sortedDeck[20], sortedDeck[38], sortedDeck[51], sortedDeck[18],
+                sortedDeck[45], sortedDeck[15], sortedDeck[48], sortedDeck[9], sortedDeck[17], sortedDeck[6],
+                sortedDeck[2], sortedDeck[23], sortedDeck[33], sortedDeck[0], sortedDeck[5], sortedDeck[8],
+                sortedDeck[24], sortedDeck[43], sortedDeck[28], sortedDeck[16], sortedDeck[19], sortedDeck[10],
+                sortedDeck[46], sortedDeck[49], sortedDeck[50], sortedDeck[41], sortedDeck[7], sortedDeck[30],
+                sortedDeck[34], sortedDeck[3], sortedDeck[11], sortedDeck[27], sortedDeck[44], sortedDeck[39],
+                sortedDeck[36], sortedDeck[42], sortedDeck[14], sortedDeck[40]
+            )
+        }
         val deck = CardStack(-1)
         for (card in shuffledDeck) deck.pushCard(card)
 
@@ -30,7 +44,6 @@ class DataSource {
             for (j in i..6) tableaux[j].pushCard(deck.popCard())
         }
         stock.pushStack(deck)
-        stock.hiddenCards = stock.size
     }
 
     private fun createOrderedDeck(): Array<Card> {
@@ -52,7 +65,7 @@ class DataSource {
     }
 
     fun drawStock() {
-        talon.pushStack(stock.popStack(3))
+        repeat(3) { talon.pushCard(stock.popCard()) }
     }
 
     fun flipTalon() {
@@ -60,7 +73,7 @@ class DataSource {
     }
 
     fun updateFirstLayer(): Array<Card?> {
-        val cards = Array<Card?>(7) { _ -> null}
+        val cards = Array<Card?>(7) { _ -> null }
         for (i in tableaux.indices) {
             cards[i] = tableaux[i].popCard()
         }
@@ -71,33 +84,38 @@ class DataSource {
 class StrategySimulation {
     @Test
     fun simulateGame() {
-        val iterations = 10000
-
+        val randomSimulation = false
+        val iterations = if (randomSimulation) 3 else 1
+        val strategyController = StrategyController
         var gamesWon = 0
         var movesMade = 0 // in winning games this is incremented
         repeat(iterations) {
-            val dataSource = DataSource()
-            val strategyController = StrategyController()
-            val gameTableaux = strategyController.gsc.gameState.tableaux
+            strategyController.reset()
+            val dataSource = DataSource(randomSimulation) // Use false for the handed in deck sorting
             val cards = dataSource.updateFirstLayer()
             for (i in cards.indices) {
-                gameTableaux[i].tail!!.rank = cards[i]!!.rank
-                gameTableaux[i].tail!!.suit = cards[i]!!.suit
+                StrategyController.gsc.gameState.tableaux[i].tail!!.rank = cards[i]!!.rank
+                StrategyController.gsc.gameState.tableaux[i].tail!!.suit = cards[i]!!.suit
             }
             var gameFinished = false
-            var rounds = 1000
+            var rounds = 400
+            val roundsMax = rounds
+            val moveCounter = Array(MoveType.values().size) { _ -> 0 }
             while (!gameFinished && rounds != 0) {
                 rounds--
-                val moveToPlay = strategyController.playMove()
-
-                // Output move to screen
-
-                when (moveToPlay!!.moveType) {
+                val moveToPlay = StrategyController.nextMove()
+                when (moveToPlay.moveType) {
                     MoveType.MOVE_FROM_TALON -> dataSource.talon.popCard()
                     MoveType.DRAW_STOCK -> dataSource.drawStock()
                     MoveType.FLIP_TALON -> dataSource.flipTalon()
+                    MoveType.MOVE_TO_FOUNDATION -> {
+                        if (moveToPlay.sourceStack!!.stackID == 0)
+                            dataSource.talon.popCard()
+                    }
                     else -> {}
                 }
+
+                moveCounter[moveToPlay.moveType.ordinal]++
 
                 // Is a card discovered? Get its values.
                 if (moveToPlay.cardToUpdate != null) {
@@ -106,23 +124,31 @@ class StrategySimulation {
                     moveToPlay.cardToUpdate!!.suit = discoveredCard.suit
                 }
 
-                gameFinished =
-                    strategyController.isGameFinished() // TODO: Replace this when merging with strategy.
+                if (moveToPlay.moveType == MoveType.GAME_WON) {
+                    StrategyController.gameIsWon = true
+                    gameFinished = true
+                } else if (moveToPlay.moveType == MoveType.GAME_LOST) {
+                    gameFinished = true
+                }
             }
-            if (strategyController.gsc.isGameWon()) {
+            if (StrategyController.gameIsWon) { //strategyController.gameIsWon
                 gamesWon++
-                movesMade += 1000 - rounds
+                movesMade += roundsMax-rounds
                 var deckString = ""
                 for (i in dataSource.shuffledDeck.indices) deckString += dataSource.shuffledDeck[51 - i].toStringDanish() + ","
                 deckString += "\b"
                 println("Deck used:")
                 println(deckString)
                 println("Moves made:")
-                println(strategyController.gsc.movesAsString() + "\b")
+                println(StrategyController.gsc.movesAsString() + "\b")
             }
         }
+
         println("Games won: $gamesWon")
-        println("Win percentage: " + (gamesWon/100).toString())
-        println("Average moves made: " + (movesMade/gamesWon).toString())
+        if (gamesWon > 0) {
+            println("Win percentage: " + ((gamesWon.toFloat() / iterations.toFloat()) * 100))
+            println("Average moves made: " + (movesMade / gamesWon).toString())
+        }
+
     }
 }
