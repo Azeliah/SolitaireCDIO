@@ -1,6 +1,5 @@
 package com.cdio.solitaire
 
-import com.cdio.solitaire.controller.GameStateController
 import com.cdio.solitaire.controller.StrategyController
 import com.cdio.solitaire.model.*
 import org.junit.Test
@@ -85,7 +84,7 @@ class DataSource (random: Boolean) {
 class StrategySimulation {
     @Test
     fun simulateGame() {
-        val randomSimulation = true
+        val randomSimulation = false
         val iterations = if (randomSimulation) 3 else 1
         val strategyController = StrategyController
         var gamesWon = 0
@@ -105,11 +104,6 @@ class StrategySimulation {
             while (!gameFinished && rounds != 0) {
                 rounds--
                 val moveToPlay = StrategyController.nextMove()
-                //println(moveToPlay!!.toStringDanish() + "\b")
-
-                // Output move to screen
-                //System.out.println(moveToPlay.moveType.toString())
-
                 when (moveToPlay.moveType) {
                     MoveType.MOVE_FROM_TALON -> dataSource.talon.popCard()
                     MoveType.DRAW_STOCK -> dataSource.drawStock()
@@ -128,7 +122,6 @@ class StrategySimulation {
                     val discoveredCard = dataSource.discoverCard(moveToPlay.cardToUpdate!!.stackID)
                     moveToPlay.cardToUpdate!!.rank = discoveredCard.rank
                     moveToPlay.cardToUpdate!!.suit = discoveredCard.suit
-                    // println("New card is $discoveredCard")
                 }
 
                 if (moveToPlay.moveType == MoveType.GAME_WON) {

@@ -12,22 +12,12 @@ import kotlin.Comparator
 object StrategyController {
     val gsc = GameStateController()
     private val compareMoveQueue: Comparator<MoveQueue> = compareBy { 0 - it.moveSequenceValue }
-    private var currentMoveQueue: MoveQueue? = null;
+    private var currentMoveQueue: MoveQueue? = null
     var gameIsWon = false
 
     fun nextMove(): Move {
 
         val move = decideMove()
-        println(move)
-
-        //if (move.sourceCard != null && move.targetStack != null) {
-        //    println("Moving Card: " + move.sourceCard!!.toStringDanish() + " to " + move.targetStack!!.tail!!.toStringDanish() + " with the movetype: " + move.moveType)
-        //} else {
-        //}
-        println(move.toStringDanish() + move.moveType)
-        if (move.moveType == MoveType.DRAW_STOCK) {
-            println("Modolus check " + (gsc.gameState.talon.size + gsc.gameState.stock.size) % 3)
-        }
         gsc.performMove(move)
         return move
     }
@@ -47,11 +37,6 @@ object StrategyController {
             if (moves.isEmpty()) {
                 return Move(MoveType.GAME_LOST)
             }
-            print("Generating new moves: ")
-            for (foo in moves)
-                print("(size: ${foo.size}, value: ${foo.moveSequenceValue}) ")
-            println()
-
             currentMoveQueue = moves.poll()
         }
 
@@ -70,8 +55,6 @@ object StrategyController {
      * @return Move necessary for discovering more of stock.
      */
     private fun discoverStock(): Move {
-        // println("discoverStock called")
-
         // val stock = gsc.gameState.stock
         // val talon = gsc.gameState.talon
 
@@ -216,18 +199,10 @@ object StrategyController {
         return null
     }
 
-
-    fun modolusThreeOfTalonAndStock(): Int {
-        if ((gsc.gameState.talon.size + gsc.gameState.stock.size) > 3) {
-            return (gsc.gameState.talon.size + gsc.gameState.stock.size) % 3
-        }
-        return 0
-    }
-
     /**
      * Gets a list of cards in reach, from stock and talon. List is ascending order based on moves to reach the card.
      */
-    fun getListOfCardsInReach(gsc: GameStateController): LinkedList<Card> {
+    private fun getListOfCardsInReach(gsc: GameStateController): LinkedList<Card> {
         val listOfCardsInReach: LinkedList<Card> = LinkedList()
         val copyOfGameState = gsc.copyGameState()
         val gscCopy = GameStateController()
@@ -262,116 +237,120 @@ object StrategyController {
         val moveQueue: MoveQueue = MoveQueue(gsc.gameState)
         val copyOfGameState = gsc.copyGameState()
         val gscCopy = GameStateController()
-        var cardNotFound = true
+        val cardNotFound = true
         gscCopy.gameState = copyOfGameState
-//        if (modolusThreeOfTalonAndStock() == 1) {
-//            if (listOfCardsInReach.size > 0) { //modolusThreeOfTalonAndStock() != 1 &&
-//                //Conditional MoveQueue. Talon->Column, Column->Column. Reveal 1 card.
-//                for (talonCard in listOfCardsInReach) {
-//                    val conditionalMoveQueue =
-//                        getConditionalMoveQueueFromTalonCard(talonCard)
-//                    //Is There a conditional Move from talon?
-//                    if (conditionalMoveQueue != null) {
-//                        while (cardNotFound) {
-//                            if (gscCopy.gameState.stock.size >= 3) {
-//                                val move = Move(MoveType.DRAW_STOCK)
-//                                gscCopy.performMove(move)
-//                                moveQueue.push(move)
-//                                if (gscCopy.gameState.talon.tail != null && gscCopy.gameState.talon.tail!!.rank == talonCard.rank && gscCopy.gameState.talon.tail!!.suit == talonCard.suit) {
-//                                    //cardNotFound = false
-//                                    repeat(2) { moveQueue.push(conditionalMoveQueue.pop()) }
-//                                    moveQueue.moveSequenceValue = 25
-//                                    return moveQueue
-//                                }
-//                            } else {
-//                                gscCopy.performMove(Move(MoveType.FLIP_TALON))
-//                                val move = Move(MoveType.FLIP_TALON)
-//                                moveQueue.push(move)
-//                            }
-//                        }
-//                    }
-//                }
-//                //Moves from talon to foundation.
-//                for (talonCard in listOfCardsInReach) {
-//                    val foundation = gsc.getFoundation(talonCard.suit)
-//                    if ((foundation.size == 0 && talonCard.rank == Rank.ACE) ||
-//                        foundation.size != 0 && foundation.tail!!.rank.ordinal == talonCard.rank.ordinal - 1 && checkFoundationPlusTwoRule(
-//                            talonCard
-//                        )
-//                    ) {
-//                        while (cardNotFound) {
-//                            if (gscCopy.gameState.stock.size >= 3) {
-//                                val move = Move(MoveType.DRAW_STOCK)
-//                                gscCopy.performMove(move)
-//                                moveQueue.push(move)
-//                                if (gscCopy.gameState.talon.tail != null && gscCopy.gameState.talon.tail!!.rank == talonCard.rank && gscCopy.gameState.talon.tail!!.suit == talonCard.suit) {
-//                                    //cardNotFound = false
-//                                    val tempGameState = gsc.copyGameState()
-//                                    val tempgsc = GameStateController()
-//                                    tempgsc.gameState = tempGameState
-//                                    val move = Move(
-//                                        MoveType.MOVE_TO_FOUNDATION,
-//                                        sourceStack = gsc.gameState.talon,
-//                                        sourceCard = talonCard,
-//                                        targetStack = gsc.getFoundation(talonCard.suit)
-//                                    )
-//                                    moveQueue.moveSequenceValue = 20
-//                                    moveQueue.push(move)
-//                                    var tempMove = moveQueue.head
-//                                    tempgsc.gameState = tempGameState
-//                                    while (tempMove != null) {
-//                                        if (tempMove.moveType == MoveType.MOVE_TO_FOUNDATION) {
-//                                            val tempMove = Move(
-//                                                MoveType.MOVE_TO_FOUNDATION,
-//                                                sourceStack = tempgsc.gameState.talon,
-//                                                sourceCard = talonCard,
-//                                                targetStack = tempgsc.getFoundation(talonCard.suit)
-//                                            )
-//                                            tempgsc.performMove(tempMove)
-//                                            tempMove.next = null
-//                                        } else {
-//                                            tempgsc.performMove(tempMove)
-//                                        }
-//                                        tempMove = tempMove.next
-//                                    }
-//                                    //Now tempGameState should be updated with the desired move.
-//                                    //Need to check if there is a possible move from talon.
-//                                    val listOfCardsInReachInTempGameState =
-//                                        getListOfCardsInReach(tempgsc)
-//                                    for (talonCard in listOfCardsInReachInTempGameState) {
-//                                        cardNotFound = true
-//                                        while (cardNotFound) {
-//                                            if (tempgsc.gameState.stock.size >= 3) {
-//                                                val move = Move(MoveType.DRAW_STOCK)
-//                                                tempgsc.performMove(move)
-//                                                if (tempgsc.gameState.talon.tail != null && tempgsc.gameState.talon.tail!!.rank == talonCard.rank && tempgsc.gameState.talon.tail!!.suit == talonCard.suit) {
-//                                                    cardNotFound = false
-//                                                    for (column in tempgsc.gameState.tableaux) {
-//                                                        val move = Move(
-//                                                            MoveType.MOVE_FROM_TALON,
-//                                                            targetStack = column,
-//                                                            sourceCard = tempgsc.gameState.talon.tail,
-//                                                            sourceStack = tempgsc.gameState.talon
-//                                                        )
-//                                                        if (tempgsc.isMoveLegal(move)) {
-//                                                            return moveQueue
-//                                                        }
-//                                                    }
-//                                                }
-//                                            } else {
-//                                                tempgsc.performMove(Move(MoveType.FLIP_TALON))
-//                                                val move = Move(MoveType.FLIP_TALON)
-//                                            }
-//                                        }
-//                                    }
-//                                }
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//            return null
-//        } else {
+        /*
+
+        if (modolusThreeOfTalonAndStock() == 1) {
+            if (listOfCardsInReach.size > 0) { //modolusThreeOfTalonAndStock() != 1 &&
+                //Conditional MoveQueue. Talon->Column, Column->Column. Reveal 1 card.
+                for (talonCard in listOfCardsInReach) {
+                    val conditionalMoveQueue =
+                        getConditionalMoveQueueFromTalonCard(talonCard)
+                    //Is There a conditional Move from talon?
+                    if (conditionalMoveQueue != null) {
+                        while (cardNotFound) {
+                            if (gscCopy.gameState.stock.size >= 3) {
+                                val move = Move(MoveType.DRAW_STOCK)
+                                gscCopy.performMove(move)
+                                moveQueue.push(move)
+                                if (gscCopy.gameState.talon.tail != null && gscCopy.gameState.talon.tail!!.rank == talonCard.rank && gscCopy.gameState.talon.tail!!.suit == talonCard.suit) {
+                                    //cardNotFound = false
+                                    repeat(2) { moveQueue.push(conditionalMoveQueue.pop()) }
+                                    moveQueue.moveSequenceValue = 25
+                                    return moveQueue
+                                }
+                            } else {
+                                gscCopy.performMove(Move(MoveType.FLIP_TALON))
+                                val move = Move(MoveType.FLIP_TALON)
+                                moveQueue.push(move)
+                            }
+                        }
+                    }
+                }
+                //Moves from talon to foundation.
+                for (talonCard in listOfCardsInReach) {
+                    val foundation = gsc.getFoundation(talonCard.suit)
+                    if ((foundation.size == 0 && talonCard.rank == Rank.ACE) ||
+                        foundation.size != 0 && foundation.tail!!.rank.ordinal == talonCard.rank.ordinal - 1 && checkFoundationPlusTwoRule(
+                            talonCard
+                        )
+                    ) {
+                        while (cardNotFound) {
+                            if (gscCopy.gameState.stock.size >= 3) {
+                                val move = Move(MoveType.DRAW_STOCK)
+                                gscCopy.performMove(move)
+                                moveQueue.push(move)
+                                if (gscCopy.gameState.talon.tail != null && gscCopy.gameState.talon.tail!!.rank == talonCard.rank && gscCopy.gameState.talon.tail!!.suit == talonCard.suit) {
+                                    //cardNotFound = false
+                                    val tempGameState = gsc.copyGameState()
+                                    val tempgsc = GameStateController()
+                                    tempgsc.gameState = tempGameState
+                                    val move = Move(
+                                        MoveType.MOVE_TO_FOUNDATION,
+                                        sourceStack = gsc.gameState.talon,
+                                        sourceCard = talonCard,
+                                        targetStack = gsc.getFoundation(talonCard.suit)
+                                    )
+                                    moveQueue.moveSequenceValue = 20
+                                    moveQueue.push(move)
+                                    var tempMove = moveQueue.head
+                                    tempgsc.gameState = tempGameState
+                                    while (tempMove != null) {
+                                        if (tempMove.moveType == MoveType.MOVE_TO_FOUNDATION) {
+                                            val tempMove = Move(
+                                                MoveType.MOVE_TO_FOUNDATION,
+                                                sourceStack = tempgsc.gameState.talon,
+                                                sourceCard = talonCard,
+                                                targetStack = tempgsc.getFoundation(talonCard.suit)
+                                            )
+                                            tempgsc.performMove(tempMove)
+                                            tempMove.next = null
+                                        } else {
+                                            tempgsc.performMove(tempMove)
+                                        }
+                                        tempMove = tempMove.next
+                                    }
+                                    //Now tempGameState should be updated with the desired move.
+                                    //Need to check if there is a possible move from talon.
+                                    val listOfCardsInReachInTempGameState =
+                                        getListOfCardsInReach(tempgsc)
+                                    for (talonCard in listOfCardsInReachInTempGameState) {
+                                        cardNotFound = true
+                                        while (cardNotFound) {
+                                            if (tempgsc.gameState.stock.size >= 3) {
+                                                val move = Move(MoveType.DRAW_STOCK)
+                                                tempgsc.performMove(move)
+                                                if (tempgsc.gameState.talon.tail != null && tempgsc.gameState.talon.tail!!.rank == talonCard.rank && tempgsc.gameState.talon.tail!!.suit == talonCard.suit) {
+                                                    cardNotFound = false
+                                                    for (column in tempgsc.gameState.tableaux) {
+                                                        val move = Move(
+                                                            MoveType.MOVE_FROM_TALON,
+                                                            targetStack = column,
+                                                            sourceCard = tempgsc.gameState.talon.tail,
+                                                            sourceStack = tempgsc.gameState.talon
+                                                        )
+                                                        if (tempgsc.isMoveLegal(move)) {
+                                                            return moveQueue
+                                                        }
+                                                    }
+                                                }
+                                            } else {
+                                                tempgsc.performMove(Move(MoveType.FLIP_TALON))
+                                                val move = Move(MoveType.FLIP_TALON)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+            }
+
+            return null
+        } else {
+        */
             if (listOfCardsInReach.size > 0) { //modolusThreeOfTalonAndStock() != 1 &&
                 //Conditional MoveQueue. Talon->Column, Column->Column. Reveal 1 card.
                 for (talonCard in listOfCardsInReach) {
@@ -481,14 +460,12 @@ object StrategyController {
                         moveQueue.moveSequenceValue = 50
                         moveQueue.push(move)
                         moves.add(moveQueue)
-                        //moveQueue.clearMoveQueue()
                     } else {
                         if (column.hiddenCards() > 0) {
                             val moveQueue = MoveQueue(gsc.gameState)
                             moveQueue.moveSequenceValue = 6 + column.hiddenCards()
                             moveQueue.push(move)
                             moves.add(moveQueue)
-                            //moveQueue.clearMoveQueue()
                         }
                     }
                 }
@@ -521,7 +498,6 @@ object StrategyController {
                     moveQueue.push(move)
                     moves.add(moveQueue)
                 }
-                //moveQueue.clearMoveQueue()
             }
             for (targetColumn in gsc.gameState.tableaux) {
                 //Possible moves between columns
@@ -557,7 +533,6 @@ object StrategyController {
                             moveQueue.push(move)
                             moves.add(moveQueue)
                         }
-                        //moveQueue.clearMoveQueue()
                     }
                 }
             }
@@ -582,14 +557,12 @@ object StrategyController {
             moveQueue.moveSequenceValue = 8
             moveQueue.push(move)
             moves.add(moveQueue)
-            //moveQueue.clearMoveQueue()
         } else if ((gsc.gameState.stock.size < 3 && (gsc.gameState.stock.size + gsc.gameState.talon.size) > 3)) {
             val moveQueue = MoveQueue(gsc.gameState)
             val move = Move(MoveType.FLIP_TALON)
             moveQueue.moveSequenceValue = 8
             moveQueue.push(move)
             moves.add(moveQueue)
-            //moveQueue.clearMoveQueue()
         }
         if (gsc.gameState.stock.size + gsc.gameState.talon.size == 3 && gsc.gameState.talon.size < 3 && gsc.gameState.stock.size != 3) {
             println("Doing FLIP->STOCK_DRAW  stockSize: " + gsc.gameState.stock.size + " talonSize: " + gsc.gameState.talon.size)
@@ -612,9 +585,6 @@ object StrategyController {
             moveQueue.push(move)
             moves.add(moveQueue)
         }
-
-//if (moves.size == 0)
-//    throw Exception("No possible moves found!")
         return moves
     }
 
@@ -623,9 +593,4 @@ object StrategyController {
         currentMoveQueue = null
         gameIsWon = false
     }
-
-
-//fun isGameFinished(): Boolean { // Used for testing purposes, should be replaced with something else.
-//    return endCondition
-//}
 }
