@@ -84,30 +84,26 @@ class DataSource (random: Boolean) {
 class StrategySimulation {
     @Test
     fun simulateGame() {
-        val randomSimulation = true
-        val iterations = if (randomSimulation) 1000 else 1
+        val randomSimulation = false
+        val iterations = if (randomSimulation) 3 else 1
+        val strategyController = StrategyController
         var gamesWon = 0
         var movesMade = 0 // in winning games this is incremented
         repeat(iterations) {
+            strategyController.reset()
             val dataSource = DataSource(randomSimulation) // Use false for the handed in deck sorting
-            val strategyController = StrategyController()
             val cards = dataSource.updateFirstLayer()
             for (i in cards.indices) {
-                strategyController.gsc.gameState.tableaux[i].tail!!.rank = cards[i]!!.rank
-                strategyController.gsc.gameState.tableaux[i].tail!!.suit = cards[i]!!.suit
+                StrategyController.gsc.gameState.tableaux[i].tail!!.rank = cards[i]!!.rank
+                StrategyController.gsc.gameState.tableaux[i].tail!!.suit = cards[i]!!.suit
             }
             var gameFinished = false
             var rounds = 400
-            var roundsMax = 400
+            val roundsMax = rounds
             val moveCounter = Array(MoveType.values().size) { _ -> 0 }
             while (!gameFinished && rounds != 0) {
                 rounds--
-                val moveToPlay = strategyController.nextMove()
-                //println(moveToPlay!!.toStringDanish() + "\b")
-
-                // Output move to screen
-                //System.out.println(moveToPlay.moveType.toString())
-
+                val moveToPlay = StrategyController.nextMove()
                 when (moveToPlay.moveType) {
                     MoveType.MOVE_FROM_TALON -> dataSource.talon.popCard()
                     MoveType.DRAW_STOCK -> dataSource.drawStock()
@@ -126,17 +122,16 @@ class StrategySimulation {
                     val discoveredCard = dataSource.discoverCard(moveToPlay.cardToUpdate!!.stackID)
                     moveToPlay.cardToUpdate!!.rank = discoveredCard.rank
                     moveToPlay.cardToUpdate!!.suit = discoveredCard.suit
-                    // println("New card is $discoveredCard")
                 }
 
                 if (moveToPlay.moveType == MoveType.GAME_WON) {
-                    strategyController.gameIsWon = true
+                    StrategyController.gameIsWon = true
                     gameFinished = true
                 } else if (moveToPlay.moveType == MoveType.GAME_LOST) {
                     gameFinished = true
                 }
             }
-            if (strategyController.gameIsWon) { //strategyController.gameIsWon
+            if (StrategyController.gameIsWon) { //strategyController.gameIsWon
                 gamesWon++
                 movesMade += roundsMax-rounds
                 var deckString = ""
@@ -145,7 +140,7 @@ class StrategySimulation {
                 println("Deck used:")
                 println(deckString)
                 println("Moves made:")
-                println(strategyController.gsc.movesAsString() + "\b")
+                println(StrategyController.gsc.movesAsString() + "\b")
             }
         }
 
