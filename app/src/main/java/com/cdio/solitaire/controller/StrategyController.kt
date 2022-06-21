@@ -160,14 +160,13 @@ object StrategyController {
                     for (conditionalColumn in gsc.gameState.tableaux) {
                         if (conditionalColumn.size == 0) continue
                         val conditionalCard = conditionalColumn.getStackHighCard()!!
-                        if (conditionalColumn.size == 1 && getKingsWithHiddenCardsInPlay() > 0) {
-                            if (conditionalColumn.size != 1 && conditionalCard.rank.ordinal + 1 == talonCard.rank.ordinal && conditionalCard.suit.offSuit(
-                                    talonCard.suit
-                                )
-                                || (conditionalColumn.size == 1 && getKingsWithHiddenCardsInPlay() > 0) && conditionalCard.rank.ordinal + 1 == talonCard.rank.ordinal && conditionalCard.suit.offSuit(
-                                    talonCard.suit
-                                )
-                            ) {
+                        if (conditionalColumn.size != 1 && conditionalCard.rank.ordinal + 1 == talonCard.rank.ordinal && conditionalCard.suit.offSuit(
+                                talonCard.suit
+                            )
+                            || (conditionalColumn.size == 1 && getKingsWithHiddenCardsInPlay() > 0) && conditionalCard.rank.ordinal + 1 == talonCard.rank.ordinal && conditionalCard.suit.offSuit(
+                                talonCard.suit
+                            )
+                        ) {
                                 val move1 = Move(
                                     MoveType.MOVE_FROM_TALON,
                                     targetStack = column,
@@ -193,9 +192,9 @@ object StrategyController {
                     }
                 }
             }
-        }
         return null
-    }
+        }
+
 
     /**
      * Gets a list of cards in reach, from stock and talon. List is ascending order based on moves to reach the card.
@@ -437,7 +436,7 @@ object StrategyController {
                 moveQueue.moveSequenceValue = 49
                 moveQueue.push(move)
                 moves.add(moveQueue)
-            } else if(gsc.isMoveLegal(move)) {
+            } else if (gsc.isMoveLegal(move)&&(gsc.gameState.stock.size+gsc.gameState.talon.size)%3==0) {
                 val moveQueue = MoveQueue(gsc.gameState)
                 moveQueue.moveSequenceValue = 12
                 moveQueue.push(move)
