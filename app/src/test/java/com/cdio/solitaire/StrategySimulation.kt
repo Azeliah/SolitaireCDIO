@@ -84,8 +84,8 @@ class DataSource (random: Boolean) {
 class StrategySimulation {
     @Test
     fun simulateGame() {
-        val randomSimulation = false
-        val iterations = if (randomSimulation) 3 else 1
+        val randomSimulation = true
+        val iterations = if (randomSimulation) 50000 else 1
         val strategyController = StrategyController
         var gamesWon = 0
         var movesMade = 0 // in winning games this is incremented
@@ -146,6 +146,7 @@ class StrategySimulation {
 
         println("Games won: $gamesWon")
         if (gamesWon > 0) {
+            println("Iterations performed: $iterations")
             println("Win percentage: " + ((gamesWon.toFloat() / iterations.toFloat()) * 100))
             println("Average moves made: " + (movesMade / gamesWon).toString())
         }
