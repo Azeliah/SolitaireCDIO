@@ -42,7 +42,7 @@ import java.util.concurrent.Executors
 
 
 /** Helper type alias used for analysis use case callbacks */
-typealias CardAnalyzerListener = () -> Unit
+typealias CardAnalyzerListener = (bitmapArr: Array<Bitmap>?, solitaireAnalysis: SolitaireAnalysisModel) -> Unit
 
 class CameraFragment : Fragment(), SensorEventListener {
 
@@ -68,6 +68,8 @@ class CameraFragment : Fragment(), SensorEventListener {
     private lateinit var statusMessageTextView: TextView
     private lateinit var sensorManager: SensorManager
     private lateinit var sensor: Sensor
+
+    private var exit: Boolean = false
 
     override fun onDestroyView() {
         _fragmentCameraBinding = null
@@ -146,6 +148,9 @@ class CameraFragment : Fragment(), SensorEventListener {
     }
 
     override fun onSensorChanged(event: SensorEvent?) {
+        if (exit)
+            requireActivity().onBackPressed()
+
         event?.let {
             val xAxis = it.values[0]
             val yAxis = it.values[1]
@@ -218,9 +223,43 @@ class CameraFragment : Fragment(), SensorEventListener {
             .setTargetRotation(ROTATION_90)
             .build()
             // The analyzer can then be assigned to the instance
-            .also {
-                it.setAnalyzer(cameraExecutor, CardAnalyzer(thisContext) {
-                    Log.d(TAG, "CardAnalyzerListener called")
+            .also { analyzer ->
+                analyzer.setAnalyzer(cameraExecutor, CardAnalyzer { bitmapArr: Array<Bitmap>?, solitaireAnalysis: SolitaireAnalysisModel ->
+                    if (bitmapArr == null)
+                        Log.e(TAG, "Failure. No complete solitaire game was found!")
+
+                    bitmapArr?.let {
+                        Log.d(TAG, "Success. A complete solitaire game was found!")
+
+                        val modelPredict = ModelPredictions()
+                        val rankArr = solitaireAnalysis.cropIcon(bitmapArr, 5, 5, 30, 58)
+                        val suitArr = solitaireAnalysis.cropIcon(bitmapArr, 5, 58, 30, 37)
+                        for (i in it.indices) {
+
+                            context?.let { contextNotNull ->
+                                // predict return value corresponds to Rank and Suit enum
+                                CardData.rankPredictions[i].add(
+                                    modelPredict.predictRank(
+                                        rankArr[i],
+                                        contextNotNull
+                                    )
+                                )
+                                CardData.suitPredictions[i].add(
+                                    modelPredict.predictSuit(
+                                        suitArr[i],
+                                        contextNotNull
+                                    )
+                                )
+                            }
+                        }
+
+                        // If Threshold has been reached, navigate back to MovesFragment
+                        if (CardData.limitReached()) {
+                            if (CardData.isDataConsistent()) {
+                                exit = true
+                            }
+                        }
+                    }
                 })
             }
 
@@ -247,9 +286,8 @@ class CameraFragment : Fragment(), SensorEventListener {
      * Analyzes the image for valid cards and tries to construct information about the current deck.
      * The deck is returned to any potential listeners added in constructor or with onFrameAnalyzed.
      */
-    private class CardAnalyzer(context: Context, listener: CardAnalyzerListener? = null) :
+    private class CardAnalyzer(listener: CardAnalyzerListener? = null) :
         ImageAnalysis.Analyzer {
-        private val context = context
         private val listeners =
             ArrayList<CardAnalyzerListener>().apply { listener?.let { add(it) } }
 
@@ -292,27 +330,9 @@ class CameraFragment : Fragment(), SensorEventListener {
             val solitaireAnalysis = SolitaireAnalysisModel()
             val bitmapArr = solitaireAnalysis.extractSolitaire(mat)
 
-            if (bitmapArr != null) {
-                Log.d(TAG, "Success. A complete solitaire game was found!")
+            for (listener in listeners)
+                listener(bitmapArr, solitaireAnalysis)
 
-                val modelPredict = ModelPredictions()
-                val rankArr = solitaireAnalysis.cropIcon(bitmapArr, 5, 5, 30, 58)
-                val suitArr = solitaireAnalysis.cropIcon(bitmapArr, 5, 58, 30, 37)
-                for ( i in bitmapArr.indices) {
-                    // predict return value corresponds to Rank and Suit enum
-                    CardData.rankPredictions[i].add(modelPredict.predictRank(rankArr[i], context))
-                    CardData.suitPredictions[i].add(modelPredict.predictSuit(suitArr[i], context))
-                }
-                // This might belong elsewhere.
-                if (CardData.limitReached()) {
-                    if (CardData.isDataConsistent()) {
-                        TODO("kill CameraFragment somehow")
-                    }
-                }
-
-            } else {
-                Log.e(TAG, "Failure. No complete solitaire game was found!")
-            }
             mat.release()
 
             image.close()
