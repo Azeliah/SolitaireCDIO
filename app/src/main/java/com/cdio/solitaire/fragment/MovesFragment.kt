@@ -59,7 +59,7 @@ class MovesFragment : Fragment() {
         wrongCardButton.isVisible = false
         wrongCardButton.setOnClickListener { getCardInput(view) }
 
-        movesMadeText = view.findViewById(R.id.moves_counter)
+        movesMadeText = view.findViewById(StrategyController.gsc.gameState.moves.size)
 
         hiddenCardsText = view.findViewById(R.id.hidden_cards)
         hiddenCardsText.text = getString(R.string.hidden_cards, StrategyController.gsc.getNumberOfHiddenCards())
