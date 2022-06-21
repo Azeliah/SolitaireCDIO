@@ -100,7 +100,7 @@ public class SolitaireAnalysisModel {
         }
 
         // Sort ContourNode array by area, such that card contours come first
-        Arrays.sort(nodeArr, (n1, n2) -> (int) (n2.area - n1.area));
+        Arrays.sort(nodeArr, (n1, n2) ->  (int) n2.area - (int) n1.area);
 
         // Store image icons for the n first card contours (talon and columns) in an array of ContentNode nodes
         ContentNode[] matArr = new ContentNode[n];

@@ -69,6 +69,8 @@ class CameraFragment : Fragment(), SensorEventListener {
     private lateinit var sensorManager: SensorManager
     private lateinit var sensor: Sensor
 
+    private var exit: Boolean = false
+
     override fun onDestroyView() {
         _fragmentCameraBinding = null
         super.onDestroyView()
@@ -146,6 +148,9 @@ class CameraFragment : Fragment(), SensorEventListener {
     }
 
     override fun onSensorChanged(event: SensorEvent?) {
+        if (exit)
+            requireActivity().onBackPressed()
+
         event?.let {
             val xAxis = it.values[0]
             val yAxis = it.values[1]
@@ -230,25 +235,28 @@ class CameraFragment : Fragment(), SensorEventListener {
                         val rankArr = solitaireAnalysis.cropIcon(bitmapArr, 5, 5, 30, 58)
                         val suitArr = solitaireAnalysis.cropIcon(bitmapArr, 5, 58, 30, 37)
                         for (i in it.indices) {
-                            // predict return value corresponds to Rank and Suit enum
-                            CardData.rankPredictions[i].add(
-                                modelPredict.predictRank(
-                                    rankArr[i],
-                                    requireContext()
+
+                            context?.let { contextNotNull ->
+                                // predict return value corresponds to Rank and Suit enum
+                                CardData.rankPredictions[i].add(
+                                    modelPredict.predictRank(
+                                        rankArr[i],
+                                        contextNotNull
+                                    )
                                 )
-                            )
-                            CardData.suitPredictions[i].add(
-                                modelPredict.predictSuit(
-                                    suitArr[i],
-                                    requireContext()
+                                CardData.suitPredictions[i].add(
+                                    modelPredict.predictSuit(
+                                        suitArr[i],
+                                        contextNotNull
+                                    )
                                 )
-                            )
+                            }
                         }
 
                         // If Threshold has been reached, navigate back to MovesFragment
                         if (CardData.limitReached()) {
                             if (CardData.isDataConsistent()) {
-                                requireActivity().onBackPressed()
+                                exit = true
                             }
                         }
                     }

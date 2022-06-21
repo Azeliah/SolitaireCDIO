@@ -1,5 +1,6 @@
 package com.cdio.solitaire.data
 
+import android.util.Log
 import com.cdio.solitaire.controller.StrategyController
 import com.cdio.solitaire.model.Rank
 import com.cdio.solitaire.model.Suit
@@ -29,7 +30,7 @@ object CardData {
     }
 
     fun limitReached(): Boolean {
-        return suitPredictions[0].size > 15 // just a limit we can adjust as we please.
+        return suitPredictions[0].size > 5 // just a limit we can adjust as we please.
     }
 
     fun isDataConsistent(): Boolean {
@@ -38,17 +39,20 @@ object CardData {
             val mostPredictedRank = mode(rankPredictions[i])
             val modeRatio = ((suitPredictions[i].count { it == mostPredictedSuit })
                     + (rankPredictions[i].count { it == mostPredictedRank })).toDouble() / (suitPredictions[i].size * 2).toDouble()
-            if (modeRatio < 0.8) {
+            if (modeRatio < 0.8 || mostPredictedRank == -1 || mostPredictedSuit == -1) {
+                Log.d("CameraFragment", "Ratio: $modeRatio, rank predicted: $mostPredictedRank, suit predicted: $mostPredictedSuit")
                 reset()
                 return false
             }
             predictionOutput.add(arrayOf(mostPredictedSuit, mostPredictedRank))
         }
         updateCards()
+        reset()
         return true
     }
 
     private fun updateCards() {
+        Log.d("CameraFragment", "Size of prediction output ${predictionOutput.size}")
         val gameStateController = StrategyController.gsc
         for (i in predictionOutput.indices) {
             val cardStack = gameStateController.getCardStackFromID(i)
