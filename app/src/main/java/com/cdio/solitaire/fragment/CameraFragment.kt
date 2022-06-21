@@ -78,6 +78,11 @@ class CameraFragment : Fragment(), SensorEventListener {
 
         // Shut down our background executor
         cameraExecutor.shutdown()
+
+        // Exit fullscreen mode
+        activity?.let {
+            it.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+            it.window.clearFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)}
     }
 
     override fun onCreateView(
@@ -118,8 +123,11 @@ class CameraFragment : Fragment(), SensorEventListener {
             requireActivity().onBackPressed()
         }
 
-        // Set up the camera and its use cases
-        setUpCamera()
+        // Wait for the views to be properly laid out
+        fragmentCameraBinding.viewFinder.post {
+            // Set up the camera and its use cases
+            setUpCamera()
+        }
     }
 
     /**
