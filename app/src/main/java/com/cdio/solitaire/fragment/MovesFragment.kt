@@ -31,8 +31,6 @@ class MovesFragment : Fragment() {
 
     private lateinit var hiddenCardsText: TextView
 
-    private var movesMade = 0
-
     private var revealedCards: MutableList<Card> = mutableListOf()
 
     override fun onCreateView(
@@ -87,7 +85,7 @@ class MovesFragment : Fragment() {
 
         changeNextMoveText(nextMove.toString())
 
-        movesMadeText.text = getString(R.string.moves_made, ++movesMade)
+        movesMadeText.text = getString(R.string.moves_made, StrategyController.gsc.gameState.moves.size)
         // If the game is won or lost, reset the GameState to allow new game
         if (nextMove.moveType == MoveType.GAME_WON || nextMove.moveType == MoveType.GAME_LOST) {
             StrategyController.gsc.resetGameState()
