@@ -16,4 +16,5 @@
     <string name="wrong_card">Change</string>
     <string name="NA">NA</string>
     <string name="play_again">Play Again</string>
+    <string name="start_game">Start Game</string>
 </resources>

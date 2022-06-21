@@ -55,7 +55,7 @@ class MovesFragment : Fragment() {
         wrongCardButton.isVisible = false
         wrongCardButton.setOnClickListener { getCardInput(view) }
 
-        changeLastRevealedCard()
+        changeLastRevealedCard(view)
     }
 
     private fun navigateToCamera(view: View) {
@@ -82,15 +82,15 @@ class MovesFragment : Fragment() {
             nextButton.text = getString(R.string.play_again)
             nextButton.setOnClickListener { navigateToCamera(view) }
         } else if (nextMove.cardToUpdate != null || nextMove.moveType == MoveType.DEAL_CARDS) {
-            flipButton(view)
+            flipButton(view, getString(R.string.open_camera))
         }
     }
 
     /**
      * Change button to navigate to the camera, when there are no more moves to display
      */
-    private fun flipButton(view: View) {
-        nextButton.text = getString(R.string.open_camera)
+    private fun flipButton(view: View, text: String) {
+        nextButton.text = text
         nextButton.setOnClickListener { navigateToCamera(view) }
     }
 
@@ -142,7 +142,7 @@ class MovesFragment : Fragment() {
                 revealedCards[cardIndex].rank = Rank.values()[rank]
                 revealedCards[cardIndex].suit = Suit.values()[newSuit]
 
-                changeLastRevealedCard()
+                changeLastRevealedCard(view)
 
                 inputField.isVisible = false
                 nextButton.text = getString(R.string.next_move)
@@ -159,7 +159,7 @@ class MovesFragment : Fragment() {
      * Get the last card that was revealed, to allow user to change it.
      * On the first round, it displays all 7 cards
      */
-    private fun changeLastRevealedCard() {
+    private fun changeLastRevealedCard(view: View) {
         revealedCards.clear()
 
         // If it's the first scan of cards, all all new 7 cards, else only add newest card revealed
@@ -171,16 +171,27 @@ class MovesFragment : Fragment() {
             revealedCards.add(StrategyController.gsc.getLastMove().cardToUpdate!!)
         }
 
-        wrongCardButton.isVisible = true
-        revealedCardText.isVisible = true
-
-        var newText = ""
-
-        for (card: Card in revealedCards) {
-            newText += "$card - "
+        var firstScan = true
+        for (card in revealedCards){
+            if (card.suit != Suit.NA){
+                firstScan = false
+            }
         }
+        if(firstScan){
+            flipButton(view, getString(R.string.start_game))
+        }
+        else{
+            wrongCardButton.isVisible = true
+            revealedCardText.isVisible = true
 
-        // Remove the last " - " from the text
-        revealedCardText.text = newText.dropLast(3)
+            var newText = ""
+
+            for (card: Card in revealedCards) {
+                newText += "$card - "
+            }
+
+            // Remove the last " - " from the text
+            revealedCardText.text = newText.dropLast(3)
+        }
     }
 }
