@@ -73,12 +73,6 @@ class CameraFragment : Fragment(), SensorEventListener {
         _fragmentCameraBinding = null
         super.onDestroyView()
 
-        // Exit fullscreen mode
-        activity?.let {
-            it.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
-            it.window.clearFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)
-        }
-
         // Stop listening to rotation changes
         sensorManager.unregisterListener(this)
 
@@ -126,8 +120,6 @@ class CameraFragment : Fragment(), SensorEventListener {
 
         // Set up the camera and its use cases
         setUpCamera()
-
-        activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
     }
 
     /**

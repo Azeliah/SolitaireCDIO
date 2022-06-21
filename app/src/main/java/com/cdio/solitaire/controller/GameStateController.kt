@@ -353,4 +353,14 @@ class GameStateController {
         gameState =
             GameState(foundations, tableaux, talon, stock, mutableListOf(Move(MoveType.DEAL_CARDS)))
     }
+
+    fun getNumberOfHiddenCards(): Int{
+        var hiddenCards = 0
+        hiddenCards += gameState.talon.hiddenCards()
+        hiddenCards += gameState.stock.hiddenCards()
+        for(stack in gameState.tableaux){
+            hiddenCards+= stack.hiddenCards()
+        }
+        return hiddenCards
+    }
 }
