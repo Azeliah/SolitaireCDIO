@@ -26,7 +26,7 @@ class Move(
     fun toStringDanish(): String {
         return when (moveType) {
             MoveType.MOVE_STACK, MoveType.MOVE_FROM_TALON, MoveType.MOVE_FROM_FOUNDATION -> sourceCard!!.toStringDanish() + "-" + targetStack!!.stackID + ","
-            MoveType.MOVE_TO_FOUNDATION -> sourceCard!!.rank.ordinal.toString() + sourceCard.suit.shortDanish() + "-F,"
+            MoveType.MOVE_TO_FOUNDATION -> sourceCard!!.toStringDanish() + "-F,"
             MoveType.DRAW_STOCK -> "T,"
             MoveType.FLIP_TALON -> "S,"
             else -> ""
@@ -44,8 +44,4 @@ class Move(
             MoveType.GAME_LOST -> "YOU LOST"
         }
     }
-
-//    override fun toString(): String {
-//        return "{ moveType: ${moveType.toString()}, sourceStack: ${sourceStack.toString()}, targetStack: ${targetStack.toString()}, sourceCard: ${sourceCard.toString()}, cardToUpdate: ${cardToUpdate.toString()}}"
-//    }
 }

@@ -45,13 +45,13 @@ class GameStateController {
     /**
      * Retrieve a cardStack using the ID. The numbering is in compliance with initial gameState.
      */
-    fun getCardStackFromID(stackID: Int): CardStack? { // Added for ease, might be deleted later
+    fun getCardStackFromID(stackID: Int): CardStack { // Added for ease, might be deleted later
         return when (stackID) {
-            in 1..7 -> gameState.tableaux[stackID]
-            in 8..11 -> gameState.foundations[stackID - 7]
+            in 1..7 -> gameState.tableaux[stackID - 1]
+            in 8..11 -> gameState.foundations[stackID - 8]
             12 -> gameState.stock
             0 -> gameState.talon
-            else -> null
+            else -> throw Exception("Invalid stackID: $stackID.")
         }
     }
 
@@ -89,7 +89,7 @@ class GameStateController {
     /**
      * moveStack moves a stack and adds cardToUpdate information to the move object.
      */
-    private fun moveStack( // TODO: Does this actually need cardsToMove? See popStack comment.
+    private fun moveStack(
         sourceStack: CardStack,
         cardsToMove: Int,
         targetStack: CardStack
@@ -128,9 +128,7 @@ class GameStateController {
                 cardToUpdate = cardToUpdate(gameState.talon)
             }
             MoveType.DEAL_CARDS -> throw Exception("DEAL_CARDS is not for use here.")
-            else -> {
-                // println(move.moveType)
-            }
+            else -> {} // Do nothing for GAME_WIN and GAME_LOSS
         }
         move.cardToUpdate = cardToUpdate
         gameState.moves.add(move)
@@ -354,5 +352,15 @@ class GameStateController {
         dealOutDeck(deck, tableaux, stock)
         gameState =
             GameState(foundations, tableaux, talon, stock, mutableListOf(Move(MoveType.DEAL_CARDS)))
+    }
+
+    fun getNumberOfHiddenCards(): Int{
+        var hiddenCards = 0
+        hiddenCards += gameState.talon.hiddenCards()
+        hiddenCards += gameState.stock.hiddenCards()
+        for(stack in gameState.tableaux){
+            hiddenCards+= stack.hiddenCards()
+        }
+        return hiddenCards
     }
 }

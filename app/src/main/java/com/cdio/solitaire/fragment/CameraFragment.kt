@@ -16,8 +16,8 @@ import android.util.Log
 import android.util.Size
 import android.view.*
 import android.view.Surface.ROTATION_90
-import android.widget.TextView
 import android.widget.Button
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.*
 import androidx.camera.core.Camera
@@ -26,10 +26,10 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.cdio.solitaire.R
+import com.cdio.solitaire.data.CardData
 import com.cdio.solitaire.databinding.FragmentCameraBinding
-import com.cdio.solitaire.imageanalysis.CardDataCreationModel
 import com.cdio.solitaire.imageanalysis.SolitaireAnalysisModel
-import com.cdio.solitaire.ml.RankModel
+import com.cdio.solitaire.ml.ModelPredictions
 import org.opencv.android.Utils
 import org.opencv.core.Mat
 import java.io.ByteArrayOutputStream
@@ -42,7 +42,7 @@ import java.util.concurrent.Executors
 
 
 /** Helper type alias used for analysis use case callbacks */
-typealias CardAnalyzerListener = () -> Unit
+typealias CardAnalyzerListener = (bitmapArr: Array<Bitmap>?, solitaireAnalysis: SolitaireAnalysisModel) -> Unit
 
 class CameraFragment : Fragment(), SensorEventListener {
 
@@ -69,21 +69,22 @@ class CameraFragment : Fragment(), SensorEventListener {
     private lateinit var sensorManager: SensorManager
     private lateinit var sensor: Sensor
 
+    private var exit: Boolean = false
+
     override fun onDestroyView() {
         _fragmentCameraBinding = null
         super.onDestroyView()
-
-        // Exit fullscreen mode
-        activity?.let {
-            it.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
-            it.window.clearFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)
-        }
 
         // Stop listening to rotation changes
         sensorManager.unregisterListener(this)
 
         // Shut down our background executor
         cameraExecutor.shutdown()
+
+        // Exit fullscreen mode
+        activity?.let {
+            it.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+            it.window.clearFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)}
     }
 
     override fun onCreateView(
@@ -124,10 +125,11 @@ class CameraFragment : Fragment(), SensorEventListener {
             requireActivity().onBackPressed()
         }
 
-        // Set up the camera and its use cases
-        setUpCamera()
-
-        activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+        // Wait for the views to be properly laid out
+        fragmentCameraBinding.viewFinder.post {
+            // Set up the camera and its use cases
+            setUpCamera()
+        }
     }
 
     /**
@@ -146,6 +148,9 @@ class CameraFragment : Fragment(), SensorEventListener {
     }
 
     override fun onSensorChanged(event: SensorEvent?) {
+        if (exit)
+            requireActivity().onBackPressed()
+
         event?.let {
             val xAxis = it.values[0]
             val yAxis = it.values[1]
@@ -214,13 +219,47 @@ class CameraFragment : Fragment(), SensorEventListener {
         // ImageAnalysis
         imageAnalyzer = ImageAnalysis.Builder()
             // We request a specific resolution
-            .setTargetResolution(Size(4032,1816))
+            .setTargetResolution(Size(4032, 1816))
             .setTargetRotation(ROTATION_90)
             .build()
             // The analyzer can then be assigned to the instance
-            .also {
-                it.setAnalyzer(cameraExecutor, CardAnalyzer(thisContext) {
-                    Log.d(TAG, "CardAnalyzerListener called")
+            .also { analyzer ->
+                analyzer.setAnalyzer(cameraExecutor, CardAnalyzer { bitmapArr: Array<Bitmap>?, solitaireAnalysis: SolitaireAnalysisModel ->
+                    if (bitmapArr == null)
+                        Log.e(TAG, "Failure. No complete solitaire game was found!")
+
+                    bitmapArr?.let {
+                        Log.d(TAG, "Success. A complete solitaire game was found!")
+
+                        val modelPredict = ModelPredictions()
+                        val rankArr = solitaireAnalysis.cropIcon(bitmapArr, 5, 5, 30, 58)
+                        val suitArr = solitaireAnalysis.cropIcon(bitmapArr, 5, 58, 30, 37)
+                        for (i in it.indices) {
+
+                            context?.let { contextNotNull ->
+                                // predict return value corresponds to Rank and Suit enum
+                                CardData.rankPredictions[i].add(
+                                    modelPredict.predictRank(
+                                        rankArr[i],
+                                        contextNotNull
+                                    )
+                                )
+                                CardData.suitPredictions[i].add(
+                                    modelPredict.predictSuit(
+                                        suitArr[i],
+                                        contextNotNull
+                                    )
+                                )
+                            }
+                        }
+
+                        // If Threshold has been reached, navigate back to MovesFragment
+                        if (CardData.limitReached()) {
+                            if (CardData.isDataConsistent()) {
+                                exit = true
+                            }
+                        }
+                    }
                 })
             }
 
@@ -247,8 +286,8 @@ class CameraFragment : Fragment(), SensorEventListener {
      * Analyzes the image for valid cards and tries to construct information about the current deck.
      * The deck is returned to any potential listeners added in constructor or with onFrameAnalyzed.
      */
-    private class CardAnalyzer(context: Context, listener: CardAnalyzerListener? = null) : ImageAnalysis.Analyzer {
-        private val context = context
+    private class CardAnalyzer(listener: CardAnalyzerListener? = null) :
+        ImageAnalysis.Analyzer {
         private val listeners =
             ArrayList<CardAnalyzerListener>().apply { listener?.let { add(it) } }
 
@@ -291,21 +330,9 @@ class CameraFragment : Fragment(), SensorEventListener {
             val solitaireAnalysis = SolitaireAnalysisModel()
             val bitmapArr = solitaireAnalysis.extractSolitaire(mat)
 
-            // Todo add code for ML and GameMoves
+            for (listener in listeners)
+                listener(bitmapArr, solitaireAnalysis)
 
-            if (bitmapArr != null) {
-                Log.d(TAG, "Success. A complete solitaire game was found!")
-
-                // Todo remove when no longer needed or make debug only
-                /*
-                val date = System.currentTimeMillis().toString()
-                for (i in bitmapArr.indices) {
-                    saveToStorage(date, i , bitmapArr[i])
-                }
-                 */
-            } else {
-                Log.e(TAG, "Failure. No complete solitaire game was found!")
-            }
             mat.release()
 
             image.close()
@@ -317,14 +344,21 @@ class CameraFragment : Fragment(), SensorEventListener {
          * <p> This is supposed to be used for debugging only; the bitmap should be passed
          * to our ML model in the future.
          */
-        fun saveToStorage(timeStamp: String, index: Int, bitmapImage: Bitmap) {
-            val directory = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).absolutePath + "/solitare_" + timeStamp)
+        fun saveToStorage(
+            timeStamp: String,
+            index: Int,
+            bitmapImage: Bitmap,
+            rank: Int,
+            suit: Int
+        ) {
+            val directory =
+                File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).absolutePath + "/solitare_" + timeStamp)
             if (!directory.exists()) {
                 directory.mkdir()
             }
-            val file = File(directory, timeStamp + "_" + index.toString() + ".jpeg")
+            val file = File(directory, timeStamp + "_" + index + "_" + suit + "_" + rank + ".jpeg")
             if (!file.exists()) {
-                file.createNewFile();
+                file.createNewFile()
             }
             var fos: FileOutputStream? = null
             try {

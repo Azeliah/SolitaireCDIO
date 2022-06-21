@@ -16,4 +16,7 @@
     <string name="wrong_card">Change</string>
     <string name="NA">NA</string>
     <string name="play_again">Play Again</string>
+    <string name="start_game">Start Game</string>
+    <string name="moves_made">Moves: %d</string>
+    <string name="hidden_cards">Hidden Cards: %d</string>
 </resources>
