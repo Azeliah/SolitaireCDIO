@@ -73,6 +73,6 @@ class Card(var stackID: Int, var rank: Rank = Rank.NA, var suit: Suit = Suit.NA)
     }
 
     override fun toString(): String {
-        return rank.ordinal.toString() + suit.short()
+        return "$rank OF $suit"
     }
 }
