@@ -73,6 +73,20 @@ class Card(var stackID: Int, var rank: Rank = Rank.NA, var suit: Suit = Suit.NA)
     }
 
     override fun toString(): String {
-        return "$rank OF $suit"
+        val newSuit = when(suit){
+            Suit.DIAMONDS -> "♦"
+            Suit.CLUBS -> "♣"
+            Suit.HEARTS -> "♥"
+            Suit.SPADES -> "♠"
+            Suit.NA -> "NA"
+        }
+        val newRank = when(rank.ordinal){
+            1 -> "A"
+            11 -> "J"
+            12 -> "Q"
+            13 -> "K"
+            else -> rank.ordinal
+        }
+        return newSuit + newRank
     }
 }

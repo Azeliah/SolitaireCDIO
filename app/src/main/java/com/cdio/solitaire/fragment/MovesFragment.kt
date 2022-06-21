@@ -197,7 +197,7 @@ class MovesFragment : Fragment() {
             var newText = ""
 
             for (card: Card in revealedCards) {
-                newText += card.rank.ordinal.toString() + card.suit.short() + " - "
+                newText += "$card - "
             }
 
             // Remove the last " - " from the text
