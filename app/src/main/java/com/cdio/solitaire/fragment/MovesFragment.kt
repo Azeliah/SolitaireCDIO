@@ -172,15 +172,14 @@ class MovesFragment : Fragment() {
         }
 
         var firstScan = true
-        for (card in revealedCards){
-            if (card.suit != Suit.NA){
+        for (card in revealedCards) {
+            if (card.suit != Suit.NA) {
                 firstScan = false
             }
         }
-        if(firstScan){
+        if (firstScan) {
             flipButton(view, getString(R.string.start_game))
-        }
-        else{
+        } else {
             wrongCardButton.isVisible = true
             revealedCardText.isVisible = true
 
