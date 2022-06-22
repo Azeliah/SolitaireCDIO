@@ -8,7 +8,6 @@ import org.tensorflow.lite.support.image.TensorImage
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
 
 
-
 class ModelPredictions {
 
     private val helpers = MLHelpers()
@@ -19,7 +18,10 @@ class ModelPredictions {
      */
     fun predictRank(bitmap: Bitmap, context: Context): Int {
         val newBitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true)
-        val tfImage = TensorBuffer.createFrom(TensorImage.fromBitmap(newBitmap).tensorBuffer, DataType.FLOAT32)
+        val tfImage = TensorBuffer.createFrom(
+            TensorImage.fromBitmap(newBitmap).tensorBuffer,
+            DataType.FLOAT32
+        )
         Log.d("tfImage shape", tfImage.buffer.toString())
 
         val model = Rank.newInstance(context)
@@ -42,9 +44,12 @@ class ModelPredictions {
      * Returns -1 if the confidence is NOT high enough
      * Else returns the index of the card.
      */
-    fun predictSuit(bitmap: Bitmap, context: Context) : Int{
+    fun predictSuit(bitmap: Bitmap, context: Context): Int {
         val newBitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true)
-        val tfImage = TensorBuffer.createFrom(TensorImage.fromBitmap(newBitmap).tensorBuffer, DataType.FLOAT32)
+        val tfImage = TensorBuffer.createFrom(
+            TensorImage.fromBitmap(newBitmap).tensorBuffer,
+            DataType.FLOAT32
+        )
         Log.d("tfImage shape", tfImage.buffer.toString())
 
         // TODO: Change to suit model instance.

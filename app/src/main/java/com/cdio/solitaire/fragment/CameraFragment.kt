@@ -14,8 +14,11 @@ import android.os.Bundle
 import android.os.Environment
 import android.util.Log
 import android.util.Size
-import android.view.*
+import android.view.LayoutInflater
 import android.view.Surface.ROTATION_90
+import android.view.View
+import android.view.ViewGroup
+import android.view.WindowManager
 import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -36,7 +39,6 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
-import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -84,7 +86,8 @@ class CameraFragment : Fragment(), SensorEventListener {
         // Exit fullscreen mode
         activity?.let {
             it.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
-            it.window.clearFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)}
+            it.window.clearFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)
+        }
     }
 
     override fun onCreateView(
@@ -224,43 +227,45 @@ class CameraFragment : Fragment(), SensorEventListener {
             .build()
             // The analyzer can then be assigned to the instance
             .also { analyzer ->
-                analyzer.setAnalyzer(cameraExecutor, CardAnalyzer { bitmapArr: Array<Bitmap>?, solitaireAnalysis: SolitaireAnalysisModel ->
-                    if (bitmapArr == null)
-                        Log.e(TAG, "Failure. No complete solitaire game was found!")
+                analyzer.setAnalyzer(
+                    cameraExecutor,
+                    CardAnalyzer { bitmapArr: Array<Bitmap>?, solitaireAnalysis: SolitaireAnalysisModel ->
+                        if (bitmapArr == null)
+                            Log.e(TAG, "Failure. No complete solitaire game was found!")
 
-                    bitmapArr?.let {
-                        Log.d(TAG, "Success. A complete solitaire game was found!")
+                        bitmapArr?.let {
+                            Log.d(TAG, "Success. A complete solitaire game was found!")
 
-                        val modelPredict = ModelPredictions()
-                        val rankArr = solitaireAnalysis.cropIcon(bitmapArr, 5, 5, 30, 58)
-                        val suitArr = solitaireAnalysis.cropIcon(bitmapArr, 5, 58, 30, 37)
-                        for (i in it.indices) {
+                            val modelPredict = ModelPredictions()
+                            val rankArr = solitaireAnalysis.cropIcon(bitmapArr, 5, 5, 30, 58)
+                            val suitArr = solitaireAnalysis.cropIcon(bitmapArr, 5, 58, 30, 37)
+                            for (i in it.indices) {
 
-                            context?.let { contextNotNull ->
-                                // predict return value corresponds to Rank and Suit enum
-                                CardData.rankPredictions[i].add(
-                                    modelPredict.predictRank(
-                                        rankArr[i],
-                                        contextNotNull
+                                context?.let { contextNotNull ->
+                                    // predict return value corresponds to Rank and Suit enum
+                                    CardData.rankPredictions[i].add(
+                                        modelPredict.predictRank(
+                                            rankArr[i],
+                                            contextNotNull
+                                        )
                                     )
-                                )
-                                CardData.suitPredictions[i].add(
-                                    modelPredict.predictSuit(
-                                        suitArr[i],
-                                        contextNotNull
+                                    CardData.suitPredictions[i].add(
+                                        modelPredict.predictSuit(
+                                            suitArr[i],
+                                            contextNotNull
+                                        )
                                     )
-                                )
+                                }
+                            }
+
+                            // If Threshold has been reached, navigate back to MovesFragment
+                            if (CardData.limitReached()) {
+                                if (CardData.isDataConsistent()) {
+                                    exit = true
+                                }
                             }
                         }
-
-                        // If Threshold has been reached, navigate back to MovesFragment
-                        if (CardData.limitReached()) {
-                            if (CardData.isDataConsistent()) {
-                                exit = true
-                            }
-                        }
-                    }
-                })
+                    })
             }
 
         // Must unbind the use-cases before rebinding them

@@ -136,16 +136,6 @@ class CardStack(val stackID: Int) {
         stack.resetCardStack()
     }
 
-    fun copyOf(): CardStack {
-        val newStack = CardStack(stackID)
-        var cardToCopy = head
-        while (cardToCopy != null) {
-            newStack.pushCard(cardToCopy.copyOf())
-            cardToCopy = cardToCopy.next
-        }
-        return newStack
-    }
-
     /**
      * Gets the first instance of a revealed card in a stack.
      */

@@ -40,7 +40,10 @@ object CardData {
             val modeRatio = ((suitPredictions[i].count { it == mostPredictedSuit })
                     + (rankPredictions[i].count { it == mostPredictedRank })).toDouble() / (suitPredictions[i].size * 2).toDouble()
             if (modeRatio < 0.8 || mostPredictedRank == -1 || mostPredictedSuit == -1) {
-                Log.d("CameraFragment", "Ratio: $modeRatio, rank predicted: $mostPredictedRank, suit predicted: $mostPredictedSuit")
+                Log.d(
+                    "CameraFragment",
+                    "Ratio: $modeRatio, rank predicted: $mostPredictedRank, suit predicted: $mostPredictedSuit"
+                )
                 reset()
                 return false
             }
