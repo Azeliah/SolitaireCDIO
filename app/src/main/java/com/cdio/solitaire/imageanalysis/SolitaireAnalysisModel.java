@@ -28,7 +28,9 @@ public class SolitaireAnalysisModel {
 
     private final String TAG = "SolitaireAnalysisModel";
 
-    /** Method for extracting suit and rank icon from every card in a Solitaire game image as Bitmaps */
+    /**
+     * Method for extracting suit and rank icon from every card in a Solitaire game image as Bitmaps
+     */
     public Bitmap[] extractSolitaire(Mat src) {
         // Convert to BGR colors
         Imgproc.cvtColor(src, src, Imgproc.COLOR_BGRA2BGR);
@@ -41,7 +43,7 @@ public class SolitaireAnalysisModel {
             // Solitaire cards are sorted, first by position along the y-axes (talon), and then by position along the x-axes (Columns 1 to 7)
             Arrays.sort(game, (n1, n2) -> (int) (n1.position.y - n2.position.y));
             ContentNode talon = game[0];
-            ContentNode[] columns = Arrays.copyOfRange(game,1,8);
+            ContentNode[] columns = Arrays.copyOfRange(game, 1, 8);
             Arrays.sort(columns, (n1, n2) -> (int) (n1.position.x - n2.position.x));
 
             // Convert to array of BitMaps and release the Mat objects still in memory
@@ -53,22 +55,24 @@ public class SolitaireAnalysisModel {
                     bitmapArr[i] = bitmap;
                     talon.content.release();
                 } else {
-                    Utils.matToBitmap(columns[i-1].content, bitmap);
+                    Utils.matToBitmap(columns[i - 1].content, bitmap);
                     bitmapArr[i] = bitmap;
-                    columns[i-1].content.release();
+                    columns[i - 1].content.release();
                 }
             }
             src.release();
             return bitmapArr;
         } else {
             src.release();
-            Log.e(TAG,"No suitable game was found!");
+            Log.e(TAG, "No suitable game was found!");
             return null;
         }
     }
 
-    /** Method for extracting a specific number of card suit and rank icons in an image
-     * Inspiration: https://github.com/geaxgx/playing-card-detection/blob/master/creating_playing_cards_dataset.ipynb */
+    /**
+     * Method for extracting a specific number of card suit and rank icons in an image
+     * Inspiration: https://github.com/geaxgx/playing-card-detection/blob/master/creating_playing_cards_dataset.ipynb
+     */
     public ContentNode[] extractCards(Mat src, int n) {
 
         // Detection of edges using Canny edge detection
@@ -77,7 +81,7 @@ public class SolitaireAnalysisModel {
         // Arraylist of MatOfPoints found using findContours on external contours
         List<MatOfPoint> points = new ArrayList<>();
         Mat contours = new Mat();
-        Imgproc.findContours(edge,points,contours,Imgproc.RETR_EXTERNAL,Imgproc.CHAIN_APPROX_SIMPLE);
+        Imgproc.findContours(edge, points, contours, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
 
         // If less than n points/contours where found, return null
         if (points.size() < n) {
@@ -96,11 +100,11 @@ public class SolitaireAnalysisModel {
             RotatedRect rect = Imgproc.minAreaRect(cnt);
             double area = rect.size.height * rect.size.width;
 
-            nodeArr[contourId] = new ContourNode(contourId,area,rect.center);
+            nodeArr[contourId] = new ContourNode(contourId, area, rect.center);
         }
 
         // Sort ContourNode array by area, such that card contours come first
-        Arrays.sort(nodeArr, (n1, n2) ->  (int) n2.area - (int) n1.area);
+        Arrays.sort(nodeArr, (n1, n2) -> (int) n2.area - (int) n1.area);
 
         // Store image icons for the n first card contours (talon and columns) in an array of ContentNode nodes
         ContentNode[] matArr = new ContentNode[n];
@@ -146,7 +150,7 @@ public class SolitaireAnalysisModel {
                 Mat resize = resizeIcon(icon);
 
                 // Add ContentNode containing a card position and a Mat image of the icon crop to array
-                matArr[i] = new ContentNode(resize,nodeArr[i].center);
+                matArr[i] = new ContentNode(resize, nodeArr[i].center);
 
                 // Release Mat objects that are still in memory
                 box.release();
@@ -156,7 +160,7 @@ public class SolitaireAnalysisModel {
                 src.release();
                 edge.release();
                 contours.release();
-                Log.e(TAG,"Card " + i + " was not valid: " + "Width: " + rect.size.width + " ,height: " + rect.size.height);
+                Log.e(TAG, "Card " + i + " was not valid: " + "Width: " + rect.size.width + " ,height: " + rect.size.height);
                 return null;
             }
         }
@@ -168,7 +172,9 @@ public class SolitaireAnalysisModel {
         return matArr;
     }
 
-    /** Method for detecting edges in an image using Canny edge detection */
+    /**
+     * Method for detecting edges in an image using Canny edge detection
+     */
     private Mat cannyEdge(Mat src) {
 
         // Blur image to remove small details and imperfections
@@ -201,7 +207,9 @@ public class SolitaireAnalysisModel {
         return edge;
     }
 
-    /** Method for extracting card icon from upper left corner containing suit and rank */
+    /**
+     * Method for extracting card icon from upper left corner containing suit and rank
+     */
     public Mat extractIcon(Mat src) {
         Mat original = src.clone();
         Rect rect = new Rect();
@@ -212,22 +220,26 @@ public class SolitaireAnalysisModel {
         return original.submat(rect);
     }
 
-    /** Method for converting card icon to binary colors and resizing to 40x100 pixels */
+    /**
+     * Method for converting card icon to binary colors and resizing to 40x100 pixels
+     */
     public Mat resizeIcon(Mat src) {
-        Imgproc.cvtColor(src,src,Imgproc.COLOR_RGB2GRAY);
-        Imgproc.adaptiveThreshold(src,src, 255, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY, 15, 9);
-        Size sz = new Size(40,100);
-        Imgproc.resize( src, src, sz );
+        Imgproc.cvtColor(src, src, Imgproc.COLOR_RGB2GRAY);
+        Imgproc.adaptiveThreshold(src, src, 255, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY, 15, 9);
+        Size sz = new Size(40, 100);
+        Imgproc.resize(src, src, sz);
         return src;
     }
 
-    /** Method for cropping an array og Bitmaps to a specific offset and size */
+    /**
+     * Method for cropping an array og Bitmaps to a specific offset and size
+     */
     public Bitmap[] cropIcon(Bitmap[] bitMapArr, int xOffset, int yOffset, int width, int height) {
         int length = bitMapArr.length;
         Bitmap[] newBitMap = new Bitmap[length];
         for (int i = 0; i < length; i++) {
-            newBitMap[i] = Bitmap.createBitmap(bitMapArr[i],xOffset,yOffset,width,height);
+            newBitMap[i] = Bitmap.createBitmap(bitMapArr[i], xOffset, yOffset, width, height);
         }
-        return  newBitMap;
+        return newBitMap;
     }
 }

@@ -2,9 +2,9 @@ package com.cdio.solitaire
 
 import android.Manifest
 import android.content.pm.PackageManager
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -22,7 +22,7 @@ class MainActivity : AppCompatActivity() {
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
 
         // Load in OpenCV library
-        System.loadLibrary("opencv_java4");
+        System.loadLibrary("opencv_java4")
 
         if (!allPermissionsGranted()) {
             ActivityCompat.requestPermissions(

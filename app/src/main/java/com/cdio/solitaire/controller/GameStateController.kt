@@ -9,7 +9,7 @@ class GameStateController {
      * Creates the initial gameState. Refer to this for cardStack IDs.
      */
     init {
-        val deck = createNullCardStack(52, -1)
+        val deck = createNullCardStack()
         val foundations = Array(4) { i -> CardStack(i + 8) } // 8, 9, 10, 11
         val tableaux = Array(7) { i -> CardStack(i + 1) } // 1, 2, 3, 4, 5, 6, 7
         val stock = CardStack(12)
@@ -36,9 +36,9 @@ class GameStateController {
     /**
      * Used to create anonymous (hidden) cards.
      */
-    private fun createNullCardStack(cardCount: Int, stackID: Int): CardStack {
-        val cardStack = CardStack(stackID)
-        for (i in 0 until cardCount) cardStack.pushCard(Card(stackID))
+    private fun createNullCardStack(): CardStack {
+        val cardStack = CardStack(-1)
+        for (i in 0 until 52) cardStack.pushCard(Card(-1))
         return cardStack
     }
 
@@ -65,7 +65,6 @@ class GameStateController {
     /**
      * Draw 3 cards from stock. Do accounting on hiddenCards, and, if needed, signal card recognition.
      */
-    // TODO: Consider legal move check.
     private fun drawFromStock(): Card? {
         if (gameState.stock.size < 3) throw Exception("EmptyStackPop: Not enough cards in stock to draw to talon.")
         // Cannot use gsc.moveStack here, because we want to check talon.tail, not stock.tail - and move cards one at a time.
@@ -283,16 +282,6 @@ class GameStateController {
         }
     }
 
-    fun copyGameState(): GameState {
-        val tableaux =
-            Array<CardStack>(gameState.tableaux.size) { i -> gameState.tableaux[i].copyOf() }
-        val foundations =
-            Array<CardStack>(gameState.foundations.size) { i -> gameState.foundations[i].copyOf() }
-        val stock = gameState.stock.copyOf()
-        val talon = gameState.talon.copyOf()
-        val moves = gameState.moves.toMutableList()
-        return GameState(foundations, tableaux, talon, stock, moves)
-    }
 
     fun getLowestBlackFoundation(): Int {
         var blackCounter = 0
@@ -338,13 +327,13 @@ class GameStateController {
         return resultString
     }
 
-    fun isGameWon(): Boolean { // Might be useful in general??
+    fun isGameWon(): Boolean {
         for (foundation in gameState.foundations) if (foundation.size != 13) return false
         return true
     }
 
     fun resetGameState() {
-        val deck = createNullCardStack(52, -1)
+        val deck = createNullCardStack()
         val foundations = Array(4) { i -> CardStack(i + 8) } // 8, 9, 10, 11
         val tableaux = Array(7) { i -> CardStack(i + 1) } // 1, 2, 3, 4, 5, 6, 7
         val stock = CardStack(12)
@@ -354,12 +343,12 @@ class GameStateController {
             GameState(foundations, tableaux, talon, stock, mutableListOf(Move(MoveType.DEAL_CARDS)))
     }
 
-    fun getNumberOfHiddenCards(): Int{
+    fun getNumberOfHiddenCards(): Int {
         var hiddenCards = 0
         hiddenCards += gameState.talon.hiddenCards()
         hiddenCards += gameState.stock.hiddenCards()
-        for(stack in gameState.tableaux){
-            hiddenCards+= stack.hiddenCards()
+        for (stack in gameState.tableaux) {
+            hiddenCards += stack.hiddenCards()
         }
         return hiddenCards
     }

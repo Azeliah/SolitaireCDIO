@@ -4,12 +4,12 @@ import com.cdio.solitaire.controller.StrategyController
 import com.cdio.solitaire.model.*
 import org.junit.Test
 
-class DataSource (random: Boolean) {
+class DataSource(random: Boolean) {
     // This essentially mimics the user actions with the physical cards that still need to be recognized
     private val sortedDeck: Array<Card>
     val shuffledDeck: Array<Card>
-    val tableaux: Array<CardStack>
-    val stock: CardStack
+    private val tableaux: Array<CardStack>
+    private val stock: CardStack
     val talon: CardStack
 
     init {
@@ -20,15 +20,58 @@ class DataSource (random: Boolean) {
             shuffledDeck.shuffle()
         } else {
             shuffledDeck = arrayOf(
-                sortedDeck[25], sortedDeck[35], sortedDeck[21], sortedDeck[32], sortedDeck[29], sortedDeck[1],
-                sortedDeck[4], sortedDeck[31], sortedDeck[37], sortedDeck[47], sortedDeck[12], sortedDeck[26],
-                sortedDeck[22], sortedDeck[13], sortedDeck[20], sortedDeck[38], sortedDeck[51], sortedDeck[18],
-                sortedDeck[45], sortedDeck[15], sortedDeck[48], sortedDeck[9], sortedDeck[17], sortedDeck[6],
-                sortedDeck[2], sortedDeck[23], sortedDeck[33], sortedDeck[0], sortedDeck[5], sortedDeck[8],
-                sortedDeck[24], sortedDeck[43], sortedDeck[28], sortedDeck[16], sortedDeck[19], sortedDeck[10],
-                sortedDeck[46], sortedDeck[49], sortedDeck[50], sortedDeck[41], sortedDeck[7], sortedDeck[30],
-                sortedDeck[34], sortedDeck[3], sortedDeck[11], sortedDeck[27], sortedDeck[44], sortedDeck[39],
-                sortedDeck[36], sortedDeck[42], sortedDeck[14], sortedDeck[40]
+                sortedDeck[25],
+                sortedDeck[35],
+                sortedDeck[21],
+                sortedDeck[32],
+                sortedDeck[29],
+                sortedDeck[1],
+                sortedDeck[4],
+                sortedDeck[31],
+                sortedDeck[37],
+                sortedDeck[47],
+                sortedDeck[12],
+                sortedDeck[26],
+                sortedDeck[22],
+                sortedDeck[13],
+                sortedDeck[20],
+                sortedDeck[38],
+                sortedDeck[51],
+                sortedDeck[18],
+                sortedDeck[45],
+                sortedDeck[15],
+                sortedDeck[48],
+                sortedDeck[9],
+                sortedDeck[17],
+                sortedDeck[6],
+                sortedDeck[2],
+                sortedDeck[23],
+                sortedDeck[33],
+                sortedDeck[0],
+                sortedDeck[5],
+                sortedDeck[8],
+                sortedDeck[24],
+                sortedDeck[43],
+                sortedDeck[28],
+                sortedDeck[16],
+                sortedDeck[19],
+                sortedDeck[10],
+                sortedDeck[46],
+                sortedDeck[49],
+                sortedDeck[50],
+                sortedDeck[41],
+                sortedDeck[7],
+                sortedDeck[30],
+                sortedDeck[34],
+                sortedDeck[3],
+                sortedDeck[11],
+                sortedDeck[27],
+                sortedDeck[44],
+                sortedDeck[39],
+                sortedDeck[36],
+                sortedDeck[42],
+                sortedDeck[14],
+                sortedDeck[40]
             )
         }
         val deck = CardStack(-1)
@@ -73,7 +116,7 @@ class DataSource (random: Boolean) {
     }
 
     fun updateFirstLayer(): Array<Card?> {
-        val cards = Array<Card?>(7) { _ -> null }
+        val cards = Array<Card?>(7) { null }
         for (i in tableaux.indices) {
             cards[i] = tableaux[i].popCard()
         }
@@ -92,7 +135,8 @@ class StrategySimulation {
         var movesMade = 0 // in winning games this is incremented
         repeat(iterations) {
             strategyController.reset()
-            val dataSource = DataSource(randomSimulation) // Use false for the handed in deck sorting
+            val dataSource =
+                DataSource(randomSimulation) // Use false for the handed in deck sorting
             val cards = dataSource.updateFirstLayer()
             for (i in cards.indices) {
                 StrategyController.gsc.gameState.tableaux[i].tail!!.rank = cards[i]!!.rank
@@ -101,7 +145,7 @@ class StrategySimulation {
             var gameFinished = false
             var rounds = 400
             val roundsMax = rounds
-            val moveCounter = Array(MoveType.values().size) { _ -> 0 }
+            val moveCounter = Array(MoveType.values().size) { 0 }
             while (!gameFinished && rounds != 0) {
                 rounds--
                 val moveToPlay = StrategyController.nextMove()
@@ -132,9 +176,9 @@ class StrategySimulation {
                     gameFinished = true
                 }
             }
-            if (StrategyController.gameIsWon) { //strategyController.gameIsWon
+            if (StrategyController.gameIsWon) {
                 gamesWon++
-                movesMade += roundsMax-rounds
+                movesMade += roundsMax - rounds
                 if (printSolutions) {
                     var deckString = ""
                     for (i in dataSource.shuffledDeck.indices) deckString += dataSource.shuffledDeck[51 - i].toStringDanish() + ","

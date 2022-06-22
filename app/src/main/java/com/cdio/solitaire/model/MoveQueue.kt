@@ -1,8 +1,8 @@
 package com.cdio.solitaire.model
 
-class MoveQueue(var gameState: GameState) {
-    var head: Move? = null
-    var tail: Move? = null
+class MoveQueue {
+    private var head: Move? = null
+    private var tail: Move? = null
     var size: Int = 0
     var moveSequenceValue = 0
 
@@ -39,13 +39,6 @@ class MoveQueue(var gameState: GameState) {
         }
         size--
         return poppedMove
-    }
-
-    fun clearMoveQueue() {
-        head = null
-        tail = null
-        size = 0
-        moveSequenceValue = 0
     }
 
     fun isEmpty(): Boolean {
